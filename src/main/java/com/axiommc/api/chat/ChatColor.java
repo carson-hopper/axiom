@@ -1,7 +1,11 @@
 package com.axiommc.api.chat;
 
 /**
- * @param legacyCode '\0' if not a named color
+ * Represents a color for chat text, supporting both RGB values and legacy Minecraft color codes.
+ *
+ * @param rgb the RGB color value (0x000000 to 0xFFFFFF)
+ * @param legacyCode '\0' if not a named color; otherwise a legacy Minecraft color code ('0'-'f')
+ * @param namedColor true if this color has a corresponding legacy code
  */
 public record ChatColor(int rgb, char legacyCode, boolean namedColor) {
 
@@ -29,14 +33,35 @@ public record ChatColor(int rgb, char legacyCode, boolean namedColor) {
 
     // ── Factories ──────────────────────────────────────────────────────────
 
+    /**
+     * Creates a color from an RGB value.
+     *
+     * @param rgb the RGB value (0x000000 to 0xFFFFFF)
+     * @return a new ChatColor with the given RGB value
+     */
     public static ChatColor color(int rgb) {
         return new ChatColor(rgb & 0xFFFFFF, '\0', false);
     }
 
+    /**
+     * Creates a color from separate red, green, and blue components.
+     *
+     * @param r the red component (0-255)
+     * @param g the green component (0-255)
+     * @param b the blue component (0-255)
+     * @return a new ChatColor with the specified RGB values
+     */
     public static ChatColor color(int r, int g, int b) {
         return color(((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF));
     }
 
+    /**
+     * Parses a color from a hexadecimal string.
+     *
+     * @param hex the hex color string (with or without "#" prefix, e.g., "FF0000" or "#FF0000")
+     * @return a new ChatColor parsed from the hex string
+     * @throws IllegalArgumentException if the hex string is invalid
+     */
     public static ChatColor color(String hex) {
         String s = hex.startsWith("#") ? hex.substring(1) : hex;
         try {
@@ -48,14 +73,17 @@ public record ChatColor(int rgb, char legacyCode, boolean namedColor) {
 
     // ── Accessors ──────────────────────────────────────────────────────────
 
+    /** Returns the RGB color value. */
     public int value() {
         return rgb;
     }
 
+    /** Returns this color as a hexadecimal string prefixed with "#". */
     public String asHexString() {
         return String.format("#%06X", rgb);
     }
 
+    /** Returns true if this color has a corresponding legacy Minecraft color code. */
     public boolean hasLegacyCode() {
         return namedColor;
     }

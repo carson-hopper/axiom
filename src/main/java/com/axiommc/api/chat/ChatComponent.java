@@ -61,34 +61,71 @@ public record ChatComponent(String type, String content, String translatableKey,
 
     // ── Static factories ───────────────────────────────────────────────────
 
+    /**
+     * Creates a plain-text chat component.
+     *
+     * @param content the text content (must not be null)
+     * @return a new text component
+     * @throws NullPointerException if content is null
+     */
     public static ChatComponent text(String content) {
         if (content == null) throw new NullPointerException("content must not be null");
         return new BuilderImpl(TYPE_TEXT, content, null, null, null).build();
     }
 
+    /**
+     * Creates a colored plain-text component.
+     *
+     * @param content the text content
+     * @param color the text color
+     * @return a new text component with the specified color
+     */
     public static ChatComponent text(String content, ChatColor color) {
         return text(content).color(color);
     }
 
+    /**
+     * Creates a styled plain-text component.
+     *
+     * @param content the text content
+     * @param color the text color
+     * @param decorations formatting decorations to apply
+     * @return a new text component with the specified color and decorations
+     */
     public static ChatComponent text(String content, ChatColor color, ChatDecoration... decorations) {
         ChatComponent c = text(content).color(color);
         for (ChatDecoration d : decorations) c = c.decoration(d, true);
         return c;
     }
 
+    /**
+     * Creates a translatable component that displays a localized string.
+     *
+     * @param key the translation key
+     * @param args optional replacement arguments for the translated string
+     * @return a new translatable component
+     */
     public static ChatComponent translatable(String key, ChatComponent... args) {
         return new BuilderImpl(TYPE_TRANSLATABLE, "", key, args, null).build();
     }
 
+    /**
+     * Creates a component that displays the name of a keybind.
+     *
+     * @param keybind the keybind key (e.g., "key.forward", "key.sprint")
+     * @return a new keybind component
+     */
     public static ChatComponent keybind(String keybind) {
         // Use keybind value as content so toPlainText() returns the keybind string
         return new BuilderImpl(TYPE_KEYBIND, keybind, null, null, keybind).build();
     }
 
+    /** Creates an empty component with no text. */
     public static ChatComponent empty() {
         return text("");
     }
 
+    /** Creates a newline component. */
     public static ChatComponent newline() {
         return new BuilderImpl(TYPE_NEWLINE, "\n", null, null, null).build();
     }
