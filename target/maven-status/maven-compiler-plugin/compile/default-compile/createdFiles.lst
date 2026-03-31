@@ -1,6 +1,7 @@
 com/axiommc/api/command/parser/DoubleArgParser.class
 com/axiommc/api/entity/display/Billboard.class
 com/axiommc/api/event/plugin/PluginStateEvent$State.class
+com/axiommc/fabric/gui/FabricGuiManager.class
 com/axiommc/api/command/parser/ArgParseException.class
 com/axiommc/fabric/config/TomlPluginConfig.class
 com/axiommc/api/dialog/DialogInput$NumberRange.class
@@ -8,6 +9,7 @@ com/axiommc/api/chat/SignedMessage.class
 com/axiommc/api/command/annotation/CommandMeta.class
 com/axiommc/api/event/player/ServerPostConnectEvent.class
 com/axiommc/api/gui/PagedGui$Builder.class
+com/axiommc/fabric/plugin/SimplePluginContext.class
 com/axiommc/api/dialog/DialogButton.class
 com/axiommc/fabric/command/FabricCommandSender.class
 com/axiommc/api/event/player/PlayerChannelRegisterEvent.class
@@ -27,6 +29,7 @@ com/axiommc/api/command/annotation/Default.class
 com/axiommc/api/command/CommandSender.class
 com/axiommc/api/entity/display/TextDisplaySpec.class
 com/axiommc/fabric/command/FabricCommandHandler.class
+com/axiommc/plugin/AxiomPlugin.class
 com/axiommc/api/event/Cancellable.class
 com/axiommc/api/entity/display/BlockDisplaySpec.class
 com/axiommc/api/entity/display/ItemDisplaySpec$Builder.class
@@ -49,10 +52,12 @@ com/axiommc/api/particle/Color.class
 com/axiommc/api/messaging/MessageBus.class
 com/axiommc/api/player/PlayerManager.class
 com/axiommc/api/world/World.class
+com/axiommc/fabric/sidebar/FabricSidebarManager.class
 com/axiommc/api/particle/ItemData.class
 com/axiommc/api/particle/ParticleData.class
 com/axiommc/api/chat/PaginatedMessage.class
 com/axiommc/api/particle/DustData.class
+com/axiommc/fabric/plugin/SimplePluginContext$SimpleBossBar.class
 com/axiommc/api/event/block/BlockInteractEvent$OffHand.class
 com/axiommc/fabric/AxiomMod.class
 com/axiommc/api/entity/display/DisplayEntity.class
@@ -60,9 +65,11 @@ com/axiommc/api/event/server/ServerRegisteredEvent.class
 com/axiommc/api/entity/display/ItemDisplayContext.class
 com/axiommc/fabric/plugin/SimplePluginLoader.class
 com/axiommc/api/event/player/ServerResourcePackSendEvent.class
+com/axiommc/fabric/gui/AxiomChestMenu.class
 com/axiommc/api/bossbar/BossBar$Spec.class
 com/axiommc/api/event/connection/PostLoginEvent.class
 com/axiommc/api/dialog/Dialog$Builder.class
+com/axiommc/fabric/plugin/SimpleServiceRegistry.class
 com/axiommc/api/plugin/Plugin.class
 com/axiommc/api/command/CommandSide.class
 com/axiommc/api/event/player/PlayerSettingsChangedEvent.class
@@ -71,6 +78,7 @@ com/axiommc/api/event/player/PlayerChooseInitialServerEvent.class
 com/axiommc/api/entity/display/TextAlignment.class
 com/axiommc/api/chat/PaginatedMessage$Builder.class
 com/axiommc/api/gui/Gui.class
+com/axiommc/fabric/world/FabricBlock.class
 com/axiommc/api/event/connection/PostTransferEvent.class
 com/axiommc/api/command/parser/IntArgParser.class
 com/axiommc/api/world/Weather.class
@@ -78,6 +86,7 @@ com/axiommc/api/dialog/DialogType.class
 com/axiommc/api/event/PlayerChatEvent.class
 com/axiommc/api/event/connection/DisconnectEvent.class
 com/axiommc/api/event/player/PlayerChannelUnregisterEvent.class
+com/axiommc/fabric/world/FabricWorld.class
 com/axiommc/api/plugin/PluginSide.class
 com/axiommc/api/particle/ParticleEffect.class
 com/axiommc/api/event/player/ServerResourcePackRequestEvent.class
@@ -87,12 +96,14 @@ com/axiommc/api/command/parser/ArgParser.class
 com/axiommc/api/command/annotation/DynamicTabComplete.class
 com/axiommc/api/event/connection/PreLoginEvent.class
 com/axiommc/api/event/player/ServerResourcePackRemoveEvent.class
+com/axiommc/fabric/world/FabricChunk.class
 com/axiommc/api/event/EventSerializer.class
 com/axiommc/api/world/block/BlockFace.class
 com/axiommc/api/event/player/PlayerResourcePackStatusEvent.class
 com/axiommc/api/event/connection/PluginMessageEvent.class
 com/axiommc/fabric/entity/display/FabricItemDisplayEntity.class
 com/axiommc/api/sidebar/Sidebar.class
+com/axiommc/fabric/player/FabricPlayer.class
 com/axiommc/api/sound/SoundKey.class
 com/axiommc/api/event/connection/PreTransferEvent.class
 com/axiommc/api/event/block/BlockInteractEvent.class
@@ -109,6 +120,7 @@ com/axiommc/fabric/Axiom.class
 com/axiommc/api/dialog/DialogInput$SingleOption.class
 com/axiommc/api/event/player/PlayerJoinEvent.class
 com/axiommc/api/world/Location.class
+com/axiommc/fabric/world/FabricWorld$1.class
 com/axiommc/api/command/annotation/Subcommand.class
 com/axiommc/api/world/DimensionType.class
 com/axiommc/fabric/util/TaskScheduler$ScheduledTask.class
@@ -127,6 +139,7 @@ com/axiommc/api/world/BossBar$Spec.class
 com/axiommc/api/event/player/ServerConnectedEvent.class
 com/axiommc/api/chat/ChatComponent$BuilderImpl.class
 com/axiommc/api/chat/ChatClickEvent.class
+com/axiommc/fabric/world/FabricBlock$1.class
 com/axiommc/fabric/event/FabricEventBus.class
 com/axiommc/api/event/server/ServerStopEvent.class
 com/axiommc/api/dialog/DialogInput$Text.class
@@ -149,6 +162,7 @@ com/axiommc/api/chat/ChatComponentSerializer.class
 com/axiommc/api/dialog/DialogBody$PlainMessage.class
 com/axiommc/api/event/SimpleEventBus$PrioritizedHandler.class
 com/axiommc/api/plugin/PluginContext.class
+com/axiommc/fabric/gui/AxiomChestMenu$1.class
 com/axiommc/api/player/Location.class
 com/axiommc/api/chat/ChatComponent$Builder.class
 com/axiommc/api/world/BossBar$Spec$1.class
@@ -163,6 +177,7 @@ com/axiommc/api/command/parser/StringArgParser.class
 com/axiommc/api/particle/BlockData.class
 com/axiommc/api/entity/Entity.class
 com/axiommc/api/command/parser/BooleanArgParser.class
+com/axiommc/fabric/gui/GuiSession.class
 com/axiommc/api/messaging/Channels.class
 com/axiommc/api/world/Difficulty.class
 com/axiommc/api/event/EventBus.class
@@ -176,6 +191,7 @@ com/axiommc/api/command/annotation/Optional.class
 com/axiommc/api/event/command/CommandExecuteEvent.class
 com/axiommc/api/particle/Particle.class
 com/axiommc/fabric/chat/FabricComponentSerializer.class
+com/axiommc/fabric/plugin/SimplePluginContext$InlineBossBarManager.class
 com/axiommc/api/dialog/Dialog.class
 com/axiommc/fabric/util/TaskScheduler.class
 com/axiommc/api/chat/ChatComponent.class
@@ -192,6 +208,7 @@ com/axiommc/api/entity/display/TextDisplaySpec$Builder.class
 com/axiommc/api/world/block/Block.class
 com/axiommc/api/chat/ChatHoverEvent.class
 com/axiommc/api/event/server/ServerStartEvent.class
+com/axiommc/fabric/sidebar/FabricSidebar.class
 com/axiommc/api/tablist/TabListManager.class
 com/axiommc/fabric/command/FabricCommandRegistry.class
 com/axiommc/api/particle/ParticleEffect$Builder.class
@@ -200,8 +217,10 @@ com/axiommc/api/gui/GuiManager.class
 com/axiommc/api/chat/ChatClickEvent$Action.class
 com/axiommc/fabric/bossbar/FabricBossBar$1.class
 com/axiommc/api/entity/display/DisplayTransform.class
+com/axiommc/fabric/gui/FabricGuiManager$SimpleInventoryContainer.class
 com/axiommc/api/sidebar/SidebarManager.class
 com/axiommc/api/event/player/PlayerChatEvent.class
+com/axiommc/plugin/command/AxiomCommand.class
 com/axiommc/api/gui/Gui$Builder.class
 com/axiommc/api/dialog/DialogInput$Bool.class
 com/axiommc/api/plugin/ServiceRegistry.class

@@ -11,6 +11,7 @@ import com.axiommc.api.math.Vector3;
 import com.axiommc.api.particle.ParticleEffect;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
+import com.axiommc.api.sound.SoundKey;
 import com.axiommc.api.world.Biome;
 import com.axiommc.api.world.Chunk;
 import com.axiommc.api.world.Difficulty;
@@ -27,6 +28,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -306,6 +308,32 @@ public record FabricWorld(ServerLevel level) implements World {
             effect.spreadY(),
             effect.spreadZ(),
             effect.speed()
+        );
+    }
+
+    @Override
+    public void playSound(SoundKey sound, float volume, float pitch) {
+        var loc = Identifier.tryParse(sound.key());
+        if (loc == null) {
+            LOGGER.warn("Invalid sound key: {}", sound.key());
+            return;
+        }
+
+        var holder = BuiltInRegistries.SOUND_EVENT
+            .getOptional(loc)
+            .map(net.minecraft.core.Holder::direct)
+            .orElse(net.minecraft.core.Holder.direct(net.minecraft.sounds.SoundEvent.createVariableRangeEvent(loc)));
+
+        var spawn = spawnLocation();
+        level.playSeededSound(
+            null,
+            spawn.position().x(),
+            spawn.position().y(),
+            spawn.position().z(),
+            holder,
+            net.minecraft.sounds.SoundSource.MASTER,
+            volume, pitch,
+            level.getRandom().nextLong()
         );
     }
 

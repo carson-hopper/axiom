@@ -171,12 +171,17 @@
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/entity/display/FabricItemDisplayEntity.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/entity/display/FabricTextDisplayEntity.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/event/FabricEventBus.java
+/Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/gui/AxiomChestMenu.java
+/Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/gui/FabricGuiManager.java
+/Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/gui/GuiSession.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/particle/FabricParticleConverter.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/player/FabricPlayer.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/player/FabricPlayerProvider.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/plugin/SimplePluginContext.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/plugin/SimplePluginLoader.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/plugin/SimpleServiceRegistry.java
+/Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/sidebar/FabricSidebar.java
+/Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/sidebar/FabricSidebarManager.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/util/TaskScheduler.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/world/FabricBlock.java
 /Volumes/Disk/Development/untitled folder/src/main/java/com/axiommc/fabric/world/FabricChunk.java

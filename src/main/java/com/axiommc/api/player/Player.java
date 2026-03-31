@@ -20,6 +20,7 @@ public interface Player extends LivingEntity, CommandSender {
 
     void showTitle(ChatComponent title, ChatComponent subtitle, int fadeIn, int stay, int fadeOut, int ttl);
     void sendActionBar(ChatComponent component);
+
     void playSound(SoundKey sound, float volume, float pitch);
 
 }

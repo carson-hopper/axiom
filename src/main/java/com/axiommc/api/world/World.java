@@ -5,6 +5,7 @@ import com.axiommc.api.math.Vector3;
 import com.axiommc.api.particle.ParticleEffect;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
+import com.axiommc.api.sound.SoundKey;
 import com.axiommc.api.world.block.Block;
 import com.axiommc.api.world.block.Material;
 
@@ -55,6 +56,7 @@ public interface World {
     Difficulty difficulty();
     void difficulty(Difficulty difficulty);
     boolean pvpEnabled();
+    void playSound(SoundKey sound, float volume, float pitch);
 
     // Spawn
     Location spawnLocation();
@@ -113,14 +115,14 @@ public interface World {
      * If {@code spec.ttl()} is greater than zero the entity is automatically removed
      * after that many ticks.
      */
-    TextDisplayEntity  spawnTextDisplay (TextDisplaySpec  spec, Location location);
+    TextDisplayEntity  spawnTextDisplay (TextDisplaySpec spec, Location location);
 
     /**
      * Spawns an item display entity at the given location and returns a typed handle.
      * If {@code spec.ttl()} is greater than zero the entity is automatically removed
      * after that many ticks.
      */
-    ItemDisplayEntity  spawnItemDisplay (ItemDisplaySpec  spec, Location location);
+    ItemDisplayEntity  spawnItemDisplay (ItemDisplaySpec spec, Location location);
 
     /**
      * Spawns a block display entity at the given location and returns a typed handle.

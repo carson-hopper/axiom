@@ -114,6 +114,14 @@
             <version>0.7.2</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- Netty - bundled in MC, needed to resolve annotation errors -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.123.Final</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

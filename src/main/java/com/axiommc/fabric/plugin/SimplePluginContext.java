@@ -3,14 +3,19 @@ package com.axiommc.fabric.plugin;
 import com.axiommc.api.command.Command;
 import com.axiommc.api.config.PluginConfig;
 import com.axiommc.api.event.EventBus;
+import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.player.PlayerManager;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.ServiceRegistry;
+import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.BossBar;
 import com.axiommc.api.world.BossBarManager;
 import com.axiommc.fabric.AxiomMod;
 import com.axiommc.fabric.config.TomlPluginConfig;
+import com.axiommc.fabric.gui.FabricGuiManager;
 import com.axiommc.fabric.player.FabricPlayerProvider;
+import com.axiommc.fabric.sidebar.FabricSidebarManager;
+import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +34,8 @@ public class SimplePluginContext implements PluginContext {
     private final PluginConfig pluginConfig;
     private final File dataFolder;
     private final Logger logger;
+    private final GuiManager guiManager;
+    private SidebarManager sidebarManager;
 
     public SimplePluginContext(String pluginId, String pluginName, EventBus eventBus, FabricPlayerProvider playerProvider) {
         this.pluginId = pluginId;
@@ -39,6 +46,8 @@ public class SimplePluginContext implements PluginContext {
         this.dataFolder = new File("plugins/" + pluginName);
         this.pluginConfig = new TomlPluginConfig(new File(dataFolder, "config.toml"));
         this.logger = LoggerFactory.getLogger(pluginName);
+        this.guiManager = new FabricGuiManager();
+        this.sidebarManager = null; // Initialized lazily in sidebarManager() method
     }
 
     private static class InlineBossBarManager implements BossBarManager {
@@ -115,6 +124,23 @@ public class SimplePluginContext implements PluginContext {
     @Override
     public BossBarManager bossBar() {
         return bossBarManager;
+    }
+
+    @Override
+    public GuiManager guiManager() {
+        return guiManager;
+    }
+
+    @Override
+    public SidebarManager sidebarManager() {
+        if (sidebarManager == null) {
+            MinecraftServer server = AxiomMod.instance().minecraftServer();
+            if (server == null) {
+                throw new IllegalStateException("MinecraftServer not available yet");
+            }
+            sidebarManager = new FabricSidebarManager(server);
+        }
+        return sidebarManager;
     }
 
     @Override

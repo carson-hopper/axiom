@@ -218,4 +218,8 @@ public class AxiomMod implements ModInitializer {
     public Optional<World> world(String name) {
         return Optional.ofNullable(worlds.get(name));
     }
+
+    public MinecraftServer minecraftServer() {
+        return minecraftServer;
+    }
 }
