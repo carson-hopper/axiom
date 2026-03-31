@@ -13,7 +13,9 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.phys.AABB;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class TargetFilter {
@@ -39,6 +41,19 @@ public class TargetFilter {
         if (filter.startsWith("!")) {
             String negated = filter.substring(1);
             return applyNegation(negated, sender);
+        }
+
+        // Check for comma-separated filters (e.g., "zombie,creeper")
+        if (filter.contains(",")) {
+            Set<LivingEntity> combined = new LinkedHashSet<>();
+            String[] parts = filter.split(",");
+            for (String part : parts) {
+                part = part.trim();
+                if (!part.isEmpty()) {
+                    combined.addAll(parseFilter(part, sender));
+                }
+            }
+            return new ArrayList<>(combined);
         }
 
         return switch (filter) {
@@ -91,6 +106,21 @@ public class TargetFilter {
     }
 
     private static List<LivingEntity> applyNegation(String filter, CommandSender sender) {
+        if (filter.contains(",")) {
+            Set<LivingEntity> toRemove = new LinkedHashSet<>();
+            String[] parts = filter.split(",");
+            for (String part : parts) {
+                part = part.trim();
+                if (!part.isEmpty()) {
+                    toRemove.addAll(parseFilter(part, sender));
+                }
+            }
+            List<LivingEntity> targets = getAllTargets(sender);
+            var removeIds = toRemove.stream().map(LivingEntity::id).toList();
+            targets.removeIf(e -> removeIds.contains(e.id()));
+            return targets;
+        }
+
         List<LivingEntity> targets = getAllTargets(sender);
 
         return switch (filter) {

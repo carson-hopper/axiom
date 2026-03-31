@@ -28,15 +28,15 @@ import java.util.Set;
 public class KillCommand implements Command {
 
     private static final String[] FILTER_OPTIONS = {
-        "filter:players",
-        "filter:mobs",
-        "filter:entities",
-        "filter:hostile",
-        "filter:passive",
-        "filter:animals",
-        "filter:all",
-        "filter:!self",
-        "filter:!players"
+        "players",
+        "mobs",
+        "entities",
+        "hostile",
+        "passive",
+        "animals",
+        "all",
+        "!self",
+        "!players"
     };
 
     @Execute
@@ -51,19 +51,12 @@ public class KillCommand implements Command {
     }
 
     @Execute
-    public void execute(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String targets) {
-        Set<LivingEntity> allTargets = new LinkedHashSet<>();
-
-        String[] filterArray = targets.split(",");
-        for (String filter : filterArray) {
-            filter = filter.trim();
-            if (!filter.isEmpty()) {
-                allTargets.addAll(TargetFilter.parse(filter, sender));
-            }
-        }
+    public void execute(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String target) {
+        String fullTarget = target.startsWith("filter:") ? target : target;
+        Set<LivingEntity> allTargets = new LinkedHashSet<>(TargetFilter.parse(fullTarget, sender));
 
         if (allTargets.isEmpty()) {
-            sender.sendMessage(ChatComponent.text("No targets found: " + targets).color(ChatColor.RED));
+            sender.sendMessage(ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
             return;
         }
 
@@ -81,70 +74,54 @@ public class KillCommand implements Command {
     public List<String> suggestTargets(String partial) {
         List<String> suggestions = new ArrayList<>();
 
-        // Get the part after the last comma (for multiple filter support)
-        if (partial.contains(",")) {
-            int lastCommaIdx = partial.lastIndexOf(",");
-            String prefix = partial.substring(0, lastCommaIdx + 1);
-            String lastFilter = partial.substring(lastCommaIdx + 1).trim();
-            String lowerLastFilter = lastFilter.toLowerCase();
+        // Check if user already typed "filter:"
+        if (partial.startsWith("filter:")) {
+            String afterFilter = partial.substring(7);
+            String lowerAfterFilter = afterFilter.toLowerCase();
 
-            addSuggestions(suggestions, prefix, lowerLastFilter);
-            return suggestions;
+            // Check for comma-separated (already has at least one filter)
+            if (afterFilter.contains(",")) {
+                int lastCommaIdx = afterFilter.lastIndexOf(",");
+                String prefix = partial.substring(0, 7 + lastCommaIdx + 1);
+                String lastPart = afterFilter.substring(lastCommaIdx + 1).trim();
+                String lowerLastPart = lastPart.toLowerCase();
+
+                addFilterSuggestions(suggestions, prefix, lowerLastPart);
+            } else {
+                // First filter after "filter:"
+                addFilterSuggestions(suggestions, "filter:", lowerAfterFilter);
+            }
+        } else {
+            // Suggest starting with "filter:"
+            if ("filter:".startsWith(partial.toLowerCase())) {
+                suggestions.add("filter:");
+            }
         }
-
-        // First filter - normal suggestions
-        String lowerPartial = partial.toLowerCase();
-        addSuggestions(suggestions, "", lowerPartial);
 
         return suggestions;
     }
 
-    private void addSuggestions(List<String> suggestions, String prefix, String lowerPartial) {
-        // Suggest filter keywords
+    private void addFilterSuggestions(List<String> suggestions, String prefix, String lowerPartial) {
+        // Filter keywords (without filter: prefix since we're already in that context)
         for (String filter : FILTER_OPTIONS) {
             if (filter.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix.isEmpty() ? filter : prefix + " " + filter);
+                suggestions.add(prefix + filter);
             }
         }
 
         Set<String> mobTypes = discoverMobTypes();
 
-        // Suggest filter:PlayerName syntax
-        Axiom.players().forEach(player -> {
-            String filterName = "filter:" + player.name();
-            if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
-            }
-        });
-
-        // Suggest filter:!PlayerName syntax
-        Axiom.players().forEach(player -> {
-            String filterName = "filter:!" + player.name();
-            if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
-            }
-        });
-
-        // Suggest mob types
-        mobTypes.forEach(mobType -> {
-            String filterName = "filter:" + mobType;
-            if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
-            }
-        });
-
-        // Suggest filter:!MobType syntax
-        mobTypes.forEach(mobType -> {
-            String filterName = "filter:!" + mobType;
-            if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
-            }
-        });
-
-        // Suggest direct player names
+        // Player names
         Axiom.players().forEach(player -> {
             if (player.name().toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix.isEmpty() ? player.name() : prefix + " " + player.name());
+                suggestions.add(prefix + player.name());
+            }
+        });
+
+        // Mob types
+        mobTypes.forEach(mobType -> {
+            if (mobType.toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(prefix + mobType);
             }
         });
     }
