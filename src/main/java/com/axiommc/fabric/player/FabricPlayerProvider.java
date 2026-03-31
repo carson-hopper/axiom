@@ -23,7 +23,7 @@ public class FabricPlayerProvider implements PlayerManager {
     }
 
     @Override
-    public Optional<? extends Player> player(String name) {
+    public Optional<FabricPlayer> player(String name) {
         if (server == null) {
             return Optional.empty();
         }
@@ -34,7 +34,7 @@ public class FabricPlayerProvider implements PlayerManager {
     }
 
     @Override
-    public Optional<? extends Player> player(UUID uuid) {
+    public Optional<FabricPlayer> player(UUID uuid) {
         if (server == null) {
             return Optional.empty();
         }
@@ -43,7 +43,7 @@ public class FabricPlayerProvider implements PlayerManager {
     }
 
     @Override
-    public Collection<? extends Player> onlinePlayers() {
+    public Collection<FabricPlayer> onlinePlayers() {
         if (server == null) {
             return Collections.emptyList();
         }

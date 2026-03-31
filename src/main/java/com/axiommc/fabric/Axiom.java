@@ -5,6 +5,7 @@ import com.axiommc.api.player.Player;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
+import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.util.TaskScheduler;
 import java.util.Collection;
 import java.util.UUID;
@@ -24,7 +25,7 @@ public class Axiom {
         return TaskScheduler.global();
     }
 
-    public static Collection<? extends Player> players() {
+    public static Collection<FabricPlayer> players() {
         AxiomMod mod = AxiomMod.instance();
         if (mod == null) {
             throw new IllegalStateException("Axiom is not initialized");
@@ -32,7 +33,7 @@ public class Axiom {
         return mod.playerProvider().onlinePlayers();
     }
 
-    public static Optional<? extends Player> player(UUID uuid) {
+    public static Optional<FabricPlayer> player(UUID uuid) {
         AxiomMod mod = AxiomMod.instance();
         if (mod == null) {
             throw new IllegalStateException("Axiom is not initialized");
@@ -40,7 +41,7 @@ public class Axiom {
         return mod.playerProvider().player(uuid);
     }
 
-    public static Optional<? extends Player> player(String name) {
+    public static Optional<FabricPlayer> player(String name) {
         AxiomMod mod = AxiomMod.instance();
         if (mod == null) {
             throw new IllegalStateException("Axiom is not initialized");
