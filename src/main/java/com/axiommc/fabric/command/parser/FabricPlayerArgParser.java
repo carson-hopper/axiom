@@ -1,6 +1,7 @@
 package com.axiommc.fabric.command.parser;
 
 import com.axiommc.api.command.parser.ArgParser;
+import com.axiommc.api.command.parser.ArgParseException;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayer;
@@ -13,18 +14,22 @@ import java.util.stream.Collectors;
 public class FabricPlayerArgParser implements ArgParser<Player> {
 
     @Override
-    public Player parse(String arg) {
+    public Player parse(String arg) throws ArgParseException {
         Optional<FabricPlayer> player = Axiom.player(arg);
         if (player.isPresent()) {
             return player.get();
         }
 
         try {
-            return Axiom.player(UUID.fromString(arg)).orElse(null);
-        } catch (Exception _) {
-
+            Optional<FabricPlayer> byUuid = Axiom.player(UUID.fromString(arg));
+            if (byUuid.isPresent()) {
+                return byUuid.get();
+            }
+        } catch (IllegalArgumentException _) {
+            // Not a valid UUID format
         }
-        return null;
+
+        throw new ArgParseException("Player not found: " + arg);
     }
 
     @Override
