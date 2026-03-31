@@ -1,0 +1,15 @@
+# Build and IDE
+target/
+.idea/
+.vscode/
+*.class
+*.jar
+*.log
+
+# Dependencies
+.classpath
+.project
+.settings/
+
+# Generated files
+dependency-reduced-pom.xml
