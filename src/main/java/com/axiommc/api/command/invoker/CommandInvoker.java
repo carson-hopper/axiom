@@ -116,7 +116,8 @@ public class CommandInvoker {
             return true;
         } else if (!executeMethods.isEmpty()) {
             // Select best matching @Execute method based on argument count
-            method = selectExecuteMethod(args.length);
+            // For ambiguous cases (multiple methods with same param count), try parsing with each
+            method = selectExecuteMethodWithParsing(sender, args);
             if (method == null) {
                 sender.sendMessage("Unknown command.");
                 return true;
@@ -320,6 +321,41 @@ public class CommandInvoker {
         }
 
         return matching;
+    }
+
+    /**
+     * Select the best @Execute method by trying to parse arguments.
+     * For each candidate method (by param count), attempt to build args.
+     * Returns the first method where all arguments parse successfully.
+     */
+    private Method selectExecuteMethodWithParsing(CommandSender sender, String[] args) {
+        List<Method> candidates = getMatchingExecuteMethods(args.length);
+
+        if (candidates.isEmpty()) {
+            return null;
+        }
+
+        // If only one candidate, use it directly
+        if (candidates.size() == 1) {
+            return candidates.getFirst();
+        }
+
+        // Multiple candidates: try parsing with each and use first that succeeds
+        for (Method candidate : candidates) {
+            try {
+                // Try building args without actually invoking
+                Object[] invokeArgs = buildArgs(sender, candidate, args);
+                if (invokeArgs != null) {
+                    return candidate; // This method's args parsed successfully
+                }
+            } catch (ArgParseException e) {
+                // This method failed, try next
+                continue;
+            }
+        }
+
+        // If none succeeded, return first candidate (will fail with proper error)
+        return candidates.getFirst();
     }
 
     /**
