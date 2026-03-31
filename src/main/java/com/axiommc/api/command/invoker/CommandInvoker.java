@@ -362,8 +362,8 @@ public class CommandInvoker {
                 if (invokeArgs != null) {
                     return candidate; // This method's args parsed successfully
                 }
-            } catch (ArgParseException e) {
-                // This method failed, try next
+            } catch (Exception e) {
+                // This method failed (any exception = parse failure), try next
                 continue;
             }
         }
