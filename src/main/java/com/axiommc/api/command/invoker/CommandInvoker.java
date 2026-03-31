@@ -255,9 +255,9 @@ public class CommandInvoker {
         if (args.length == 1) {
             Set<String> seen = new LinkedHashSet<>(subcommandMethods.keySet());
             if (!executeMethods.isEmpty()) {
-                // Get suggestions from the first matching @Execute method
-                Method method = selectExecuteMethod(args.length);
-                if (method != null) {
+                // Get suggestions from ALL matching @Execute methods
+                List<Method> methods = getMatchingExecuteMethods(args.length);
+                for (Method method : methods) {
                     seen.addAll(getParamSuggestions(method, 0, last));
                 }
             }
@@ -272,15 +272,54 @@ public class CommandInvoker {
         }
 
         if (!executeMethods.isEmpty()) {
-            // Get suggestions from the selected @Execute method
-            Method method = selectExecuteMethod(args.length - 1);
-            if (method != null) {
+            // Get suggestions from ALL matching @Execute methods
+            List<Method> methods = getMatchingExecuteMethods(args.length - 1);
+            Set<String> seen = new LinkedHashSet<>();
+            for (Method method : methods) {
                 int argPos = args.length - 1;
-                return filterPrefix(getParamSuggestions(method, argPos, last), last);
+                seen.addAll(getParamSuggestions(method, argPos, last));
             }
+            return filterPrefix(new ArrayList<>(seen), last);
         }
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Get all @Execute methods that can handle the given argument count.
+     * Returns exact matches first, then methods with optional parameters.
+     */
+    private List<Method> getMatchingExecuteMethods(int argCount) {
+        List<Method> matching = new ArrayList<>();
+
+        // First pass: find exact matches
+        for (Method m : executeMethods) {
+            int paramCount = countNonSenderParams(m);
+            if (paramCount == argCount) {
+                matching.add(m);
+            }
+        }
+
+        // If exact matches found, return only those
+        if (!matching.isEmpty()) {
+            return matching;
+        }
+
+        // Second pass: find methods that can handle with optional params
+        for (Method m : executeMethods) {
+            int minRequired = countRequiredParams(m);
+            int maxAccepted = countNonSenderParams(m);
+            if (argCount >= minRequired && argCount <= maxAccepted) {
+                matching.add(m);
+            }
+        }
+
+        // If no methods found but we have executeMethods, return all as fallback
+        if (matching.isEmpty() && !executeMethods.isEmpty()) {
+            matching.addAll(executeMethods);
+        }
+
+        return matching;
     }
 
     /**
