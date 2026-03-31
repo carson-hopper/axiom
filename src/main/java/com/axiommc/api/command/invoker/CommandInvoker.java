@@ -355,20 +355,24 @@ public class CommandInvoker {
         }
 
         // Multiple candidates: try parsing with each and use first that succeeds
+        LOGGER.debug("Trying {} candidate methods for {} args", candidates.size(), args.length);
         for (Method candidate : candidates) {
             try {
                 // Try building args without actually invoking
                 Object[] invokeArgs = buildArgs(sender, candidate, args);
                 if (invokeArgs != null) {
+                    LOGGER.debug("Selected method: {}", candidate.getName());
                     return candidate; // This method's args parsed successfully
                 }
             } catch (Exception e) {
                 // This method failed (any exception = parse failure), try next
+                LOGGER.debug("Method {} failed to parse args: {}", candidate.getName(), e.getMessage());
                 continue;
             }
         }
 
         // If none succeeded, return first candidate (will fail with proper error)
+        LOGGER.debug("No method succeeded parsing, returning first candidate: {}", candidates.getFirst().getName());
         return candidates.getFirst();
     }
 
