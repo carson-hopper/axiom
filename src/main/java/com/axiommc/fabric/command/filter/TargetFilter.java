@@ -21,21 +21,9 @@ import java.util.UUID;
 public class TargetFilter {
 
     public static List<LivingEntity> parse(String input, CommandSender sender) {
-        if (input.startsWith("filter:")) {
-            return parseFilter(input.substring(7), sender);
-        }
-        return parsePlayer(input, sender);
+        return parseFilter(input, sender);
     }
 
-    private static List<LivingEntity> parsePlayer(String playerName, CommandSender sender) {
-        var player = Axiom.players().stream()
-                .filter(p -> p.name().equalsIgnoreCase(playerName))
-                .findFirst();
-
-        List<LivingEntity> result = new ArrayList<>();
-        player.ifPresent(result::add);
-        return result;
-    }
 
     private static List<LivingEntity> parseFilter(String filter, CommandSender sender) {
         // Check for space-separated filters (e.g., "zombie creeper !skeleton")

@@ -59,10 +59,7 @@ public class KillCommand implements Command {
 
     @Execute
     public void execute(CommandSender sender, @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target) {
-        // Convert space-separated filters to the format TargetFilter expects
-        // "/kill zombie creeper !self" -> "filter:zombie creeper !self"
-        String fullTarget = target.startsWith("filter:") ? target : "filter:" + target;
-        Set<LivingEntity> allTargets = new LinkedHashSet<>(TargetFilter.parse(fullTarget, sender));
+        Set<LivingEntity> allTargets = new LinkedHashSet<>(TargetFilter.parse(target, sender));
 
         if (allTargets.isEmpty()) {
             sender.sendMessage(ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
@@ -87,34 +84,21 @@ public class KillCommand implements Command {
     public List<String> suggestTargets(String partial) {
         List<String> suggestions = new ArrayList<>();
 
-        // Check if user already typed "filter:"
-        if (partial.startsWith("filter:")) {
-            String afterFilter = partial.substring(7);
-            String lowerAfterFilter = afterFilter.toLowerCase();
+        String lowerPartial = partial.toLowerCase();
 
-            // Check for space-separated (already has at least one filter)
-            if (afterFilter.contains(" ")) {
-                int lastSpaceIdx = afterFilter.lastIndexOf(" ");
-                String prefix = partial.substring(0, 7 + lastSpaceIdx + 1);
-                String lastPart = afterFilter.substring(lastSpaceIdx + 1).trim();
-                String lowerLastPart = lastPart.toLowerCase();
+        // Check for space-separated filters (already has at least one filter)
+        if (partial.contains(" ")) {
+            int lastSpaceIdx = partial.lastIndexOf(" ");
+            String prefix = partial.substring(0, lastSpaceIdx + 1);
+            String lastPart = partial.substring(lastSpaceIdx + 1).trim();
+            String lowerLastPart = lastPart.toLowerCase();
 
-                // Check if "all" is already in the filters
-                boolean hasAll = afterFilter.toLowerCase().contains("all");
-                addAllFilterSuggestions(suggestions, prefix, lowerLastPart, hasAll);
-            } else {
-                // First filter after "filter:"
-                addAllFilterSuggestions(suggestions, "filter:", lowerAfterFilter, false);
-            }
+            // Check if "all" is already in the filters
+            boolean hasAll = partial.toLowerCase().contains("all");
+            addAllFilterSuggestions(suggestions, prefix, lowerLastPart, hasAll);
         } else {
-            // Suggest starting with "filter:" or show direct filters/negations
-            if ("filter:".startsWith(partial.toLowerCase())) {
-                suggestions.add("filter:");
-            }
-
-            String lowerPartial = partial.toLowerCase();
-
-            // Suggest filters directly without filter: prefix
+            // First filter - show all options
+            // Suggest filters directly
             for (String filter : FILTER_OPTIONS) {
                 if (filter.toLowerCase().startsWith(lowerPartial)) {
                     suggestions.add(filter);
