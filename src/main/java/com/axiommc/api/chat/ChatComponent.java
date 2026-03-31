@@ -26,7 +26,9 @@ public record ChatComponent(String type, String content, String translatableKey,
         this.type = type;
         this.content = content;
         this.translatableKey = translatableKey;
-        this.translatableArgs = translatableArgs != null ? translatableArgs.clone() : new ChatComponent[0];
+        this.translatableArgs = translatableArgs != null
+            ? translatableArgs.clone()
+            : new ChatComponent[0];
         this.keybind = keybind;
         this.color = color;
         this.bold = bold;
