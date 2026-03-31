@@ -62,9 +62,6 @@ public class CommandInvoker {
         for (Method method : command.getClass().getMethods()) {
             if (method.isAnnotationPresent(Execute.class)) {
                 executeMethods.add(method);
-                if (method.getName().contains("teleport")) {
-                    LOGGER.info("Scanning @Execute method: {} with {} params", method.getName(), method.getParameterCount());
-                }
             } else if (method.isAnnotationPresent(Subcommand.class)) {
                 Subcommand sub = method.getAnnotation(Subcommand.class);
                 String name = sub.value().isEmpty() ? method.getName() : sub.value();
@@ -263,9 +260,6 @@ public class CommandInvoker {
 
     public List<String> suggest(CommandSender sender, String[] args) {
         CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-        String commandName = meta != null ? meta.name() : command.getClass().getSimpleName();
-        LOGGER.info("suggest() called for /{} with {} args", commandName, args.length);
-
         if (meta != null && !meta.permission().isEmpty() && !sender.hasPermission(meta.permission())) {
             return Collections.emptyList();
         }
@@ -276,23 +270,17 @@ public class CommandInvoker {
         }
 
         String last = args[args.length - 1].toLowerCase();
-        LOGGER.info("  Last arg: '{}'", last);
 
         if (args.length == 1) {
             Set<String> seen = new LinkedHashSet<>(subcommandMethods.keySet());
             if (!executeMethods.isEmpty()) {
                 // Get suggestions from ALL matching @Execute methods
                 List<Method> methods = getMatchingExecuteMethods(args.length);
-                LOGGER.info("  Getting suggestions from {} methods", methods.size());
                 for (Method method : methods) {
-                    List<String> methodSuggestions = getParamSuggestions(method, 0, last);
-                    LOGGER.info("    Method {} returned {} suggestions", method.getName(), methodSuggestions.size());
-                    seen.addAll(methodSuggestions);
+                    seen.addAll(getParamSuggestions(method, 0, last));
                 }
             }
-            List<String> result = filterPrefix(new ArrayList<>(seen), last);
-            LOGGER.info("  After filterPrefix({}): {} results", last, result.size());
-            return result;
+            return filterPrefix(new ArrayList<>(seen), last);
         }
 
         String sub = args[0].toLowerCase();
@@ -304,10 +292,12 @@ public class CommandInvoker {
 
         if (!executeMethods.isEmpty()) {
             // Get suggestions from ALL matching @Execute methods
-            List<Method> methods = getMatchingExecuteMethods(args.length - 1);
+            // We have 'args.length' arguments total and want suggestions for the last one
+            // So we need methods that can handle 'args.length' arguments
+            List<Method> methods = getMatchingExecuteMethods(args.length);
             Set<String> seen = new LinkedHashSet<>();
             for (Method method : methods) {
-                int argPos = args.length - 1;
+                int argPos = args.length - 1;  // Position of the last argument (0-indexed)
                 seen.addAll(getParamSuggestions(method, argPos, last));
             }
             return filterPrefix(new ArrayList<>(seen), last);
@@ -324,19 +314,15 @@ public class CommandInvoker {
         List<Method> matching = new ArrayList<>();
 
         // First pass: find exact matches
-        LOGGER.info("getMatchingExecuteMethods({}) - checking {} methods", argCount, executeMethods.size());
         for (Method m : executeMethods) {
             int paramCount = countNonSenderParams(m);
-            LOGGER.info("  {}: {} params", m.getName(), paramCount);
             if (paramCount == argCount) {
                 matching.add(m);
-                LOGGER.info("    -> MATCH");
             }
         }
 
         // If exact matches found, return only those
         if (!matching.isEmpty()) {
-            LOGGER.info("  Found {} exact matches", matching.size());
             return matching;
         }
 
@@ -486,7 +472,6 @@ public class CommandInvoker {
                 ArgParser<?> parser = parserRegistry.get(param.getType());
                 if (parser != null) {
                     List<String> suggestions = parser.suggest(partial);
-                    LOGGER.info("      Parser {} suggested {} items", parser.getClass().getSimpleName(), suggestions.size());
                     // If parser has no suggestions, use the parameter name as guidance
                     if (suggestions.isEmpty()) {
                         Arg arg = param.getAnnotation(Arg.class);
