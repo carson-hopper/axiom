@@ -10,6 +10,7 @@ public class Vector3ArgParser implements ArgParser<Vector3> {
 
     @Override
     public Vector3 parse(String input) throws ArgParseException {
+        // Split on commas and/or whitespace: "100 50 200" or "100,50,200" or "100, 50, 200"
         String[] parts = input.split("[,\\s]+");
         
         if (parts.length == 1) {
