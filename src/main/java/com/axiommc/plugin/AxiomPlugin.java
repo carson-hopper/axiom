@@ -62,7 +62,12 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         logger.info("Test Plugin disabled");
     }
 
-    public static AxiomPlugin instance() { return instance; }
-    public PluginContext context() { return context; }
+    public static AxiomPlugin instance() {
+        return instance;
+    }
+
+    public PluginContext context() {
+        return context;
+    }
 
 }

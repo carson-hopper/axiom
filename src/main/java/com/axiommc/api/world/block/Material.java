@@ -6,24 +6,24 @@ import java.util.Map;
 /** All vanilla 1.21 block types. {@link #UNKNOWN} is returned for unrecognised registry IDs. */
 public enum Material {
 
-    // ── Air ───────────────────────────────────────────────────────────────────
+    // --- Air
     AIR, CAVE_AIR, VOID_AIR,
 
-    // ── Fluids ────────────────────────────────────────────────────────────────
+    // --- Fluids
     WATER, LAVA,
 
-    // ── Bedrock / Barrier ─────────────────────────────────────────────────────
+    // --- Bedrock / Barrier
     BEDROCK, BARRIER, LIGHT, STRUCTURE_VOID, STRUCTURE_BLOCK, JIGSAW,
 
-    // ── Dirt / Grass ──────────────────────────────────────────────────────────
+    // --- Dirt / Grass
     GRASS_BLOCK, DIRT, COARSE_DIRT, ROOTED_DIRT, PODZOL, MYCELIUM,
     DIRT_PATH, FARMLAND, MUD, PACKED_MUD, MUD_BRICKS,
 
-    // ── Sand / Gravel ─────────────────────────────────────────────────────────
+    // --- Sand / Gravel
     SAND, RED_SAND, SUSPICIOUS_SAND, GRAVEL, SUSPICIOUS_GRAVEL,
     SOUL_SAND, SOUL_SOIL,
 
-    // ── Stone ─────────────────────────────────────────────────────────────────
+    // --- Stone
     STONE, GRANITE, POLISHED_GRANITE, DIORITE, POLISHED_DIORITE,
     ANDESITE, POLISHED_ANDESITE,
     COBBLESTONE, MOSSY_COBBLESTONE,
@@ -33,28 +33,28 @@ public enum Material {
     INFESTED_MOSSY_STONE_BRICKS, INFESTED_CRACKED_STONE_BRICKS, INFESTED_CHISELED_STONE_BRICKS,
     BRICKS,
 
-    // ── Deepslate ─────────────────────────────────────────────────────────────
+    // --- Deepslate
     DEEPSLATE, COBBLED_DEEPSLATE, POLISHED_DEEPSLATE,
     DEEPSLATE_BRICKS, CRACKED_DEEPSLATE_BRICKS,
     DEEPSLATE_TILES, CRACKED_DEEPSLATE_TILES,
     CHISELED_DEEPSLATE, REINFORCED_DEEPSLATE,
     INFESTED_DEEPSLATE,
 
-    // ── Tuff ──────────────────────────────────────────────────────────────────
+    // --- Tuff
     TUFF, POLISHED_TUFF, TUFF_BRICKS, CHISELED_TUFF, CHISELED_TUFF_BRICKS,
 
-    // ── Calcite / Dripstone ───────────────────────────────────────────────────
+    // --- Calcite / Dripstone
     CALCITE, DRIPSTONE_BLOCK, POINTED_DRIPSTONE,
 
-    // ── Amethyst ──────────────────────────────────────────────────────────────
+    // --- Amethyst
     AMETHYST_BLOCK, BUDDING_AMETHYST,
     AMETHYST_CLUSTER, LARGE_AMETHYST_BUD, MEDIUM_AMETHYST_BUD, SMALL_AMETHYST_BUD,
 
-    // ── Sandstone ─────────────────────────────────────────────────────────────
+    // --- Sandstone
     SANDSTONE, CHISELED_SANDSTONE, CUT_SANDSTONE, SMOOTH_SANDSTONE,
     RED_SANDSTONE, CHISELED_RED_SANDSTONE, CUT_RED_SANDSTONE, SMOOTH_RED_SANDSTONE,
 
-    // ── Ores ──────────────────────────────────────────────────────────────────
+    // --- Ores
     COAL_ORE, DEEPSLATE_COAL_ORE,
     IRON_ORE, DEEPSLATE_IRON_ORE,
     COPPER_ORE, DEEPSLATE_COPPER_ORE,
@@ -65,7 +65,7 @@ public enum Material {
     DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE,
     NETHER_QUARTZ_ORE, ANCIENT_DEBRIS,
 
-    // ── Ore / Raw Blocks ──────────────────────────────────────────────────────
+    // --- Ore / Raw Blocks
     COAL_BLOCK, IRON_BLOCK, RAW_IRON_BLOCK,
     GOLD_BLOCK, RAW_GOLD_BLOCK,
     DIAMOND_BLOCK, EMERALD_BLOCK, LAPIS_BLOCK, REDSTONE_BLOCK,
@@ -77,59 +77,59 @@ public enum Material {
     COPPER_BULB, EXPOSED_COPPER_BULB, WEATHERED_COPPER_BULB, OXIDIZED_COPPER_BULB,
     NETHERITE_BLOCK,
 
-    // ── Quartz ────────────────────────────────────────────────────────────────
+    // --- Quartz
     QUARTZ_BLOCK, CHISELED_QUARTZ_BLOCK, QUARTZ_PILLAR, SMOOTH_QUARTZ, QUARTZ_BRICKS,
 
-    // ── Oak ───────────────────────────────────────────────────────────────────
+    // --- Oak
     OAK_LOG, STRIPPED_OAK_LOG, OAK_WOOD, STRIPPED_OAK_WOOD, OAK_PLANKS,
     OAK_SLAB, OAK_STAIRS, OAK_FENCE, OAK_FENCE_GATE,
     OAK_DOOR, OAK_TRAPDOOR, OAK_BUTTON, OAK_PRESSURE_PLATE,
     OAK_SIGN, OAK_WALL_SIGN, OAK_HANGING_SIGN, OAK_WALL_HANGING_SIGN,
     OAK_LEAVES, OAK_SAPLING,
 
-    // ── Spruce ────────────────────────────────────────────────────────────────
+    // --- Spruce
     SPRUCE_LOG, STRIPPED_SPRUCE_LOG, SPRUCE_WOOD, STRIPPED_SPRUCE_WOOD, SPRUCE_PLANKS,
     SPRUCE_SLAB, SPRUCE_STAIRS, SPRUCE_FENCE, SPRUCE_FENCE_GATE,
     SPRUCE_DOOR, SPRUCE_TRAPDOOR, SPRUCE_BUTTON, SPRUCE_PRESSURE_PLATE,
     SPRUCE_SIGN, SPRUCE_WALL_SIGN, SPRUCE_HANGING_SIGN, SPRUCE_WALL_HANGING_SIGN,
     SPRUCE_LEAVES, SPRUCE_SAPLING,
 
-    // ── Birch ─────────────────────────────────────────────────────────────────
+    // --- Birch
     BIRCH_LOG, STRIPPED_BIRCH_LOG, BIRCH_WOOD, STRIPPED_BIRCH_WOOD, BIRCH_PLANKS,
     BIRCH_SLAB, BIRCH_STAIRS, BIRCH_FENCE, BIRCH_FENCE_GATE,
     BIRCH_DOOR, BIRCH_TRAPDOOR, BIRCH_BUTTON, BIRCH_PRESSURE_PLATE,
     BIRCH_SIGN, BIRCH_WALL_SIGN, BIRCH_HANGING_SIGN, BIRCH_WALL_HANGING_SIGN,
     BIRCH_LEAVES, BIRCH_SAPLING,
 
-    // ── Jungle ────────────────────────────────────────────────────────────────
+    // --- Jungle
     JUNGLE_LOG, STRIPPED_JUNGLE_LOG, JUNGLE_WOOD, STRIPPED_JUNGLE_WOOD, JUNGLE_PLANKS,
     JUNGLE_SLAB, JUNGLE_STAIRS, JUNGLE_FENCE, JUNGLE_FENCE_GATE,
     JUNGLE_DOOR, JUNGLE_TRAPDOOR, JUNGLE_BUTTON, JUNGLE_PRESSURE_PLATE,
     JUNGLE_SIGN, JUNGLE_WALL_SIGN, JUNGLE_HANGING_SIGN, JUNGLE_WALL_HANGING_SIGN,
     JUNGLE_LEAVES, JUNGLE_SAPLING,
 
-    // ── Acacia ────────────────────────────────────────────────────────────────
+    // --- Acacia
     ACACIA_LOG, STRIPPED_ACACIA_LOG, ACACIA_WOOD, STRIPPED_ACACIA_WOOD, ACACIA_PLANKS,
     ACACIA_SLAB, ACACIA_STAIRS, ACACIA_FENCE, ACACIA_FENCE_GATE,
     ACACIA_DOOR, ACACIA_TRAPDOOR, ACACIA_BUTTON, ACACIA_PRESSURE_PLATE,
     ACACIA_SIGN, ACACIA_WALL_SIGN, ACACIA_HANGING_SIGN, ACACIA_WALL_HANGING_SIGN,
     ACACIA_LEAVES, ACACIA_SAPLING,
 
-    // ── Dark Oak ──────────────────────────────────────────────────────────────
+    // --- Dark Oak
     DARK_OAK_LOG, STRIPPED_DARK_OAK_LOG, DARK_OAK_WOOD, STRIPPED_DARK_OAK_WOOD, DARK_OAK_PLANKS,
     DARK_OAK_SLAB, DARK_OAK_STAIRS, DARK_OAK_FENCE, DARK_OAK_FENCE_GATE,
     DARK_OAK_DOOR, DARK_OAK_TRAPDOOR, DARK_OAK_BUTTON, DARK_OAK_PRESSURE_PLATE,
     DARK_OAK_SIGN, DARK_OAK_WALL_SIGN, DARK_OAK_HANGING_SIGN, DARK_OAK_WALL_HANGING_SIGN,
     DARK_OAK_LEAVES, DARK_OAK_SAPLING,
 
-    // ── Cherry ────────────────────────────────────────────────────────────────
+    // --- Cherry
     CHERRY_LOG, STRIPPED_CHERRY_LOG, CHERRY_WOOD, STRIPPED_CHERRY_WOOD, CHERRY_PLANKS,
     CHERRY_SLAB, CHERRY_STAIRS, CHERRY_FENCE, CHERRY_FENCE_GATE,
     CHERRY_DOOR, CHERRY_TRAPDOOR, CHERRY_BUTTON, CHERRY_PRESSURE_PLATE,
     CHERRY_SIGN, CHERRY_WALL_SIGN, CHERRY_HANGING_SIGN, CHERRY_WALL_HANGING_SIGN,
     CHERRY_LEAVES, CHERRY_SAPLING,
 
-    // ── Pale Oak ──────────────────────────────────────────────────────────────
+    // --- Pale Oak
     PALE_OAK_LOG, STRIPPED_PALE_OAK_LOG, PALE_OAK_WOOD, STRIPPED_PALE_OAK_WOOD, PALE_OAK_PLANKS,
     PALE_OAK_SLAB, PALE_OAK_STAIRS, PALE_OAK_FENCE, PALE_OAK_FENCE_GATE,
     PALE_OAK_DOOR, PALE_OAK_TRAPDOOR, PALE_OAK_BUTTON, PALE_OAK_PRESSURE_PLATE,
@@ -137,14 +137,14 @@ public enum Material {
     PALE_OAK_LEAVES, PALE_OAK_SAPLING, PALE_MOSS_BLOCK, PALE_MOSS_CARPET,
     PALE_HANGING_MOSS, OPEN_EYEBLOSSOM, CLOSED_EYEBLOSSOM,
 
-    // ── Mangrove ──────────────────────────────────────────────────────────────
+    // --- Mangrove
     MANGROVE_LOG, STRIPPED_MANGROVE_LOG, MANGROVE_WOOD, STRIPPED_MANGROVE_WOOD, MANGROVE_PLANKS,
     MANGROVE_SLAB, MANGROVE_STAIRS, MANGROVE_FENCE, MANGROVE_FENCE_GATE,
     MANGROVE_DOOR, MANGROVE_TRAPDOOR, MANGROVE_BUTTON, MANGROVE_PRESSURE_PLATE,
     MANGROVE_SIGN, MANGROVE_WALL_SIGN, MANGROVE_HANGING_SIGN, MANGROVE_WALL_HANGING_SIGN,
     MANGROVE_LEAVES, MANGROVE_PROPAGULE, MANGROVE_ROOTS, MUDDY_MANGROVE_ROOTS,
 
-    // ── Bamboo ────────────────────────────────────────────────────────────────
+    // --- Bamboo
     BAMBOO_BLOCK, STRIPPED_BAMBOO_BLOCK, BAMBOO_PLANKS, BAMBOO_MOSAIC,
     BAMBOO_SLAB, BAMBOO_STAIRS, BAMBOO_MOSAIC_SLAB, BAMBOO_MOSAIC_STAIRS,
     BAMBOO_FENCE, BAMBOO_FENCE_GATE, BAMBOO_DOOR, BAMBOO_TRAPDOOR,
@@ -152,21 +152,21 @@ public enum Material {
     BAMBOO_SIGN, BAMBOO_WALL_SIGN, BAMBOO_HANGING_SIGN, BAMBOO_WALL_HANGING_SIGN,
     BAMBOO, BAMBOO_SAPLING,
 
-    // ── Crimson (Nether) ──────────────────────────────────────────────────────
+    // --- Crimson (Nether)
     CRIMSON_STEM, STRIPPED_CRIMSON_STEM, CRIMSON_HYPHAE, STRIPPED_CRIMSON_HYPHAE, CRIMSON_PLANKS,
     CRIMSON_SLAB, CRIMSON_STAIRS, CRIMSON_FENCE, CRIMSON_FENCE_GATE,
     CRIMSON_DOOR, CRIMSON_TRAPDOOR, CRIMSON_BUTTON, CRIMSON_PRESSURE_PLATE,
     CRIMSON_SIGN, CRIMSON_WALL_SIGN, CRIMSON_HANGING_SIGN, CRIMSON_WALL_HANGING_SIGN,
     CRIMSON_ROOTS, CRIMSON_FUNGUS, WEEPING_VINES, WEEPING_VINES_PLANT,
 
-    // ── Warped (Nether) ───────────────────────────────────────────────────────
+    // --- Warped (Nether)
     WARPED_STEM, STRIPPED_WARPED_STEM, WARPED_HYPHAE, STRIPPED_WARPED_HYPHAE, WARPED_PLANKS,
     WARPED_SLAB, WARPED_STAIRS, WARPED_FENCE, WARPED_FENCE_GATE,
     WARPED_DOOR, WARPED_TRAPDOOR, WARPED_BUTTON, WARPED_PRESSURE_PLATE,
     WARPED_SIGN, WARPED_WALL_SIGN, WARPED_HANGING_SIGN, WARPED_WALL_HANGING_SIGN,
     WARPED_ROOTS, WARPED_FUNGUS, TWISTING_VINES, TWISTING_VINES_PLANT, NETHER_SPROUTS,
 
-    // ── Other Leaves / Plants ─────────────────────────────────────────────────
+    // --- Other Leaves / Plants
     AZALEA_LEAVES, FLOWERING_AZALEA_LEAVES, AZALEA, FLOWERING_AZALEA,
     SHORT_GRASS, TALL_GRASS, FERN, LARGE_FERN, DEAD_BUSH,
     DANDELION, TORCHFLOWER, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET,
