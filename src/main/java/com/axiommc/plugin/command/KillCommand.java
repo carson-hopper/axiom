@@ -44,7 +44,7 @@ public class KillCommand implements Command {
     };
 
     @Execute
-    public void execute(CommandSender sender, @Flag("radius") @Optional int radius) {
+    public void execute(CommandSender sender) {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
                     player.damage(player.health());
@@ -68,7 +68,12 @@ public class KillCommand implements Command {
         }
 
         if (radius > 0) {
-            sender.sendMessage("Radius: " + radius);
+            sender.asPlayer().ifPresent(player -> {
+                allTargets.removeIf(entity -> {
+                    double distance = player.location().distance(entity.location());
+                    return distance > radius;
+                });
+            });
         }
 
         for (LivingEntity entity : allTargets) {
