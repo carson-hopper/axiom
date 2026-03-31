@@ -8,7 +8,6 @@ import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.CommandMeta;
 import com.axiommc.api.command.annotation.DynamicTabComplete;
 import com.axiommc.api.command.annotation.Execute;
-import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
@@ -46,8 +45,8 @@ public class KillCommand implements Command {
         );
     }
 
-    @Subcommand
-    public void player(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String target) {
+    @Execute
+    public void execute(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String target) {
         var targets = TargetFilter.parse(target, sender);
 
         if (targets.isEmpty()) {
