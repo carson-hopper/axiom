@@ -233,7 +233,7 @@ public class TargetFilter {
 
         @Override
         public void damage(double amount) {
-            entity.hurt(entity.level().damageSources().generic(), (float) amount);
+            entity.setHealth(0);
         }
 
         @Override
