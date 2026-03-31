@@ -36,7 +36,13 @@ public class KillCommand implements Command {
         "animals",
         "all",
         "!self",
-        "!players"
+        "!players",
+        "!mobs",
+        "!entities",
+        "!hostile",
+        "!passive",
+        "!animals",
+        "!all"
     };
 
     @Execute
@@ -52,7 +58,7 @@ public class KillCommand implements Command {
 
     @Execute
     public void execute(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String target) {
-        String fullTarget = target.startsWith("filter:") ? target : target;
+        String fullTarget = target.startsWith("filter:") ? target : "filter:" + target;
         Set<LivingEntity> allTargets = new LinkedHashSet<>(TargetFilter.parse(fullTarget, sender));
 
         if (allTargets.isEmpty()) {
@@ -92,9 +98,50 @@ public class KillCommand implements Command {
                 addAllFilterSuggestions(suggestions, "filter:", lowerAfterFilter);
             }
         } else {
-            // Suggest starting with "filter:"
+            // Suggest starting with "filter:" or show direct filters/negations
             if ("filter:".startsWith(partial.toLowerCase())) {
                 suggestions.add("filter:");
+            }
+
+            String lowerPartial = partial.toLowerCase();
+
+            // Suggest filters directly without filter: prefix
+            for (String filter : FILTER_OPTIONS) {
+                if (filter.toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(filter);
+                }
+            }
+
+            Set<String> mobTypes = discoverMobTypes();
+
+            // Suggest player names directly
+            Axiom.players().forEach(player -> {
+                if (player.name().toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(player.name());
+                }
+            });
+
+            // Suggest mob types directly
+            mobTypes.forEach(mobType -> {
+                if (mobType.toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(mobType);
+                }
+            });
+
+            // Suggest negative versions directly
+            if (lowerPartial.startsWith("!")) {
+                String afterNegation = lowerPartial.substring(1);
+                Axiom.players().forEach(player -> {
+                    if (player.name().toLowerCase().startsWith(afterNegation)) {
+                        suggestions.add("!" + player.name());
+                    }
+                });
+
+                mobTypes.forEach(mobType -> {
+                    if (mobType.toLowerCase().startsWith(afterNegation)) {
+                        suggestions.add("!" + mobType);
+                    }
+                });
             }
         }
 
@@ -104,6 +151,7 @@ public class KillCommand implements Command {
     private void addAllFilterSuggestions(List<String> suggestions, String prefix, String lowerPartial) {
         // Positive filter keywords
         for (String filter : FILTER_OPTIONS) {
+            if (filter.startsWith("!")) continue; // Skip already negative
             if (filter.toLowerCase().startsWith(lowerPartial)) {
                 suggestions.add(prefix + filter);
             }
@@ -129,9 +177,10 @@ public class KillCommand implements Command {
         if (lowerPartial.startsWith("!")) {
             String afterNegation = lowerPartial.substring(1);
             for (String filter : FILTER_OPTIONS) {
-                if (filter.startsWith("!")) continue; // Skip already negative filters
-                if (filter.toLowerCase().startsWith(afterNegation)) {
-                    suggestions.add(prefix + "!" + filter);
+                if (!filter.startsWith("!")) {
+                    if (filter.toLowerCase().startsWith(afterNegation)) {
+                        suggestions.add(prefix + "!" + filter);
+                    }
                 }
             }
 
