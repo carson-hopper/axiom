@@ -5,48 +5,53 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.invoker.CommandInvoker;
 import net.minecraft.commands.CommandSourceStack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class FabricCommandAdapter {
+public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
 
-    private final String commandName;
-    private final CommandInvoker invoker;
-
-    public FabricCommandAdapter(String commandName, CommandInvoker invoker) {
-        this.commandName = commandName;
-        this.invoker = invoker;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(FabricCommandAdapter.class);
 
     public LiteralArgumentBuilder<CommandSourceStack> buildNode() {
         LiteralArgumentBuilder<CommandSourceStack> builder = LiteralArgumentBuilder.literal(commandName);
 
         RequiredArgumentBuilder<CommandSourceStack, String> argsBuilder =
-            RequiredArgumentBuilder.<CommandSourceStack, String>argument("args", StringArgumentType.greedyString())
-                .suggests(this::suggest)
-                .executes(this::executeWithArgs);
+                RequiredArgumentBuilder.<CommandSourceStack, String>argument("args", StringArgumentType.greedyString())
+                        .suggests(this::suggest)
+                        .executes(this::executeWithArgs);
 
         return builder.then(argsBuilder).executes(this::executeNoArgs);
     }
 
     private int executeNoArgs(CommandContext<CommandSourceStack> ctx) {
-        invoker.execute(new FabricCommandSender(ctx.getSource()), new String[0]);
+        try {
+            invoker.execute(new FabricCommandSender(ctx.getSource()), new String[0]);
+        } catch (Exception e) {
+            LOGGER.error("Error executing command: /{}", commandName, e);
+        }
         return Command.SINGLE_SUCCESS;
     }
 
     private int executeWithArgs(CommandContext<CommandSourceStack> ctx) {
-        String rawArgs = StringArgumentType.getString(ctx, "args");
-        String[] args = rawArgs.trim().isEmpty() ? new String[0] : rawArgs.trim().split("\\s+");
-        invoker.execute(new FabricCommandSender(ctx.getSource()), args);
+        try {
+            String rawArgs = StringArgumentType.getString(ctx, "args");
+            String[] args = rawArgs.trim().isEmpty() ? new String[0] : rawArgs.trim().split("\\s+");
+            invoker.execute(new FabricCommandSender(ctx.getSource()), args);
+        } catch (Exception e) {
+            LOGGER.error("Error executing command: /{}", commandName, e);
+        }
         return Command.SINGLE_SUCCESS;
     }
 
-    private CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggest(
+    private CompletableFuture<Suggestions> suggest(
             CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
         CommandSender sender = new FabricCommandSender(ctx.getSource());
         String input = builder.getRemaining();
@@ -61,9 +66,5 @@ public class FabricCommandAdapter {
         }
 
         return builder.buildFuture();
-    }
-
-    public String getCommandName() {
-        return commandName;
     }
 }
