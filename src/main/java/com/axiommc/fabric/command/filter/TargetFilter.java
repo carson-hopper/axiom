@@ -86,6 +86,13 @@ public class TargetFilter {
 
     private static List<LivingEntity> parseFilterSingle(String filter, CommandSender sender) {
         return switch (filter) {
+            case "self" -> {
+                List<LivingEntity> result = new ArrayList<>();
+                if (sender.isPlayer()) {
+                    result.add(sender.asPlayer().get());
+                }
+                yield result;
+            }
             case "players" -> new ArrayList<>(Axiom.players());
             case "mobs", "entities" -> getAllMobs(sender);
             case "hostile" -> getHostileMobs(sender);
