@@ -256,7 +256,7 @@ public class CommandInvoker {
             Set<String> seen = new LinkedHashSet<>(subcommandMethods.keySet());
             if (!executeMethods.isEmpty()) {
                 // Get suggestions from the first matching @Execute method
-                Method method = selectExecuteMethod(0);
+                Method method = selectExecuteMethod(args.length);
                 if (method != null) {
                     seen.addAll(getParamSuggestions(method, 0, last));
                 }
