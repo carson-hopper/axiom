@@ -28,15 +28,19 @@ public class TargetArgParser implements ArgParser<String> {
     public List<String> suggest(String partial) {
         List<String> suggestions = new ArrayList<>();
 
+        // Suggest filters
         for (String filter : FILTER_OPTIONS) {
             if (filter.startsWith(partial)) {
                 suggestions.add(filter);
             }
         }
 
+        // Suggest player names (case-insensitive prefix match)
+        String lowerPartial = partial.toLowerCase();
         Axiom.players().forEach(player -> {
-            if (player.name().startsWith(partial)) {
-                suggestions.add(player.name());
+            String name = player.name();
+            if (name.toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(name);
             }
         });
 

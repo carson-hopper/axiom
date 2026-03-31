@@ -6,12 +6,15 @@ import com.axiommc.api.command.Command;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.DynamicTabComplete;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.command.filter.TargetFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 @CommandMeta(
         name = "kill",
@@ -19,6 +22,18 @@ import com.axiommc.fabric.command.filter.TargetFilter;
         permission = "axiom.kill"
 )
 public class KillCommand implements Command {
+
+    private static final String[] FILTER_OPTIONS = {
+        "filter:players",
+        "filter:mobs",
+        "filter:entities",
+        "filter:hostile",
+        "filter:passive",
+        "filter:animals",
+        "filter:all",
+        "filter:!self",
+        "filter:!players"
+    };
 
     @Execute
     public void execute(CommandSender sender) {
@@ -32,7 +47,7 @@ public class KillCommand implements Command {
     }
 
     @Subcommand
-    public void player(CommandSender sender, @Arg("target") String target) {
+    public void player(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String target) {
         var targets = TargetFilter.parse(target, sender);
 
         if (targets.isEmpty()) {
@@ -49,5 +64,26 @@ public class KillCommand implements Command {
         } else {
             sender.sendMessage(ChatComponent.text("Killed " + targets.size() + " entities").color(ChatColor.RED));
         }
+    }
+
+    public List<String> suggestTargets(String partial) {
+        List<String> suggestions = new ArrayList<>();
+
+        // Suggest filters
+        String lowerPartial = partial.toLowerCase();
+        for (String filter : FILTER_OPTIONS) {
+            if (filter.toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(filter);
+            }
+        }
+
+        // Suggest player names
+        Axiom.players().forEach(player -> {
+            if (player.name().toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(player.name());
+            }
+        });
+
+        return suggestions;
     }
 }
