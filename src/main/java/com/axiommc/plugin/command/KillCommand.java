@@ -12,8 +12,12 @@ import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.command.filter.TargetFilter;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.AABB;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @CommandMeta(
         name = "kill",
@@ -92,6 +96,23 @@ public class KillCommand implements Command {
             }
         });
 
+        // Discover and suggest mob types in world
+        Set<String> mobTypes = discoverMobTypes();
+        mobTypes.forEach(mobType -> {
+            String filterName = "filter:" + mobType;
+            if (filterName.toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(filterName);
+            }
+        });
+
+        // Suggest filter:!MobType syntax
+        mobTypes.forEach(mobType -> {
+            String filterName = "filter:!" + mobType;
+            if (filterName.toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(filterName);
+            }
+        });
+
         // Suggest direct player names
         Axiom.players().forEach(player -> {
             if (player.name().toLowerCase().startsWith(lowerPartial)) {
@@ -100,5 +121,24 @@ public class KillCommand implements Command {
         });
 
         return suggestions;
+    }
+
+    private Set<String> discoverMobTypes() {
+        Set<String> mobTypes = new HashSet<>();
+
+        for (com.axiommc.api.world.World world : Axiom.worlds()) {
+            if (world instanceof com.axiommc.fabric.world.FabricWorld fabricWorld) {
+                ServerLevel level = fabricWorld.level();
+                AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
+                ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
+                    if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
+                        String simpleName = entity.getClass().getSimpleName();
+                        mobTypes.add(simpleName);
+                    }
+                });
+            }
+        }
+
+        return mobTypes;
     }
 }

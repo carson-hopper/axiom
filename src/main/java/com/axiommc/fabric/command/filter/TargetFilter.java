@@ -47,18 +47,47 @@ public class TargetFilter {
             case "hostile" -> getHostileMobs(sender);
             case "passive", "animals" -> getPassiveMobs(sender);
             case "all" -> getAllTargets(sender);
-            default -> parsePlayerFilter(filter, sender);
+            default -> parsePlayerOrMobFilter(filter, sender);
         };
     }
 
-    private static List<LivingEntity> parsePlayerFilter(String playerName, CommandSender sender) {
+    private static List<LivingEntity> parsePlayerOrMobFilter(String name, CommandSender sender) {
         var player = Axiom.players().stream()
-                .filter(p -> p.name().equalsIgnoreCase(playerName))
+                .filter(p -> p.name().equalsIgnoreCase(name))
                 .findFirst();
 
-        List<LivingEntity> result = new ArrayList<>();
-        player.ifPresent(result::add);
-        return result;
+        if (player.isPresent()) {
+            List<LivingEntity> result = new ArrayList<>();
+            result.add(player.get());
+            return result;
+        }
+
+        return getMobsByType(sender, name);
+    }
+
+    private static List<LivingEntity> getMobsByType(CommandSender sender, String typeName) {
+        List<LivingEntity> mobs = new ArrayList<>();
+
+        for (World world : Axiom.worlds()) {
+            if (world instanceof FabricWorld fabricWorld) {
+                net.minecraft.server.level.ServerLevel level = fabricWorld.level();
+                AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
+                ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
+                    if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
+                        if (matchesEntityType(entity, typeName)) {
+                            mobs.add(new MobWrapper(entity));
+                        }
+                    }
+                });
+            }
+        }
+
+        return mobs;
+    }
+
+    private static boolean matchesEntityType(net.minecraft.world.entity.Entity entity, String typeName) {
+        String simpleName = entity.getClass().getSimpleName();
+        return simpleName.equalsIgnoreCase(typeName);
     }
 
     private static List<LivingEntity> applyNegation(String filter, CommandSender sender) {
@@ -80,19 +109,24 @@ public class TargetFilter {
                 targets.removeIf(e -> playerIds.contains(e.id()));
                 yield targets;
             }
-            default -> applyNegationPlayerFilter(filter, targets);
+            default -> applyNegationPlayerOrMobFilter(filter, targets, sender);
         };
     }
 
-    private static List<LivingEntity> applyNegationPlayerFilter(String playerName, List<LivingEntity> targets) {
+    private static List<LivingEntity> applyNegationPlayerOrMobFilter(String name, List<LivingEntity> targets, CommandSender sender) {
         var targetPlayer = Axiom.players().stream()
-                .filter(p -> p.name().equalsIgnoreCase(playerName))
+                .filter(p -> p.name().equalsIgnoreCase(name))
                 .findFirst();
 
         if (targetPlayer.isPresent()) {
             UUID playerId = targetPlayer.get().id();
             targets.removeIf(e -> e.id().equals(playerId));
+            return targets;
         }
+
+        List<LivingEntity> mobsToRemove = getMobsByType(sender, name);
+        var mobIds = mobsToRemove.stream().map(LivingEntity::id).toList();
+        targets.removeIf(e -> mobIds.contains(e.id()));
 
         return targets;
     }
@@ -185,7 +219,7 @@ public class TargetFilter {
         }
 
         @Override
-        public UUID id() {
+        public java.util.UUID id() {
             return entity.getUUID();
         }
 
