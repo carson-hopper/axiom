@@ -9,7 +9,10 @@ import com.axiommc.api.command.parser.IntArgParser;
 import com.axiommc.api.command.parser.LongArgParser;
 import com.axiommc.api.command.parser.StringArgParser;
 import com.axiommc.api.event.EventBus;
+import com.axiommc.api.player.Player;
 import com.axiommc.api.plugin.PluginEnvironment;
+import com.axiommc.fabric.command.parser.FabricPlayerArgParser;
+import com.axiommc.fabric.player.FabricPlayer;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
 import org.slf4j.Logger;
@@ -91,5 +94,6 @@ public class FabricCommandHandler {
         parserRegistry.register(Float.class, new FloatArgParser());
         parserRegistry.register(Double.class, new DoubleArgParser());
         parserRegistry.register(String.class, new StringArgParser());
+        parserRegistry.register(Player.class, new FabricPlayerArgParser());
     }
 }
