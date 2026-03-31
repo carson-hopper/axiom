@@ -36,6 +36,7 @@ public class KillCommand implements Command {
         "passive",
         "animals",
         "all",
+
         "!self",
         "!players",
         "!mobs",
@@ -56,6 +57,8 @@ public class KillCommand implements Command {
                 () -> sender.sendMessage(ChatComponent.text("Only players can be killed").color(ChatColor.RED))
         );
     }
+
+    
 
     @Execute
     public void execute(CommandSender sender, @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target) {
@@ -82,6 +85,8 @@ public class KillCommand implements Command {
     }
 
     public List<String> suggestTargets(String partial) {
+
+
         List<String> suggestions = new ArrayList<>();
 
         String lowerPartial = partial.toLowerCase();

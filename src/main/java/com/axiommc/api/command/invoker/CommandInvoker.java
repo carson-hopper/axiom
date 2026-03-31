@@ -8,6 +8,7 @@ import com.axiommc.api.command.annotation.CommandMeta;
 import com.axiommc.api.command.annotation.Default;
 import com.axiommc.api.command.annotation.DynamicTabComplete;
 import com.axiommc.api.command.annotation.Execute;
+import com.axiommc.api.command.annotation.Flag;
 import com.axiommc.api.command.annotation.Greedy;
 import com.axiommc.api.command.annotation.Range;
 import com.axiommc.api.command.annotation.Subcommand;
@@ -98,6 +99,18 @@ public class CommandInvoker {
                             "@Greedy parameter must be the last parameter in method: " + method.getName());
                     }
                 }
+                if (param.isAnnotationPresent(Flag.class)) {
+                    if (param.isAnnotationPresent(Greedy.class)) {
+                        throw new IllegalStateException(
+                            "@Flag cannot be combined with @Greedy in method: " + method.getName());
+                    }
+                    boolean hasDefault = param.isAnnotationPresent(Default.class);
+                    boolean isOptional = param.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class);
+                    if (!hasDefault && !isOptional) {
+                        throw new IllegalStateException(
+                            "@Flag parameter must be @Optional or have @Default in method: " + method.getName());
+                    }
+                }
             }
         }
     }
@@ -170,6 +183,26 @@ public class CommandInvoker {
     private Object[] buildArgs(CommandSender sender, Method method, String[] args) throws ArgParseException {
         Parameter[] params = method.getParameters();
         Object[] result = new Object[params.length];
+
+        // Extract flags from args (--flagName value)
+        Map<String, String> flagValues = new LinkedHashMap<>();
+        List<String> positionalArgs = new ArrayList<>();
+
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            if (arg.startsWith("--")) {
+                String flagName = arg.substring(2);
+                if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+                    flagValues.put(flagName, args[i + 1]);
+                    i++; // Skip the value
+                } else {
+                    throw new ArgParseException("Flag --" + flagName + " requires a value");
+                }
+            } else {
+                positionalArgs.add(arg);
+            }
+        }
+
         int argIdx = 0;
 
         for (int i = 0; i < params.length; i++) {
@@ -181,13 +214,50 @@ public class CommandInvoker {
                 continue;
             }
 
+            // Handle @Flag parameters
+            if (param.isAnnotationPresent(Flag.class)) {
+                Flag flagAnnotation = param.getAnnotation(Flag.class);
+                String flagName = flagAnnotation.value();
+                String flagValue = flagValues.get(flagName);
+
+                if (flagValue != null) {
+                    ArgParser<?> parser = parserRegistry.get(param.getType());
+                    if (parser == null) {
+                        throw new ArgParseException("No parser for flag type: " + param.getType().getSimpleName());
+                    }
+                    Object parsed = parser.parse(flagValue);
+                    Range range = param.getAnnotation(Range.class);
+                    if (range != null && parsed instanceof Number num) {
+                        double val = num.doubleValue();
+                        if (val < range.min() || val > range.max()) {
+                            throw new ArgParseException("Flag --" + flagName + " value out of range [" + range.min() + ", " + range.max() + "]");
+                        }
+                    }
+                    result[i] = parsed;
+                } else {
+                    // Use @Default if available
+                    Default def = param.getAnnotation(Default.class);
+                    if (def != null) {
+                        ArgParser<?> parser = parserRegistry.get(param.getType());
+                        if (parser != null) {
+                            result[i] = parser.parse(def.value());
+                        } else {
+                            result[i] = null;
+                        }
+                    } else {
+                        result[i] = null;
+                    }
+                }
+                continue;
+            }
+
             // @Default alone implies optionality — no @Optional annotation required
             boolean hasDefault = param.isAnnotationPresent(Default.class);
             boolean isOptional = param.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) || hasDefault;
             boolean isGreedy = param.isAnnotationPresent(Greedy.class);
 
             if (isGreedy && param.getType() == String.class) {
-                if (argIdx >= args.length) {
+                if (argIdx >= positionalArgs.size()) {
                     if (isOptional) {
                         Default def = param.getAnnotation(Default.class);
                         result[i] = def != null ? def.value() : null;
@@ -198,13 +268,13 @@ public class CommandInvoker {
                         return null;
                     }
                 } else {
-                    result[i] = String.join(" ", Arrays.copyOfRange(args, argIdx, args.length));
-                    argIdx = args.length;
+                    result[i] = String.join(" ", positionalArgs.subList(argIdx, positionalArgs.size()));
+                    argIdx = positionalArgs.size();
                 }
                 continue;
             }
 
-            if (argIdx >= args.length) {
+            if (argIdx >= positionalArgs.size()) {
                 if (isOptional) {
                     Default def = param.getAnnotation(Default.class);
                     if (def != null) {
@@ -235,15 +305,13 @@ public class CommandInvoker {
                 continue;
             }
 
-            String raw = args[argIdx++];
+            String raw = positionalArgs.get(argIdx++);
             ArgParser<?> parser = parserRegistry.get(param.getType());
             if (parser == null) {
                 throw new ArgParseException("No parser for type: " + param.getType().getSimpleName());
             }
 
-            LOGGER.info("      Raw value: '{}' using parser: {}", raw, parser.getClass().getSimpleName());
             Object parsed = parser.parse(raw);
-            LOGGER.info("      Parsed successfully to: {}", parsed != null ? parsed.getClass().getSimpleName() : "null");
 
             Range range = param.getAnnotation(Range.class);
             if (range != null && parsed instanceof Number num) {
@@ -418,28 +486,32 @@ public class CommandInvoker {
         return executeMethods.isEmpty() ? null : executeMethods.getFirst();
     }
 
-    /** Count parameters that are not CommandSender */
+    /** Count parameters that are not CommandSender and not @Flag */
     private int countNonSenderParams(Method method) {
         int count = 0;
         for (Parameter p : method.getParameters()) {
             // Check by class name to handle classloader differences
             String className = p.getType().getName();
             boolean isSender = className.equals("com.axiommc.api.command.CommandSender");
-            if (!isSender) {
+            boolean isFlag = p.isAnnotationPresent(Flag.class);
+            if (!isSender && !isFlag) {
                 count++;
             }
         }
         return count;
     }
 
-    /** Count required parameters (not marked @Optional or @Default) */
+    /** Count required parameters (not marked @Optional or @Default), excluding @Flag */
     private int countRequiredParams(Method method) {
         int count = 0;
         for (Parameter p : method.getParameters()) {
             // Check by class name to handle classloader differences
             if (!p.getType().getName().equals("com.axiommc.api.command.CommandSender")) {
-                if (!p.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) && !p.isAnnotationPresent(Default.class)) {
-                    count++;
+                // Exclude @Flag parameters
+                if (!p.isAnnotationPresent(Flag.class)) {
+                    if (!p.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) && !p.isAnnotationPresent(Default.class)) {
+                        count++;
+                    }
                 }
             }
         }
@@ -452,6 +524,9 @@ public class CommandInvoker {
         for (Parameter param : params) {
             // Check by class name to handle classloader differences
             if (param.getType().getName().equals("com.axiommc.api.command.CommandSender")) continue;
+
+            // Skip @Flag parameters in positional counting
+            if (param.isAnnotationPresent(Flag.class)) continue;
 
             if (commandParamIndex == argPos) {
                 // Check for dynamic tab completion first
