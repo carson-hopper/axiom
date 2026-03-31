@@ -4,11 +4,7 @@ import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.command.Command;
 import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.annotation.Arg;
-import com.axiommc.api.command.annotation.CommandMeta;
-import com.axiommc.api.command.annotation.DynamicTabComplete;
-import com.axiommc.api.command.annotation.Execute;
-import com.axiommc.api.command.annotation.Greedy;
+import com.axiommc.api.command.annotation.*;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
@@ -48,7 +44,7 @@ public class KillCommand implements Command {
     };
 
     @Execute
-    public void execute(CommandSender sender) {
+    public void execute(CommandSender sender, @Flag("radius") @Optional int radius) {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
                     player.damage(player.health());
@@ -58,15 +54,21 @@ public class KillCommand implements Command {
         );
     }
 
-    
-
     @Execute
-    public void execute(CommandSender sender, @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target) {
+    public void execute(
+            CommandSender sender,
+            @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target,
+            @Flag("radius") @Optional int radius
+    ) {
         Set<LivingEntity> allTargets = new LinkedHashSet<>(TargetFilter.parse(target, sender));
 
         if (allTargets.isEmpty()) {
             sender.sendMessage(ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
             return;
+        }
+
+        if (radius > 0) {
+            sender.sendMessage("Radius: " + radius);
         }
 
         for (LivingEntity entity : allTargets) {
@@ -85,8 +87,6 @@ public class KillCommand implements Command {
     }
 
     public List<String> suggestTargets(String partial) {
-
-
         List<String> suggestions = new ArrayList<>();
 
         String lowerPartial = partial.toLowerCase();

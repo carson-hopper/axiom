@@ -75,7 +75,7 @@ public class CommandInvoker {
             }
         }
 
-        // Validate @Greedy parameters
+        // Validate @Greedy and @Flag parameters
         List<Method> allMethods = new ArrayList<>(subcommandMethods.values());
         allMethods.addAll(executeMethods);
         for (Method method : allMethods) {
@@ -87,18 +87,31 @@ public class CommandInvoker {
                     nonSenderParams.add(param);
                 }
             }
-            for (int i = 0; i < nonSenderParams.size(); i++) {
-                Parameter param = nonSenderParams.get(i);
+
+            // Build list of positional parameters (excluding flags) for @Greedy validation
+            List<Parameter> positionalParams = new ArrayList<>();
+            for (Parameter param : nonSenderParams) {
+                if (!param.isAnnotationPresent(Flag.class)) {
+                    positionalParams.add(param);
+                }
+            }
+
+            for (int i = 0; i < positionalParams.size(); i++) {
+                Parameter param = positionalParams.get(i);
                 if (param.isAnnotationPresent(Greedy.class)) {
                     if (param.getType() != String.class) {
                         throw new IllegalStateException(
                             "@Greedy can only be applied to String parameters in method: " + method.getName());
                     }
-                    if (i != nonSenderParams.size() - 1) {
+                    if (i != positionalParams.size() - 1) {
                         throw new IllegalStateException(
-                            "@Greedy parameter must be the last parameter in method: " + method.getName());
+                            "@Greedy parameter must be the last positional parameter in method: " + method.getName());
                     }
                 }
+            }
+
+            for (int i = 0; i < nonSenderParams.size(); i++) {
+                Parameter param = nonSenderParams.get(i);
                 if (param.isAnnotationPresent(Flag.class)) {
                     if (param.isAnnotationPresent(Greedy.class)) {
                         throw new IllegalStateException(
