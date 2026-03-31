@@ -69,7 +69,10 @@ public class KillCommand implements Command {
 
         if (radius > 0) {
             sender.asPlayer().ifPresent(player -> {
-                allTargets.removeIf(entity -> !player.location().isCloseTo(entity.location(), radius));
+                allTargets.removeIf(entity -> {
+                    double distance = player.location().distance(entity.location());
+                    return distance > radius;
+                });
             });
         }
 

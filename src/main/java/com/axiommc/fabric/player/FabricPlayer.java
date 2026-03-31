@@ -12,12 +12,11 @@ import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
+import com.axiommc.fabric.entity.FabricLivingEntity;
 import com.axiommc.fabric.mixin.net.minecraft.world.entity.player.PlayerAccessor;
 import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundClearTitlesPacket;
@@ -29,7 +28,6 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,18 +35,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public record FabricPlayer(ServerPlayer player) implements Player {
+public class FabricPlayer extends FabricLivingEntity implements Player {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FabricPlayer.class);
+    private final ServerPlayer player;
 
-    @Override
-    public UUID id() {
-        return player.getUUID();
+    public FabricPlayer(ServerPlayer player) {
+        super(player);
+        this.player = player;
     }
 
-    @Override
-    public String name() {
-        return player.getName().getString();
+    public ServerPlayer player() {
+        return player;
     }
 
     @Override
@@ -84,35 +82,8 @@ public record FabricPlayer(ServerPlayer player) implements Player {
     }
 
     @Override
-    public Vector3 velocity() {
-        var motion = player.getDeltaMovement();
-        return new Vector3(motion.x, motion.y, motion.z);
-    }
-
-    @Override
-    public void velocity(Vector3 velocity) {
-        player.setDeltaMovement(velocity.x(), velocity.y(), velocity.z());
-    }
-
-    @Override
-    public Vector2 rotation() {
-        return new Vector2(player.getYRot(), player.getXRot());
-    }
-
-    @Override
-    public void rotation(Vector2 rotation) {
-        player.setYRot(rotation.yaw());
-        player.setXRot(rotation.pitch());
-    }
-
-    @Override
     public World world() {
         return new FabricWorld(player.level());
-    }
-
-    @Override
-    public boolean alive() {
-        return player.isAlive();
     }
 
     @Override

@@ -35,15 +35,15 @@ public record FabricBossBar(ServerBossEvent bossEvent) implements BossBar {
 
     @Override
     public void addPlayer(Player player) {
-        if (player instanceof FabricPlayer(ServerPlayer serverPlayer)) {
-            bossEvent.addPlayer(serverPlayer);
+        if (player instanceof FabricPlayer fabricPlayer) {
+            bossEvent.addPlayer(fabricPlayer.player());
         }
     }
 
     @Override
     public void removePlayer(Player player) {
-        if (player instanceof FabricPlayer(ServerPlayer serverPlayer)) {
-            bossEvent.removePlayer(serverPlayer);
+        if (player instanceof FabricPlayer fabricPlayer) {
+            bossEvent.removePlayer(fabricPlayer.player());
         }
     }
 

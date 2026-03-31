@@ -5,9 +5,9 @@ import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.entity.FabricLivingEntity;
 import com.axiommc.fabric.world.FabricWorld;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragonPart;
@@ -21,7 +21,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class TargetFilter {
 
@@ -113,13 +112,12 @@ public class TargetFilter {
         List<LivingEntity> mobs = new ArrayList<>();
 
         for (World world : getWorldsForSender(sender)) {
-            if (world instanceof FabricWorld fabricWorld) {
-                net.minecraft.server.level.ServerLevel level = fabricWorld.level();
+            if (world instanceof FabricWorld(ServerLevel level)) {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
-                ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
+                level.getEntities(null, worldBounds).forEach(entity -> {
                     if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
                         if (!isBossMob(entity) && matchesEntityType(entity, typeName)) {
-                            mobs.add(new MobWrapper(entity));
+                            mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
                         }
                     }
                 });
@@ -135,7 +133,10 @@ public class TargetFilter {
     }
 
     private static boolean isBossMob(net.minecraft.world.entity.Entity entity) {
-        return entity instanceof EnderDragon || entity instanceof WitherBoss || entity instanceof Warden || entity instanceof EnderDragonPart;
+        return entity instanceof EnderDragon ||
+                entity instanceof WitherBoss ||
+                entity instanceof Warden ||
+                entity instanceof EnderDragonPart;
     }
 
     private static Collection<World> getWorldsForSender(CommandSender sender) {
@@ -160,7 +161,6 @@ public class TargetFilter {
     private static List<LivingEntity> getAllTargets(CommandSender sender) {
         List<LivingEntity> targets = new ArrayList<>();
 
-        // Filter players by sender's world if sender is a player
         if (sender.isPlayer()) {
             Optional<Player> player = sender.asPlayer();
             if (player.isPresent()) {
@@ -181,13 +181,12 @@ public class TargetFilter {
         List<LivingEntity> mobs = new ArrayList<>();
 
         for (World world : getWorldsForSender(sender)) {
-            if (world instanceof FabricWorld fabricWorld) {
-                net.minecraft.server.level.ServerLevel level = fabricWorld.level();
+            if (world instanceof FabricWorld(ServerLevel level)) {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
-                ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
+                level.getEntities(null, worldBounds).forEach(entity -> {
                     if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
                         if (!isBossMob(entity)) {
-                            mobs.add(new MobWrapper(entity));
+                            mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
                         }
                     }
                 });
@@ -201,12 +200,11 @@ public class TargetFilter {
         List<LivingEntity> mobs = new ArrayList<>();
 
         for (World world : getWorldsForSender(sender)) {
-            if (world instanceof FabricWorld fabricWorld) {
-                net.minecraft.server.level.ServerLevel level = fabricWorld.level();
+            if (world instanceof FabricWorld(ServerLevel level)) {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
-                ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
+                level.getEntities(null, worldBounds).forEach(entity -> {
                     if (entity instanceof Monster && !isBossMob(entity)) {
-                        mobs.add(new MobWrapper(entity));
+                        mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
                     }
                 });
             }
@@ -219,112 +217,16 @@ public class TargetFilter {
         List<LivingEntity> mobs = new ArrayList<>();
 
         for (World world : getWorldsForSender(sender)) {
-            if (world instanceof FabricWorld fabricWorld) {
-                net.minecraft.server.level.ServerLevel level = fabricWorld.level();
+            if (world instanceof FabricWorld(ServerLevel level)) {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
-                ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
+                level.getEntities(null, worldBounds).forEach(entity -> {
                     if (entity instanceof Animal && !isBossMob(entity)) {
-                        mobs.add(new MobWrapper(entity));
+                        mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
                     }
                 });
             }
         }
 
         return mobs;
-    }
-
-    private static class MobWrapper implements LivingEntity {
-        private final net.minecraft.world.entity.LivingEntity entity;
-
-        MobWrapper(net.minecraft.world.entity.Entity entity) {
-            this.entity = (net.minecraft.world.entity.LivingEntity) entity;
-        }
-
-        @Override
-        public double health() {
-            return entity.getHealth();
-        }
-
-        @Override
-        public void health(double health) {
-            entity.setHealth((float) health);
-        }
-
-        @Override
-        public double maxHealth() {
-            return entity.getMaxHealth();
-        }
-
-        @Override
-        public void damage(double amount) {
-            entity.hurt(entity.level().damageSources().generic(), (float) amount);
-        }
-
-        @Override
-        public java.util.UUID id() {
-            return entity.getUUID();
-        }
-
-        @Override
-        public String name() {
-            return entity.getName().getString();
-        }
-
-        @Override
-        public String nickname() {
-            return entity.getDisplayName().getString();
-        }
-
-        @Override
-        public void nickname(String name) {
-            entity.setCustomName(net.minecraft.network.chat.Component.literal(name));
-        }
-
-        @Override
-        public com.axiommc.api.player.Location location() {
-            var level = (net.minecraft.server.level.ServerLevel) entity.level();
-            var world = new FabricWorld(level);
-            var position = new com.axiommc.api.math.Vector3(entity.getX(), entity.getY(), entity.getZ());
-            var rotation = new com.axiommc.api.math.Vector2(entity.getYRot(), entity.getXRot());
-            return new com.axiommc.api.player.Location(world, position, rotation);
-        }
-
-        @Override
-        public void teleport(com.axiommc.api.player.Location location) {
-            entity.teleportTo(location.position().x(), location.position().y(), location.position().z());
-        }
-
-        @Override
-        public com.axiommc.api.math.Vector3 velocity() {
-            var motion = entity.getDeltaMovement();
-            return new com.axiommc.api.math.Vector3(motion.x, motion.y, motion.z);
-        }
-
-        @Override
-        public void velocity(com.axiommc.api.math.Vector3 velocity) {
-            entity.setDeltaMovement(velocity.x(), velocity.y(), velocity.z());
-        }
-
-        @Override
-        public com.axiommc.api.math.Vector2 rotation() {
-            return new com.axiommc.api.math.Vector2(entity.getYRot(), entity.getXRot());
-        }
-
-        @Override
-        public void rotation(com.axiommc.api.math.Vector2 rotation) {
-            entity.setYRot(rotation.yaw());
-            entity.setXRot(rotation.pitch());
-        }
-
-        @Override
-        public World world() {
-            var level = (net.minecraft.server.level.ServerLevel) entity.level();
-            return new FabricWorld(level);
-        }
-
-        @Override
-        public boolean alive() {
-            return entity.isAlive();
-        }
     }
 }
