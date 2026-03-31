@@ -92,10 +92,12 @@ public class KillCommand implements Command {
                 String lastPart = afterFilter.substring(lastCommaIdx + 1).trim();
                 String lowerLastPart = lastPart.toLowerCase();
 
-                addAllFilterSuggestions(suggestions, prefix, lowerLastPart);
+                // Check if "all" is already in the filters
+                boolean hasAll = afterFilter.toLowerCase().contains("all");
+                addAllFilterSuggestions(suggestions, prefix, lowerLastPart, hasAll);
             } else {
                 // First filter after "filter:"
-                addAllFilterSuggestions(suggestions, "filter:", lowerAfterFilter);
+                addAllFilterSuggestions(suggestions, "filter:", lowerAfterFilter, false);
             }
         } else {
             // Suggest starting with "filter:" or show direct filters/negations
@@ -148,55 +150,95 @@ public class KillCommand implements Command {
         return suggestions;
     }
 
-    private void addAllFilterSuggestions(List<String> suggestions, String prefix, String lowerPartial) {
-        // Positive filter keywords
-        for (String filter : FILTER_OPTIONS) {
-            if (filter.startsWith("!")) continue; // Skip already negative
-            if (filter.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix + filter);
-            }
-        }
-
+    private void addAllFilterSuggestions(List<String> suggestions, String prefix, String lowerPartial, boolean hasAll) {
         Set<String> mobTypes = discoverMobTypes();
 
-        // Positive player names
-        Axiom.players().forEach(player -> {
-            if (player.name().toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix + player.name());
-            }
-        });
-
-        // Positive mob types
-        mobTypes.forEach(mobType -> {
-            if (mobType.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(prefix + mobType);
-            }
-        });
-
-        // Negative filter keywords (if user typed !)
-        if (lowerPartial.startsWith("!")) {
-            String afterNegation = lowerPartial.substring(1);
-            for (String filter : FILTER_OPTIONS) {
-                if (!filter.startsWith("!")) {
-                    if (filter.toLowerCase().startsWith(afterNegation)) {
-                        suggestions.add(prefix + "!" + filter);
-                    }
+        if (hasAll) {
+            // If "all" is already present, only suggest negative filters
+            
+            // Negative filter keywords
+            String[] negativeFilters = {
+                "!self",
+                "!players",
+                "!mobs",
+                "!entities",
+                "!hostile",
+                "!passive",
+                "!animals",
+                "!all"
+            };
+            
+            for (String filter : negativeFilters) {
+                if (filter.toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(prefix + filter);
                 }
             }
 
             // Negative player names
             Axiom.players().forEach(player -> {
-                if (player.name().toLowerCase().startsWith(afterNegation)) {
-                    suggestions.add(prefix + "!" + player.name());
+                String negName = "!" + player.name();
+                if (negName.toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(prefix + negName);
                 }
             });
 
             // Negative mob types
             mobTypes.forEach(mobType -> {
-                if (mobType.toLowerCase().startsWith(afterNegation)) {
-                    suggestions.add(prefix + "!" + mobType);
+                String negType = "!" + mobType;
+                if (negType.toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(prefix + negType);
                 }
             });
+        } else {
+            // "all" not present - suggest both positive and negative
+            
+            // Positive filter keywords
+            for (String filter : FILTER_OPTIONS) {
+                if (filter.startsWith("!")) continue;
+                if (filter.toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(prefix + filter);
+                }
+            }
+
+            // Positive player names
+            Axiom.players().forEach(player -> {
+                if (player.name().toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(prefix + player.name());
+                }
+            });
+
+            // Positive mob types
+            mobTypes.forEach(mobType -> {
+                if (mobType.toLowerCase().startsWith(lowerPartial)) {
+                    suggestions.add(prefix + mobType);
+                }
+            });
+
+            // Negative filters (if user typed !)
+            if (lowerPartial.startsWith("!")) {
+                String afterNegation = lowerPartial.substring(1);
+                for (String filter : FILTER_OPTIONS) {
+                    if (!filter.startsWith("!")) {
+                        if (filter.toLowerCase().startsWith(afterNegation)) {
+                            suggestions.add(prefix + "!" + filter);
+                        }
+                    }
+                }
+
+                // Negative player names
+                Axiom.players().forEach(player -> {
+                    if (player.name().toLowerCase().startsWith(afterNegation)) {
+                        suggestions.add(prefix + "!" + player.name());
+                    }
+                });
+
+                // Negative mob types
+                mobTypes.forEach(mobType -> {
+                    if (mobType.toLowerCase().startsWith(afterNegation)) {
+                        suggestions.add(prefix + "!" + mobType);
+                    }
+                });
+            }
         }
     }
 
