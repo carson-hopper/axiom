@@ -33,4 +33,8 @@ public record Vector3(double x, double y, double z) {
         double dz = z - other.z;
         return dx * dx + dy * dy + dz * dz;
     }
+
+    public boolean isCloseTo(Vector3 other, double radius) {
+        return distance(other) <= radius;
+    }
 }

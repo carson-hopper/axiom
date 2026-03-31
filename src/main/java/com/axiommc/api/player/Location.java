@@ -13,4 +13,15 @@ public record Location(World world, Vector3 position, Vector2 rotation) {
     public double distance(Vector3 other) {
         return position.distance(other);
     }
+
+    public boolean isCloseTo(Location other, double radius) {
+        if (!world.equals(other.world)) {
+            return false;
+        }
+        return position.isCloseTo(other.position, radius);
+    }
+
+    public boolean isCloseTo(Vector3 other, double radius) {
+        return position.isCloseTo(other, radius);
+    }
 }
