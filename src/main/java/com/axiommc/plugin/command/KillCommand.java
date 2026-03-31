@@ -10,7 +10,7 @@ import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
-import com.axiommc.fabric.player.FabricPlayer;
+import com.axiommc.fabric.command.filter.TargetFilter;
 
 @CommandMeta(
         name = "kill",
@@ -31,8 +31,22 @@ public class KillCommand implements Command {
     }
 
     @Subcommand
-    public void player(CommandSender sender, @Arg("player") Player player) {
-        player.damage(player.health());
-        sender.sendMessage(ChatComponent.text("Killed " + player.name()).color(ChatColor.RED));
+    public void player(CommandSender sender, @Arg("target") String target) {
+        var players = TargetFilter.parse(target, sender);
+
+        if (players.isEmpty()) {
+            sender.sendMessage(ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
+            return;
+        }
+
+        for (Player player : players) {
+            player.damage(player.health());
+        }
+
+        if (players.size() == 1) {
+            sender.sendMessage(ChatComponent.text("Killed " + players.get(0).name()).color(ChatColor.RED));
+        } else {
+            sender.sendMessage(ChatComponent.text("Killed " + players.size() + " players").color(ChatColor.RED));
+        }
     }
 }
