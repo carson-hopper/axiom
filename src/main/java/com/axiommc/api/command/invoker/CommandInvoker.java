@@ -179,6 +179,8 @@ public class CommandInvoker {
                 continue;
             }
 
+            LOGGER.debug("    Parsing param {}: type={}", param.getName(), param.getType().getSimpleName());
+
             // @Default alone implies optionality — no @Optional annotation required
             boolean hasDefault = param.isAnnotationPresent(Default.class);
             boolean isOptional = param.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) || hasDefault;
@@ -239,7 +241,9 @@ public class CommandInvoker {
                 throw new ArgParseException("No parser for type: " + param.getType().getSimpleName());
             }
 
+            LOGGER.debug("      Raw value: '{}' using parser: {}", raw, parser.getClass().getSimpleName());
             Object parsed = parser.parse(raw);
+            LOGGER.debug("      Parsed successfully to: {}", parsed != null ? parsed.getClass().getSimpleName() : "null");
 
             Range range = param.getAnnotation(Range.class);
             if (range != null && parsed instanceof Number num) {
@@ -312,6 +316,7 @@ public class CommandInvoker {
             int paramCount = countNonSenderParams(m);
             if (paramCount == argCount) {
                 matching.add(m);
+                LOGGER.debug("  Exact match: {}({})", m.getName(), paramCount);
             }
         }
 
@@ -326,12 +331,14 @@ public class CommandInvoker {
             int maxAccepted = countNonSenderParams(m);
             if (argCount >= minRequired && argCount <= maxAccepted) {
                 matching.add(m);
+                LOGGER.debug("  Optional match: {}({}-{})", m.getName(), minRequired, maxAccepted);
             }
         }
 
         // If no methods found but we have executeMethods, return all as fallback
         if (matching.isEmpty() && !executeMethods.isEmpty()) {
             matching.addAll(executeMethods);
+            LOGGER.debug("  No matches found, using all methods as fallback");
         }
 
         return matching;
