@@ -16,6 +16,8 @@ import com.axiommc.api.command.parser.ArgParseException;
 import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.command.parser.ArgParserRegistry;
 import com.axiommc.api.plugin.PluginEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,6 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public class CommandInvoker {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandInvoker.class);
 
     private final Command command;
     private final ArgParserRegistry parserRegistry;
@@ -103,6 +107,12 @@ public class CommandInvoker {
             sender.sendMessage("You don't have permission to use this command.");
             return true;
         }
+
+        // Log command execution
+        String commandName = meta != null ? meta.name() : command.getClass().getSimpleName();
+        String senderName = sender.isPlayer() ? sender.asPlayer().map(p -> p.name()).orElse("Unknown") : "Console";
+        String argsStr = args.length > 0 ? String.join(" ", args) : "";
+        LOGGER.info("Command executed: /{} {} (by: {})", commandName, argsStr, senderName);
 
         Method method;
         String[] methodArgs;
