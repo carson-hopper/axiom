@@ -10,6 +10,7 @@ import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.player.FabricPlayer;
 
 @CommandMeta(
         name = "kill",
@@ -20,34 +21,18 @@ public class KillCommand implements Command {
 
     @Execute
     public void execute(CommandSender sender) {
-        sender.sendMessage(ChatComponent.text("Usage: /kill [player]").color(ChatColor.RED));
+        sender.asPlayer().ifPresentOrElse(
+                player -> {
+                    player.damage(player.health());
+                    player.sendMessage(ChatComponent.text("You have been killed").color(ChatColor.RED));
+                },
+                () -> sender.sendMessage(ChatComponent.text("Only players can be killed").color(ChatColor.RED))
+        );
     }
 
     @Subcommand
-    public void self(CommandSender sender) {
-        if (!sender.isPlayer()) {
-            sender.sendMessage(ChatComponent.text("Only players can be killed").color(ChatColor.RED));
-            return;
-        }
-
-        Player player = sender.asPlayer().get();
-        player.health(0);
-        sender.sendMessage(ChatComponent.text("You have been killed").color(ChatColor.RED));
-    }
-
-    @Subcommand
-    public void player(CommandSender sender, @Arg("player") String playerName) {
-        var target = Axiom.players().stream()
-                .filter(p -> p.name().equalsIgnoreCase(playerName))
-                .findFirst();
-
-        if (target.isEmpty()) {
-            sender.sendMessage(ChatComponent.text("Player not found: " + playerName).color(ChatColor.RED));
-            return;
-        }
-
-        Player player = (Player) target.get();
-        player.health(0);
-        sender.sendMessage(ChatComponent.text("Killed " + playerName).color(ChatColor.RED));
+    public void player(CommandSender sender, @Arg("player") Player player) {
+        player.damage(player.health());
+        sender.sendMessage(ChatComponent.text("Killed " + player.name()).color(ChatColor.RED));
     }
 }

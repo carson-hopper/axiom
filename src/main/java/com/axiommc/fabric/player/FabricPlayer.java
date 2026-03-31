@@ -6,11 +6,13 @@ import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
+import com.axiommc.api.sound.Sound;
 import com.axiommc.api.sound.SoundKey;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
+import com.axiommc.fabric.mixin.net.minecraft.world.entity.player.PlayerAccessor;
 import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
 import net.minecraft.core.Holder;
@@ -180,7 +182,8 @@ public record FabricPlayer(ServerPlayer player) implements Player {
     @Override
     public void damage(double amount) {
         if (world() instanceof FabricWorld(net.minecraft.server.level.ServerLevel level)) {
-            player.hurt(level.damageSources().generic(), (float) amount);
+            playSound(Sound.PLAYER_DEATH, 1, 1);
+            ((PlayerAccessor) player).invokeActuallyHurt(level, level.damageSources().generic(), (float) amount);
         }
     }
 
