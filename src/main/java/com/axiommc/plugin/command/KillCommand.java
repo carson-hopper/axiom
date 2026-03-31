@@ -67,7 +67,11 @@ public class KillCommand implements Command {
         }
 
         for (LivingEntity entity : allTargets) {
-            entity.damage(entity.health());
+            if (entity instanceof Player) {
+                entity.damage(entity.health());
+            } else {
+                entity.health(0);
+            }
         }
 
         if (allTargets.size() == 1) {
