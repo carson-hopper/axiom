@@ -38,8 +38,8 @@ public class TargetFilter {
     }
 
     private static List<LivingEntity> parseFilter(String filter, CommandSender sender) {
-        // Check for comma-separated filters (e.g., "zombie,creeper,!skeleton")
-        if (filter.contains(",")) {
+        // Check for space-separated filters (e.g., "zombie creeper !skeleton")
+        if (filter.contains(" ")) {
             return parseMultipleFilters(filter, sender);
         }
 
@@ -62,7 +62,7 @@ public class TargetFilter {
         Set<LivingEntity> positive = new LinkedHashSet<>();
         Set<LivingEntity> negative = new LinkedHashSet<>();
 
-        String[] parts = filterStr.split(",");
+        String[] parts = filterStr.split("\\s+");
         for (String part : parts) {
             part = part.trim();
             if (part.isEmpty()) continue;

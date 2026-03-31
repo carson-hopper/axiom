@@ -8,6 +8,7 @@ import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.CommandMeta;
 import com.axiommc.api.command.annotation.DynamicTabComplete;
 import com.axiommc.api.command.annotation.Execute;
+import com.axiommc.api.command.annotation.Greedy;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
@@ -57,7 +58,9 @@ public class KillCommand implements Command {
     }
 
     @Execute
-    public void execute(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String target) {
+    public void execute(CommandSender sender, @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target) {
+        // Convert space-separated filters to the format TargetFilter expects
+        // "/kill zombie creeper !self" -> "filter:zombie creeper !self"
         String fullTarget = target.startsWith("filter:") ? target : "filter:" + target;
         Set<LivingEntity> allTargets = new LinkedHashSet<>(TargetFilter.parse(fullTarget, sender));
 
@@ -89,11 +92,11 @@ public class KillCommand implements Command {
             String afterFilter = partial.substring(7);
             String lowerAfterFilter = afterFilter.toLowerCase();
 
-            // Check for comma-separated (already has at least one filter)
-            if (afterFilter.contains(",")) {
-                int lastCommaIdx = afterFilter.lastIndexOf(",");
-                String prefix = partial.substring(0, 7 + lastCommaIdx + 1);
-                String lastPart = afterFilter.substring(lastCommaIdx + 1).trim();
+            // Check for space-separated (already has at least one filter)
+            if (afterFilter.contains(" ")) {
+                int lastSpaceIdx = afterFilter.lastIndexOf(" ");
+                String prefix = partial.substring(0, 7 + lastSpaceIdx + 1);
+                String lastPart = afterFilter.substring(lastSpaceIdx + 1).trim();
                 String lowerLastPart = lastPart.toLowerCase();
 
                 // Check if "all" is already in the filters
