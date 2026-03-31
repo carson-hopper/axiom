@@ -5,6 +5,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Immutable chat component with styling and interactivity.
+ *
+ * <p>Represents a formatted chat message or part thereof. Supports colors,
+ * decorations (bold, italic, etc.), click events, hover events, and child
+ * components for composition. Use factory methods like {@link #text(String)}
+ * and {@link #builder()} to create components.
+ *
+ * @param type the component type (text, translatable, keybind, etc.)
+ * @param content the text content for text/keybind components
+ * @param translatableKey the translation key for translatable components
+ * @param translatableArgs replacement arguments for translatable components
+ * @param keybind the keybind key for keybind components
+ * @param color the text color
+ * @param bold whether to apply bold formatting
+ * @param italic whether to apply italic formatting
+ * @param underlined whether to apply underline formatting
+ * @param strikethrough whether to apply strikethrough formatting
+ * @param obfuscated whether to apply obfuscation
+ * @param insertion text inserted into chat on shift-click
+ * @param clickEvent click event or null
+ * @param hoverEvent hover event or null
+ * @param children child components
+ */
 public record ChatComponent(String type, String content, String translatableKey, ChatComponent[] translatableArgs,
                             String keybind, ChatColor color, boolean bold, boolean italic, boolean underlined,
                             boolean strikethrough, boolean obfuscated, String insertion, ChatClickEvent clickEvent,
@@ -136,12 +160,25 @@ public record ChatComponent(String type, String content, String translatableKey,
 
     // ── Styling (immutable) ────────────────────────────────────────────────
 
+    /**
+     * Applies a color to this component.
+     *
+     * @param color the color to apply
+     * @return a new component with the specified color
+     */
     public ChatComponent color(ChatColor color) {
         BuilderImpl b = copyToBuilder();
         b.color = color;
         return b.build();
     }
 
+    /**
+     * Applies or removes a decoration to this component.
+     *
+     * @param decoration the decoration to apply
+     * @param active true to apply, false to remove
+     * @return a new component with the updated decoration
+     */
     public ChatComponent decoration(ChatDecoration decoration, boolean active) {
         BuilderImpl b = copyToBuilder();
         switch (decoration) {
@@ -154,26 +191,65 @@ public record ChatComponent(String type, String content, String translatableKey,
         return b.build();
     }
 
+    /**
+     * Applies or removes bold formatting to this component.
+     *
+     * @param bold true to apply, false to remove
+     * @return a new component with the updated formatting
+     */
     public ChatComponent bold(boolean bold) {
         return decoration(ChatDecoration.BOLD, bold);
     }
 
+    /**
+     * Applies or removes italic formatting to this component.
+     *
+     * @param italic true to apply, false to remove
+     * @return a new component with the updated formatting
+     */
     public ChatComponent italic(boolean italic) {
         return decoration(ChatDecoration.ITALIC, italic);
     }
 
+    /**
+     * Applies or removes underline formatting to this component.
+     *
+     * @param underlined true to apply, false to remove
+     * @return a new component with the updated formatting
+     */
     public ChatComponent underlined(boolean underlined) {
         return decoration(ChatDecoration.UNDERLINED, underlined);
     }
 
+    /**
+     * Applies or removes strikethrough formatting to this component.
+     *
+     * @param strikethrough true to apply, false to remove
+     * @return a new component with the updated formatting
+     */
     public ChatComponent strikethrough(boolean strikethrough) {
         return decoration(ChatDecoration.STRIKETHROUGH, strikethrough);
     }
 
+    /**
+     * Applies or removes obfuscation to this component.
+     *
+     * @param obfuscated true to apply, false to remove
+     * @return a new component with the updated formatting
+     */
     public ChatComponent obfuscated(boolean obfuscated) {
         return decoration(ChatDecoration.OBFUSCATED, obfuscated);
     }
 
+    /**
+     * Sets the shift-click insertion text for this component.
+     *
+     * <p>When a player shift-clicks this component, the insertion text is
+     * placed in their chat input.
+     *
+     * @param insertion the text to insert (null to remove)
+     * @return a new component with the specified insertion text
+     */
     public ChatComponent insertion(String insertion) {
         BuilderImpl b = copyToBuilder();
         b.insertion = insertion;
@@ -182,48 +258,110 @@ public record ChatComponent(String type, String content, String translatableKey,
 
     // ── Composition ────────────────────────────────────────────────────────
 
+    /**
+     * Appends a child component to this component.
+     *
+     * @param other the component to append
+     * @return a new component with the appended child
+     */
     public ChatComponent append(ChatComponent other) {
         BuilderImpl b = copyToBuilder();
         b.children.add(other);
         return b.build();
     }
 
+    /**
+     * Appends a plain text child component to this component.
+     *
+     * @param text the text to append
+     * @return a new component with the appended child
+     */
     public ChatComponent append(String text) {
         return append(ChatComponent.text(text));
     }
 
+    /**
+     * Appends a colored text child component to this component.
+     *
+     * @param text the text to append
+     * @param color the color of the text
+     * @return a new component with the appended child
+     */
     public ChatComponent append(String text, ChatColor color) {
         return append(ChatComponent.text(text, color));
     }
 
+    /**
+     * Appends a newline to this component.
+     *
+     * @return a new component with a newline appended
+     */
     public ChatComponent newLine() {
         return append(ChatComponent.newline());
     }
 
+    /**
+     * Appends a space to this component.
+     *
+     * @return a new component with a space appended
+     */
     public ChatComponent space() {
         return append(ChatComponent.spaceComponent());
     }
 
     // ── Click events ───────────────────────────────────────────────────────
 
+    /**
+     * Sets a click event to run a command.
+     *
+     * <p>When clicked, the specified command is executed on the server.
+     *
+     * @param command the command to execute
+     * @return a new component with the click event
+     */
     public ChatComponent clickRunCommand(String command) {
         BuilderImpl b = copyToBuilder();
         b.clickEvent = ChatClickEvent.runCommand(command);
         return b.build();
     }
 
+    /**
+     * Sets a click event to suggest a command.
+     *
+     * <p>When clicked, the specified command is placed in the player's chat
+     * input without being executed.
+     *
+     * @param command the command to suggest
+     * @return a new component with the click event
+     */
     public ChatComponent clickSuggestCommand(String command) {
         BuilderImpl b = copyToBuilder();
         b.clickEvent = ChatClickEvent.suggestCommand(command);
         return b.build();
     }
 
+    /**
+     * Sets a click event to open a URL.
+     *
+     * <p>When clicked, the specified URL is opened in the player's browser.
+     *
+     * @param url the URL to open
+     * @return a new component with the click event
+     */
     public ChatComponent clickOpenUrl(String url) {
         BuilderImpl b = copyToBuilder();
         b.clickEvent = ChatClickEvent.openUrl(url);
         return b.build();
     }
 
+    /**
+     * Sets a click event to copy text to the clipboard.
+     *
+     * <p>When clicked, the specified text is copied to the player's clipboard.
+     *
+     * @param text the text to copy
+     * @return a new component with the click event
+     */
     public ChatComponent clickCopyToClipboard(String text) {
         BuilderImpl b = copyToBuilder();
         b.clickEvent = ChatClickEvent.copyToClipboard(text);
@@ -232,18 +370,47 @@ public record ChatComponent(String type, String content, String translatableKey,
 
     // ── Hover events ───────────────────────────────────────────────────────
 
+    /**
+     * Sets a hover event to show tooltip text.
+     *
+     * <p>When the player hovers over this component, the specified text is
+     * displayed as a tooltip.
+     *
+     * @param text the tooltip text
+     * @return a new component with the hover event
+     */
     public ChatComponent hoverText(ChatComponent text) {
         BuilderImpl b = copyToBuilder();
         b.hoverEvent = ChatHoverEvent.showText(text);
         return b.build();
     }
 
+    /**
+     * Sets a hover event to show item details.
+     *
+     * <p>When the player hovers over this component, the item's details are
+     * displayed as if hovering over the item in their inventory.
+     *
+     * @param item the item to display
+     * @return a new component with the hover event
+     */
     public ChatComponent hoverShowItem(Item item) {
         BuilderImpl b = copyToBuilder();
         b.hoverEvent = ChatHoverEvent.showItem(item);
         return b.build();
     }
 
+    /**
+     * Sets a hover event to show entity details.
+     *
+     * <p>When the player hovers over this component, the entity's details are
+     * displayed.
+     *
+     * @param uuid the entity's UUID
+     * @param entityType the entity type
+     * @param name the entity's display name
+     * @return a new component with the hover event
+     */
     public ChatComponent hoverShowEntity(UUID uuid, String entityType, ChatComponent name) {
         BuilderImpl b = copyToBuilder();
         b.hoverEvent = ChatHoverEvent.showEntity(uuid, entityType, name);
@@ -258,6 +425,14 @@ public record ChatComponent(String type, String content, String translatableKey,
 
     // ── Serialization ──────────────────────────────────────────────────────
 
+    /**
+     * Converts this component to legacy Minecraft color code format.
+     *
+     * <p>Uses § prefix for color and decoration codes, compatible with older
+     * Minecraft versions.
+     *
+     * @return a string with legacy color codes
+     */
     public String toLegacy() {
         StringBuilder sb = new StringBuilder();
         appendLegacy(sb);
@@ -275,12 +450,22 @@ public record ChatComponent(String type, String content, String translatableKey,
         for (ChatComponent child : children) child.appendLegacy(sb);
     }
 
+    /**
+     * Converts this component to plain text, excluding decorations.
+     *
+     * @return the plain text content
+     */
     public String toPlainText() {
         StringBuilder sb = new StringBuilder(content);
         for (ChatComponent child : children) sb.append(child.toPlainText());
         return sb.toString();
     }
 
+    /**
+     * Converts this component to MiniMessage format.
+     *
+     * @return a string in MiniMessage format
+     */
     public String toMiniMessage() {
         StringBuilder sb = new StringBuilder();
         appendMiniMessage(sb);
@@ -334,6 +519,13 @@ public record ChatComponent(String type, String content, String translatableKey,
         }
     }
 
+    /**
+     * Converts this component to HTML format.
+     *
+     * <p>Useful for displaying in web interfaces or documentation.
+     *
+     * @return a string in HTML format
+     */
     public String toHtml() {
         StringBuilder sb = new StringBuilder();
         appendHtml(sb);
@@ -494,47 +686,171 @@ public record ChatComponent(String type, String content, String translatableKey,
 
     // ── Builder ────────────────────────────────────────────────────────────
 
+    /**
+     * Creates a new builder for constructing chat components.
+     *
+     * @return a new chat component builder
+     */
     public static Builder builder() {
         return new BuilderImpl(TYPE_TEXT, "", null, null, null);
     }
 
+    /**
+     * Builder for constructing chat components.
+     *
+     * <p>Use this builder to create complex chat components with multiple
+     * styling options, children, and events.
+     */
     public interface Builder {
+        /**
+         * Sets the text content.
+         *
+         * @param text the text content
+         * @return this builder
+         */
         Builder content(String text);
 
+        /**
+         * Sets the text color.
+         *
+         * @param color the color
+         * @return this builder
+         */
         Builder color(ChatColor color);
 
+        /**
+         * Sets a decoration state.
+         *
+         * @param decoration the decoration type
+         * @param active true to apply, false to remove
+         * @return this builder
+         */
         Builder decoration(ChatDecoration decoration, boolean active);
 
+        /**
+         * Sets bold state.
+         *
+         * @param bold true to apply
+         * @return this builder
+         */
         Builder bold(boolean bold);
 
+        /**
+         * Sets italic state.
+         *
+         * @param italic true to apply
+         * @return this builder
+         */
         Builder italic(boolean italic);
 
+        /**
+         * Sets underline state.
+         *
+         * @param underlined true to apply
+         * @return this builder
+         */
         Builder underlined(boolean underlined);
 
+        /**
+         * Sets strikethrough state.
+         *
+         * @param strikethrough true to apply
+         * @return this builder
+         */
         Builder strikethrough(boolean strikethrough);
 
+        /**
+         * Sets obfuscation state.
+         *
+         * @param obfuscated true to apply
+         * @return this builder
+         */
         Builder obfuscated(boolean obfuscated);
 
+        /**
+         * Sets shift-click insertion text.
+         *
+         * @param insertion the text to insert
+         * @return this builder
+         */
         Builder insertion(String insertion);
 
+        /**
+         * Appends a child component.
+         *
+         * @param component the component to append
+         * @return this builder
+         */
         Builder append(ChatComponent component);
 
+        /**
+         * Appends text as a child component.
+         *
+         * @param text the text to append
+         * @return this builder
+         */
         Builder append(String text);
 
+        /**
+         * Appends a newline.
+         *
+         * @return this builder
+         */
         Builder newLine();
 
+        /**
+         * Sets a click event to run a command.
+         *
+         * @param command the command to run
+         * @return this builder
+         */
         Builder clickRunCommand(String command);
 
+        /**
+         * Sets a click event to suggest a command.
+         *
+         * @param command the command to suggest
+         * @return this builder
+         */
         Builder clickSuggestCommand(String command);
 
+        /**
+         * Sets a click event to open a URL.
+         *
+         * @param url the URL to open
+         * @return this builder
+         */
         Builder clickOpenUrl(String url);
 
+        /**
+         * Sets a click event to copy text.
+         *
+         * @param text the text to copy
+         * @return this builder
+         */
         Builder clickCopyToClipboard(String text);
 
+        /**
+         * Sets a hover event to show text.
+         *
+         * @param text the text to display
+         * @return this builder
+         */
         Builder hoverText(ChatComponent text);
 
+        /**
+         * Sets a hover event to show an item.
+         *
+         * @param item the item to display
+         * @return this builder
+         */
         Builder hoverShowItem(Item item);
 
+        /**
+         * Builds the chat component.
+         *
+         * @return a new chat component
+         */
         ChatComponent build();
     }
 
@@ -688,6 +1004,15 @@ public record ChatComponent(String type, String content, String translatableKey,
 
     // ── Convenience factories ──────────────────────────────────────────────
 
+    /**
+     * Creates a clickable player name component.
+     *
+     * <p>Displays the player name in aqua color. Clicking runs the
+     * {@code /whois} command.
+     *
+     * @param name the player name
+     * @return a formatted player name component
+     */
     public static ChatComponent playerName(String name) {
         return ChatComponent.text(name)
                 .color(ChatColor.AQUA)
@@ -695,6 +1020,16 @@ public record ChatComponent(String type, String content, String translatableKey,
                 .clickRunCommand("/whois " + name);
     }
 
+    /**
+     * Creates a clickable command suggestion component.
+     *
+     * <p>Displays the label in yellow. Clicking suggests the command in
+     * the player's chat input.
+     *
+     * @param label the display label
+     * @param command the command to suggest
+     * @return a formatted command suggestion component
+     */
     public static ChatComponent commandSuggestion(String label, String command) {
         return ChatComponent.text(label)
                 .color(ChatColor.YELLOW)
@@ -702,6 +1037,16 @@ public record ChatComponent(String type, String content, String translatableKey,
                 .clickSuggestCommand(command);
     }
 
+    /**
+     * Creates a clickable hyperlink component.
+     *
+     * <p>Displays the label in blue with underline. Clicking opens the
+     * URL in the player's browser.
+     *
+     * @param label the display label
+     * @param url the URL to open
+     * @return a formatted link component
+     */
     public static ChatComponent link(String label, String url) {
         return ChatComponent.text(label)
                 .color(ChatColor.BLUE)
@@ -710,6 +1055,16 @@ public record ChatComponent(String type, String content, String translatableKey,
                 .clickOpenUrl(url);
     }
 
+    /**
+     * Creates a clickable copyable text component.
+     *
+     * <p>Displays the label in green. Clicking copies the value to the
+     * player's clipboard.
+     *
+     * @param label the display label
+     * @param valueToCopy the value to copy
+     * @return a formatted copyable component
+     */
     public static ChatComponent copyable(String label, String valueToCopy) {
         return ChatComponent.text(label)
                 .color(ChatColor.GREEN)

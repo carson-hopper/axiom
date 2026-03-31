@@ -7,12 +7,20 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a parameter to use dynamic tab completion from a method.
- * The method should be on the Command class, have signature:
- *   List<String> methodName(String partial)
- * and return suggestions matching the partial input.
+ *
+ * <p>The referenced method should be on the Command class and have the signature:
+ * <pre>{@code List<String> methodName(String partial)}</pre>
+ *
+ * <p>The method will be called to generate tab completion suggestions matching
+ * the partial input from the user.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface DynamicTabComplete {
+    /**
+     * The name of the method that provides tab completion suggestions.
+     *
+     * @return the method name
+     */
     String value();
 }
