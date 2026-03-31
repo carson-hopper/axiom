@@ -1,0 +1,146 @@
+package com.axiommc.fabric.plugin;
+
+import com.axiommc.api.command.Command;
+import com.axiommc.api.config.PluginConfig;
+import com.axiommc.api.event.EventBus;
+import com.axiommc.api.player.PlayerManager;
+import com.axiommc.api.plugin.PluginContext;
+import com.axiommc.api.plugin.ServiceRegistry;
+import com.axiommc.api.world.BossBar;
+import com.axiommc.api.world.BossBarManager;
+import com.axiommc.fabric.AxiomMod;
+import com.axiommc.fabric.config.TomlPluginConfig;
+import com.axiommc.fabric.player.FabricPlayerProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public class SimplePluginContext implements PluginContext {
+
+    private final String pluginId;
+    private final String pluginName;
+    private final EventBus eventBus;
+    private final PlayerManager playerManager;
+    private final BossBarManager bossBarManager;
+    private final PluginConfig pluginConfig;
+    private final File dataFolder;
+    private final Logger logger;
+
+    public SimplePluginContext(String pluginId, String pluginName, EventBus eventBus, FabricPlayerProvider playerProvider) {
+        this.pluginId = pluginId;
+        this.pluginName = pluginName;
+        this.eventBus = eventBus;
+        this.playerManager = playerProvider;
+        this.bossBarManager = new InlineBossBarManager();
+        this.dataFolder = new File("plugins/" + pluginName);
+        this.pluginConfig = new TomlPluginConfig(new File(dataFolder, "config.toml"));
+        this.logger = LoggerFactory.getLogger(pluginName);
+    }
+
+    private static class InlineBossBarManager implements BossBarManager {
+        private final Map<String, BossBar> bossBars = new HashMap<>();
+
+        @Override
+        public BossBar create(BossBar.Spec spec) {
+            String id = UUID.randomUUID().toString();
+            BossBar bossBar = new SimpleBossBar(id);
+            bossBars.put(id, bossBar);
+            return bossBar;
+        }
+
+        @Override
+        public BossBar get(String id) {
+            return bossBars.get(id);
+        }
+    }
+
+    private static class SimpleBossBar implements BossBar {
+        private final String id;
+        private boolean active = true;
+
+        SimpleBossBar(String id) {
+            this.id = id;
+        }
+
+        @Override
+        public String id() {
+            return id;
+        }
+
+        @Override
+        public boolean isActive() {
+            return active;
+        }
+
+        @Override
+        public void process(float progress) {
+            // Placeholder - would integrate with actual Minecraft boss bar
+        }
+
+        @Override
+        public void addPlayer(com.axiommc.api.player.Player player) {
+            // Placeholder - would integrate with actual Minecraft boss bar
+        }
+
+        @Override
+        public void removePlayer(com.axiommc.api.player.Player player) {
+            // Placeholder - would integrate with actual Minecraft boss bar
+        }
+
+        @Override
+        public void destroy() {
+            active = false;
+        }
+    }
+
+    @Override
+    public EventBus eventBus() {
+        return eventBus;
+    }
+
+    @Override
+    public ServiceRegistry services() {
+        return new SimpleServiceRegistry();
+    }
+
+    @Override
+    public PlayerManager players() {
+        return playerManager;
+    }
+
+    @Override
+    public BossBarManager bossBar() {
+        return bossBarManager;
+    }
+
+    @Override
+    public void registerCommand(Command command) {
+        AxiomMod mod = AxiomMod.instance();
+        if (mod != null && mod.commandHandler() != null) {
+            mod.commandHandler().registerCommand(command);
+        }
+    }
+
+    @Override
+    public PluginConfig config() {
+        return pluginConfig;
+    }
+
+    @Override
+    public File dataFolder() {
+        // Ensure it exists
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs();
+        }
+        return dataFolder;
+    }
+
+    @Override
+    public Logger logger() {
+        return logger;
+    }
+}
