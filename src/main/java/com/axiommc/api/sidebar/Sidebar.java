@@ -4,31 +4,64 @@ import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.player.Player;
 
 /**
- * A per-player sidebar (scoreboard sidebar slot) displayed on the right side of the screen.
+ * A per-player sidebar displayed on the right side of the screen.
  *
- * <p>Lines are indexed from the top: index 0 is the topmost line, higher indices appear lower.
- * Up to 15 lines are supported.
+ * <p>Sidebars display a title and up to 15 lines of text. Lines are indexed
+ * from top to bottom, with index 0 being the topmost line. Updates are
+ * immediately visible to all viewing players.
  */
 public interface Sidebar {
 
-    /** Updates the sidebar title shown above the lines. Visible immediately to all current viewers. */
+    /**
+     * Updates the sidebar title.
+     *
+     * <p>The title is displayed above all sidebar lines.
+     * Visible immediately to all current viewers.
+     *
+     * @param title the new title
+     */
     void title(ChatComponent title);
 
     /**
-     * Sets a line at the given index (0 = top, 14 = bottom).
+     * Sets a line at the given index.
+     *
+     * <p>Index 0 is the topmost line, index 14 is the bottommost.
      * Visible immediately to all current viewers.
+     *
+     * @param index the line index (0-14)
+     * @param text the line content
      */
     void line(int index, ChatComponent text);
 
-    /** Removes the line at the given index. Visible immediately to all current viewers. */
+    /**
+     * Removes a line from the sidebar.
+     *
+     * <p>Visible immediately to all current viewers.
+     *
+     * @param index the line index to remove
+     */
     void removeLine(int index);
 
-    /** Shows this sidebar to the player. Sends all current lines. */
+    /**
+     * Shows this sidebar to a player.
+     *
+     * <p>Sends all current lines and the title to the player.
+     *
+     * @param player the player to show the sidebar to
+     */
     void show(Player player);
 
-    /** Hides this sidebar from the player. */
+    /**
+     * Hides this sidebar from a player.
+     *
+     * @param player the player to hide the sidebar from
+     */
     void hide(Player player);
 
-    /** Hides the sidebar from all current viewers and releases resources. */
+    /**
+     * Destroys this sidebar and releases resources.
+     *
+     * <p>Hides the sidebar from all viewing players and cleans up.
+     */
     void destroy();
 }

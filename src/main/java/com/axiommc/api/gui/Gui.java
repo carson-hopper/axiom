@@ -9,11 +9,18 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * An immutable chest GUI definition. Use {@link #builder()} to construct,
- * or {@link #toBuilder()} to derive a modified copy.
+ * An immutable chest GUI definition.
  *
- * <p>For a GUI that changes over time, rebuild from {@code toBuilder()} and
- * call {@link GuiManager#update(UUID, Gui)} to push the new state.
+ * <p>Use {@link #builder(GuiSize)} to construct a new GUI, or
+ * {@link #toBuilder()} to derive a modified copy from an existing GUI.
+ *
+ * <p>For dynamic GUIs that change over time, rebuild from {@code toBuilder()}
+ * and call {@link GuiManager#update(UUID, Gui)} to push the updated state.
+ *
+ * @param title the GUI title/name
+ * @param size the GUI size
+ * @param slots the item in each slot (may contain null for empty slots)
+ * @param closeHandler callback when the player closes the GUI, or null
  */
 public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<Player> closeHandler) {
 
@@ -25,7 +32,10 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
     }
 
     /**
-     * Returns the item in the given slot, or {@code null} if the slot is empty.
+     * Gets the item in the given slot.
+     *
+     * @param slot the slot index (0-based)
+     * @return the item in the slot, or null if empty or out of range
      */
     public GuiItem getSlot(int slot) {
         if (slot < 0 || slot >= slots.length) return null;
@@ -38,14 +48,18 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
     }
 
     /**
-     * Fires the close handler if one is registered.
+     * Invokes the close handler for this GUI.
+     *
+     * @param player the player who closed the GUI
      */
     public void handleClose(Player player) {
         if (closeHandler != null) closeHandler.accept(player);
     }
 
     /**
-     * Returns a builder pre-populated with this GUI's current state.
+     * Creates a builder pre-populated with this GUI's current state.
+     *
+     * @return a builder initialized with this GUI's data
      */
     public Builder toBuilder() {
         Builder b = new Builder(size).title(title);
@@ -56,6 +70,12 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
         return b;
     }
 
+    /**
+     * Creates a new GUI builder.
+     *
+     * @param size the size of the GUI to create
+     * @return a new builder
+     */
     public static Builder builder(GuiSize size) {
         return new Builder(size);
     }
