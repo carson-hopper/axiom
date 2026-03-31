@@ -29,10 +29,10 @@ public class FabricPlayerArgParser implements ArgParser<Player> {
 
     @Override
     public List<String> suggest(String partial) {
+        String lowerPartial = partial.toLowerCase();
         return Axiom.players().stream()
                 .map(Player::name)
-                .filter(name -> name.toLowerCase().startsWith(partial.toLowerCase()))
+                .filter(name -> name.toLowerCase().startsWith(lowerPartial))
                 .collect(Collectors.toList());
     }
-
 }

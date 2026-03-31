@@ -6,10 +6,14 @@ import com.axiommc.api.command.Command;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.DynamicTabComplete;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.math.Vector3;
+import com.axiommc.fabric.Axiom;
+import java.util.ArrayList;
+import java.util.List;
 
 @CommandMeta(
         name = "teleport",
@@ -22,7 +26,7 @@ public class TeleportCommand implements Command {
     private static final int MIN_Y = -64;
 
     @Execute
-    public void teleportToPlayer(CommandSender sender, @Arg("player") Player target) {
+    public void teleportToPlayer(CommandSender sender, @Arg("player") @DynamicTabComplete("suggestPlayers") Player target) {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
                     player.teleport(target.location());
@@ -33,7 +37,7 @@ public class TeleportCommand implements Command {
     }
 
     @Execute
-    public void teleportPlayerToPlayer(CommandSender sender, @Arg("player1") Player player1, @Arg("player2") Player player2) {
+    public void teleportPlayerToPlayer(CommandSender sender, @Arg("player1") @DynamicTabComplete("suggestPlayers") Player player1, @Arg("player2") @DynamicTabComplete("suggestPlayers") Player player2) {
         player1.teleport(player2.location());
         sender.sendMessage(ChatComponent.text("Teleported " + player1.name() + " to " + player2.name()).color(ChatColor.GREEN));
     }
@@ -57,7 +61,7 @@ public class TeleportCommand implements Command {
     }
 
     @Execute
-    public void teleportPlayerToCoordinates(CommandSender sender, @Arg("player") Player player, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
+    public void teleportPlayerToCoordinates(CommandSender sender, @Arg("player") @DynamicTabComplete("suggestPlayers") Player player, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
         if (y < MIN_Y) {
             sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
             return;
@@ -67,5 +71,18 @@ public class TeleportCommand implements Command {
         Location newLocation = new Location(currentLocation.world(), new Vector3(x, y, z), currentLocation.rotation());
         player.teleport(newLocation);
         sender.sendMessage(ChatComponent.text("Teleported " + player.name() + " to " + x + ", " + y + ", " + z).color(ChatColor.GREEN));
+    }
+
+    public List<String> suggestPlayers(String partial) {
+        List<String> suggestions = new ArrayList<>();
+        String lowerPartial = partial.toLowerCase();
+
+        Axiom.players().forEach(player -> {
+            if (player.name().toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(player.name());
+            }
+        });
+
+        return suggestions;
     }
 }
