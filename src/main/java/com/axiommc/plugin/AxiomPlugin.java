@@ -9,6 +9,7 @@ import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.PluginSide;
 import com.axiommc.plugin.command.AxiomCommand;
 import com.axiommc.plugin.command.KillCommand;
+import com.axiommc.plugin.command.TeleportCommand;
 import com.axiommc.plugin.command.TestConfigCommand;
 import com.axiommc.plugin.command.TestGuiCommand;
 import com.axiommc.plugin.command.TestPlayerCommand;
@@ -30,6 +31,7 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
 
         context.registerCommand(new AxiomCommand());
         context.registerCommand(new KillCommand());
+        context.registerCommand(new TeleportCommand());
         context.registerCommand(new TestConfigCommand(context));
         context.registerCommand(new TestGuiCommand());
         context.registerCommand(new TestPlayerCommand());
