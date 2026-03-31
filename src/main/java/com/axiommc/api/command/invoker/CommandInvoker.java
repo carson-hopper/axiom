@@ -265,8 +265,16 @@ public class CommandInvoker {
         }
 
         if (args.length == 0) {
-            // When no args, return subcommand names as suggestions
-            return new ArrayList<>(subcommandMethods.keySet());
+            // When no args, suggest subcommands or first parameter of @Execute methods
+            Set<String> seen = new LinkedHashSet<>(subcommandMethods.keySet());
+            if (!executeMethods.isEmpty()) {
+                // Get suggestions from methods that can accept 1 argument
+                List<Method> methods = getMatchingExecuteMethods(1);
+                for (Method method : methods) {
+                    seen.addAll(getParamSuggestions(method, 0, ""));
+                }
+            }
+            return new ArrayList<>(seen);
         }
 
         String last = args[args.length - 1].toLowerCase();
