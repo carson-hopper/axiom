@@ -1,4 +1,4 @@
-package com.axiommc.fabric.command;
+package com.axiommc.fabric.command.parser;
 
 import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.fabric.Axiom;
