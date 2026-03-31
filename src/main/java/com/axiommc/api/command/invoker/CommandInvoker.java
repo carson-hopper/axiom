@@ -150,13 +150,17 @@ public class CommandInvoker {
             if (cause instanceof ArgParseException) {
                 sender.sendMessage("Invalid argument: " + cause.getMessage());
             } else if (cause instanceof RuntimeException) {
+                LOGGER.error("Error executing command: /{}", commandName, cause);
                 throw (RuntimeException) cause;
             } else if (cause != null) {
+                LOGGER.error("Error executing command: /{}", commandName, cause);
                 throw new RuntimeException("Command execution failed: " + cause.getMessage(), cause);
             } else {
+                LOGGER.error("Error executing command: /{}", commandName, e);
                 throw new RuntimeException("Command execution failed", e);
             }
         } catch (IllegalAccessException e) {
+            LOGGER.error("Error executing command: /{}", commandName, e);
             throw new RuntimeException("Command method is not accessible", e);
         }
         return true;
