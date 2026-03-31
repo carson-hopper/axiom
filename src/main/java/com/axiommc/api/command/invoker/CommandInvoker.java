@@ -179,7 +179,7 @@ public class CommandInvoker {
                 continue;
             }
 
-            LOGGER.debug("    Parsing param {}: type={}", param.getName(), param.getType().getSimpleName());
+            LOGGER.info("    Parsing param {}: type={}", param.getName(), param.getType().getSimpleName());
 
             // @Default alone implies optionality — no @Optional annotation required
             boolean hasDefault = param.isAnnotationPresent(Default.class);
@@ -241,9 +241,9 @@ public class CommandInvoker {
                 throw new ArgParseException("No parser for type: " + param.getType().getSimpleName());
             }
 
-            LOGGER.debug("      Raw value: '{}' using parser: {}", raw, parser.getClass().getSimpleName());
+            LOGGER.info("      Raw value: '{}' using parser: {}", raw, parser.getClass().getSimpleName());
             Object parsed = parser.parse(raw);
-            LOGGER.debug("      Parsed successfully to: {}", parsed != null ? parsed.getClass().getSimpleName() : "null");
+            LOGGER.info("      Parsed successfully to: {}", parsed != null ? parsed.getClass().getSimpleName() : "null");
 
             Range range = param.getAnnotation(Range.class);
             if (range != null && parsed instanceof Number num) {
@@ -316,7 +316,7 @@ public class CommandInvoker {
             int paramCount = countNonSenderParams(m);
             if (paramCount == argCount) {
                 matching.add(m);
-                LOGGER.debug("  Exact match: {}({})", m.getName(), paramCount);
+                LOGGER.info("  Exact match: {}({})", m.getName(), paramCount);
             }
         }
 
@@ -331,14 +331,14 @@ public class CommandInvoker {
             int maxAccepted = countNonSenderParams(m);
             if (argCount >= minRequired && argCount <= maxAccepted) {
                 matching.add(m);
-                LOGGER.debug("  Optional match: {}({}-{})", m.getName(), minRequired, maxAccepted);
+                LOGGER.info("  Optional match: {}({}-{})", m.getName(), minRequired, maxAccepted);
             }
         }
 
         // If no methods found but we have executeMethods, return all as fallback
         if (matching.isEmpty() && !executeMethods.isEmpty()) {
             matching.addAll(executeMethods);
-            LOGGER.debug("  No matches found, using all methods as fallback");
+            LOGGER.info("  No matches found, using all methods as fallback");
         }
 
         return matching;
@@ -362,24 +362,24 @@ public class CommandInvoker {
         }
 
         // Multiple candidates: try parsing with each and use first that succeeds
-        LOGGER.debug("Trying {} candidate methods for {} args", candidates.size(), args.length);
+        LOGGER.info("Trying {} candidate methods for {} args", candidates.size(), args.length);
         for (Method candidate : candidates) {
             try {
                 // Try building args without actually invoking
                 Object[] invokeArgs = buildArgs(sender, candidate, args);
                 if (invokeArgs != null) {
-                    LOGGER.debug("Selected method: {}", candidate.getName());
+                    LOGGER.info("Selected method: {}", candidate.getName());
                     return candidate; // This method's args parsed successfully
                 }
             } catch (Exception e) {
                 // This method failed (any exception = parse failure), try next
-                LOGGER.debug("Method {} failed to parse args: {}", candidate.getName(), e.getMessage());
+                LOGGER.info("Method {} failed to parse args: {}", candidate.getName(), e.getMessage());
                 continue;
             }
         }
 
         // If none succeeded, return first candidate (will fail with proper error)
-        LOGGER.debug("No method succeeded parsing, returning first candidate: {}", candidates.getFirst().getName());
+        LOGGER.info("No method succeeded parsing, returning first candidate: {}", candidates.getFirst().getName());
         return candidates.getFirst();
     }
 
