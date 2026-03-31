@@ -38,24 +38,53 @@ public class TargetFilter {
     }
 
     private static List<LivingEntity> parseFilter(String filter, CommandSender sender) {
+        // Check for comma-separated filters (e.g., "zombie,creeper,!skeleton")
+        if (filter.contains(",")) {
+            return parseMultipleFilters(filter, sender);
+        }
+
         if (filter.startsWith("!")) {
             String negated = filter.substring(1);
             return applyNegation(negated, sender);
         }
 
-        // Check for comma-separated filters (e.g., "zombie,creeper")
-        if (filter.contains(",")) {
-            Set<LivingEntity> combined = new LinkedHashSet<>();
-            String[] parts = filter.split(",");
-            for (String part : parts) {
-                part = part.trim();
-                if (!part.isEmpty()) {
-                    combined.addAll(parseFilter(part, sender));
-                }
+        return switch (filter) {
+            case "players" -> new ArrayList<>(Axiom.players());
+            case "mobs", "entities" -> getAllMobs(sender);
+            case "hostile" -> getHostileMobs(sender);
+            case "passive", "animals" -> getPassiveMobs(sender);
+            case "all" -> getAllTargets(sender);
+            default -> parsePlayerOrMobFilter(filter, sender);
+        };
+    }
+
+    private static List<LivingEntity> parseMultipleFilters(String filterStr, CommandSender sender) {
+        Set<LivingEntity> positive = new LinkedHashSet<>();
+        Set<LivingEntity> negative = new LinkedHashSet<>();
+
+        String[] parts = filterStr.split(",");
+        for (String part : parts) {
+            part = part.trim();
+            if (part.isEmpty()) continue;
+
+            if (part.startsWith("!")) {
+                // Negative filter
+                String negated = part.substring(1).trim();
+                negative.addAll(parseFilterSingle(negated, sender));
+            } else {
+                // Positive filter
+                positive.addAll(parseFilterSingle(part, sender));
             }
-            return new ArrayList<>(combined);
         }
 
+        // Remove negative targets from positive set
+        var negativeIds = negative.stream().map(LivingEntity::id).toList();
+        positive.removeIf(e -> negativeIds.contains(e.id()));
+
+        return new ArrayList<>(positive);
+    }
+
+    private static List<LivingEntity> parseFilterSingle(String filter, CommandSender sender) {
         return switch (filter) {
             case "players" -> new ArrayList<>(Axiom.players());
             case "mobs", "entities" -> getAllMobs(sender);
@@ -106,58 +135,10 @@ public class TargetFilter {
     }
 
     private static List<LivingEntity> applyNegation(String filter, CommandSender sender) {
-        if (filter.contains(",")) {
-            Set<LivingEntity> toRemove = new LinkedHashSet<>();
-            String[] parts = filter.split(",");
-            for (String part : parts) {
-                part = part.trim();
-                if (!part.isEmpty()) {
-                    toRemove.addAll(parseFilter(part, sender));
-                }
-            }
-            List<LivingEntity> targets = getAllTargets(sender);
-            var removeIds = toRemove.stream().map(LivingEntity::id).toList();
-            targets.removeIf(e -> removeIds.contains(e.id()));
-            return targets;
-        }
-
         List<LivingEntity> targets = getAllTargets(sender);
-
-        return switch (filter) {
-            case "self" -> {
-                if (sender.isPlayer()) {
-                    Player self = sender.asPlayer().get();
-                    UUID selfId = self.id();
-                    targets.removeIf(e -> e.id().equals(selfId));
-                }
-                yield targets;
-            }
-            case "players" -> {
-                var playerIds = Axiom.players().stream()
-                        .map(Player::id)
-                        .toList();
-                targets.removeIf(e -> playerIds.contains(e.id()));
-                yield targets;
-            }
-            default -> applyNegationPlayerOrMobFilter(filter, targets, sender);
-        };
-    }
-
-    private static List<LivingEntity> applyNegationPlayerOrMobFilter(String name, List<LivingEntity> targets, CommandSender sender) {
-        var targetPlayer = Axiom.players().stream()
-                .filter(p -> p.name().equalsIgnoreCase(name))
-                .findFirst();
-
-        if (targetPlayer.isPresent()) {
-            UUID playerId = targetPlayer.get().id();
-            targets.removeIf(e -> e.id().equals(playerId));
-            return targets;
-        }
-
-        List<LivingEntity> mobsToRemove = getMobsByType(sender, name);
-        var mobIds = mobsToRemove.stream().map(LivingEntity::id).toList();
-        targets.removeIf(e -> mobIds.contains(e.id()));
-
+        List<LivingEntity> toRemove = parseFilterSingle(filter, sender);
+        var removeIds = toRemove.stream().map(LivingEntity::id).toList();
+        targets.removeIf(e -> removeIds.contains(e.id()));
         return targets;
     }
 
