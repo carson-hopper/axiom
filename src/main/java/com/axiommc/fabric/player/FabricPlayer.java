@@ -39,6 +39,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     private static final Logger LOGGER = LoggerFactory.getLogger(FabricPlayer.class);
     private final ServerPlayer player;
 
+    // ============================================================
+    // Initialization & Accessors
+    // ============================================================
+
     public FabricPlayer(ServerPlayer player) {
         super(player);
         this.player = player;
@@ -47,6 +51,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     public ServerPlayer player() {
         return player;
     }
+
+    // ============================================================
+    // Identity
+    // ============================================================
 
     @Override
     public String nickname() {
@@ -58,6 +66,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         player.setCustomName(Component.literal(name));
         player.setCustomNameVisible(true);
     }
+
+    // ============================================================
+    // Location & Teleportation
+    // ============================================================
 
     @Override
     public Location location() {
@@ -96,10 +108,18 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         return new FabricWorld(player.level());
     }
 
+    // ============================================================
+    // Connection Status
+    // ============================================================
+
     @Override
     public boolean isOnline() {
         return !player.hasDisconnected();
     }
+
+    // ============================================================
+    // Messaging
+    // ============================================================
 
     @Override
     public void sendMessage(String message) {
@@ -111,6 +131,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         Component minecraftComponent = new FabricComponentSerializer().serialize(message);
         player.sendSystemMessage(minecraftComponent);
     }
+
+    // ============================================================
+    // Server Transfer
+    // ============================================================
 
     @Override
     public void kick(String reason) {
@@ -145,6 +169,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         LOGGER.warn("Player transfer not yet implemented for {}", name());
     }
 
+    // ============================================================
+    // Health & Damage
+    // ============================================================
+
     @Override
     public double health() {
         return player.getHealth();
@@ -169,6 +197,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         ((PlayerAccessor) player).invokeActuallyHurt(level, level.damageSources().generic(), (float) amount);
     }
 
+    // ============================================================
+    // Permissions & State
+    // ============================================================
+
     @Override
     public boolean hasPermission(String permission) {
         // For now, all players have all permissions
@@ -185,6 +217,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     public Optional<Player> asPlayer() {
         return Optional.of(this);
     }
+
+    // ============================================================
+    // UI - Titles
+    // ============================================================
 
     @Override
     public void showTitle(ChatComponent title, ChatComponent subtitle, int fadeIn, int stay, int fadeOut, int ttl) {
@@ -205,6 +241,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     public void clearTitle() {
         player.connection.send(new ClientboundClearTitlesPacket(true));
     }
+
+    // ============================================================
+    // UI - Action Bar & Sound
+    // ============================================================
 
     @Override
     public void sendActionBar(ChatComponent component) {
@@ -231,6 +271,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
             player.connection.send(packet);
         });
     }
+
+    // ============================================================
+    // GUI
+    // ============================================================
 
     @Override
     public void openGui(Gui gui) {

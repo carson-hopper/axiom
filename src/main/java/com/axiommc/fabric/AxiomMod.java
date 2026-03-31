@@ -44,11 +44,19 @@ public class AxiomMod implements ModInitializer {
     // Initialization
     // ============================================================
 
+    // ============================================================
+    // Initialization
+    // ============================================================
+
     @Override
     public void onInitialize() {
         instance = this;
 
         LOGGER.info("Axiom initializing!");
+
+        // ────────────────────────────────────────────────────────
+        // Event Bus Setup
+        // ────────────────────────────────────────────────────────
 
         try {
             this.eventBus = new FabricEventBus();
@@ -57,6 +65,10 @@ public class AxiomMod implements ModInitializer {
             return;
         }
 
+        // ────────────────────────────────────────────────────────
+        // Player Provider Setup
+        // ────────────────────────────────────────────────────────
+
         try {
             this.playerProvider = new FabricPlayerProvider();
             LOGGER.debug("Player provider created");
@@ -64,6 +76,10 @@ public class AxiomMod implements ModInitializer {
             LOGGER.error("Failed to create player provider", e);
             return; // Fatal - can't continue without player provider
         }
+
+        // ────────────────────────────────────────────────────────
+        // Command Handler Setup
+        // ────────────────────────────────────────────────────────
 
         try {
             this.commandHandler = new FabricCommandHandler(eventBus);
@@ -91,6 +107,10 @@ public class AxiomMod implements ModInitializer {
             throw new RuntimeException("Axiom initialization failed at command handler creation", e);
         }
 
+        // ────────────────────────────────────────────────────────
+        // Plugin Loader Setup
+        // ────────────────────────────────────────────────────────
+
         try {
             this.pluginLoader = new SimplePluginLoader(eventBus, playerProvider);
             pluginLoader.loadPlugin(com.axiommc.plugin.AxiomPlugin.class);
@@ -98,6 +118,10 @@ public class AxiomMod implements ModInitializer {
             LOGGER.error("Failed to create plugin loader", e);
             return;
         }
+
+        // ────────────────────────────────────────────────────────
+        // Server Lifecycle Events
+        // ────────────────────────────────────────────────────────
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             LOGGER.info("Minecraft server started");
@@ -137,6 +161,10 @@ public class AxiomMod implements ModInitializer {
         LOGGER.info("Axiom Fabric mod initialized successfully");
     }
 
+    // ============================================================
+    // Command Management
+    // ============================================================
+
     private static void unregisterAllCommands(CommandDispatcher<?> dispatcher) {
         var root = dispatcher.getRoot();
 
@@ -161,6 +189,10 @@ public class AxiomMod implements ModInitializer {
     // ============================================================
     // Plugin Loading
     // ============================================================
+
+    // ────────────────────────────────────────────────────────
+    // Directory Management
+    // ────────────────────────────────────────────────────────
 
     private void loadPluginsFromDirectory() {
         File pluginsDir = new File("plugins");
@@ -201,6 +233,10 @@ public class AxiomMod implements ModInitializer {
         }
         return true;
     }
+
+    // ────────────────────────────────────────────────────────
+    // Plugin Loading Helpers
+    // ────────────────────────────────────────────────────────
 
     private boolean isPluginJar(File file) {
         return file.isFile() && file.getName().endsWith(".jar");

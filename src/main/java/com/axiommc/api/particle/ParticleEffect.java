@@ -5,6 +5,10 @@ import java.util.Objects;
 public record ParticleEffect(ParticleType type, ParticleData data, int count, double spreadX, double spreadY,
                              double spreadZ, float speed, boolean force) {
 
+    // ============================================================
+    // Record Accessors
+    // ============================================================
+
     /**
      * Null for no-data particle types.
      */
@@ -21,7 +25,9 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
         return force;
     }
 
-    // ── Builder ───────────────────────────────────────────────────────────────
+    // ============================================================
+    // Builder
+    // ============================================================
 
     public static final class Builder {
 
@@ -32,9 +38,17 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
         private float speed;
         private boolean force;
 
+        // ────────────────────────────────────────────────────────
+        // Initialization
+        // ────────────────────────────────────────────────────────
+
         public Builder(ParticleType type) {
             this.type = Objects.requireNonNull(type, "type");
         }
+
+        // ────────────────────────────────────────────────────────
+        // Data Configuration
+        // ────────────────────────────────────────────────────────
 
         /**
          * Sets particle data. Validates immediately that the data type matches
@@ -62,6 +76,10 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
             }
         }
 
+        // ────────────────────────────────────────────────────────
+        // Effect Configuration
+        // ────────────────────────────────────────────────────────
+
         public Builder count(int count) {
             if (count < 0) throw new IllegalArgumentException("count must be >= 0");
             this.count = count;
@@ -87,6 +105,10 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
             this.force = force;
             return this;
         }
+
+        // ────────────────────────────────────────────────────────
+        // Build & Validation
+        // ────────────────────────────────────────────────────────
 
         /**
          * Builds the effect. Validates that data-requiring particles have data set.

@@ -101,7 +101,9 @@ public record FabricWorld(ServerLevel level) implements World {
         );
     }
 
-    // ---- Time Management ----
+    // ────────────────────────────────────────────────────────
+    // Time Management
+    // ────────────────────────────────────────────────────────
 
     @Override
     public long time() {
@@ -130,7 +132,9 @@ public record FabricWorld(ServerLevel level) implements World {
         return time >= 0 && time < 12000;
     }
 
-    // ---- Weather ----
+    // ────────────────────────────────────────────────────────
+    // Weather
+    // ────────────────────────────────────────────────────────
 
     @Override
     public Weather weather() {
@@ -157,7 +161,9 @@ public record FabricWorld(ServerLevel level) implements World {
         }
     }
 
-    // ---- Difficulty & PvP ----
+    // ────────────────────────────────────────────────────────
+    // Difficulty & PvP
+    // ────────────────────────────────────────────────────────
 
     @Override
     public Difficulty difficulty() {
@@ -179,6 +185,10 @@ public record FabricWorld(ServerLevel level) implements World {
     public boolean pvpEnabled() {
         return true; // Default to true; actual value not easily accessible in 26.1
     }
+
+    // ────────────────────────────────────────────────────────
+    // Sound
+    // ────────────────────────────────────────────────────────
 
     @Override
     public void playSound(SoundKey sound, float volume, float pitch, Vector3 position) {
@@ -232,6 +242,10 @@ public record FabricWorld(ServerLevel level) implements World {
     // Chunks & Blocks
     // ============================================================
 
+    // ────────────────────────────────────────────────────────
+    // Chunk Loading
+    // ────────────────────────────────────────────────────────
+
     @Override
     public Optional<Chunk> chunkAt(int chunkX, int chunkZ) {
         if (level.getChunkSource().hasChunk(chunkX, chunkZ)) {
@@ -261,6 +275,10 @@ public record FabricWorld(ServerLevel level) implements World {
         return future;
     }
 
+    // ────────────────────────────────────────────────────────
+    // Block Access
+    // ────────────────────────────────────────────────────────
+
     @Override
     public Block blockAt(int x, int y, int z) {
         int chunkX = toChunkCoord(x);
@@ -281,6 +299,10 @@ public record FabricWorld(ServerLevel level) implements World {
     // ============================================================
     // Particles & Display Entities
     // ============================================================
+
+    // ────────────────────────────────────────────────────────
+    // Particles
+    // ────────────────────────────────────────────────────────
 
     @Override
     public void spawnParticle(ParticleEffect effect, Location location) {
@@ -303,6 +325,10 @@ public record FabricWorld(ServerLevel level) implements World {
             effect.speed()
         );
     }
+
+    // ────────────────────────────────────────────────────────
+    // Display Entities
+    // ────────────────────────────────────────────────────────
 
     @Override
     public TextDisplayEntity spawnTextDisplay(TextDisplaySpec spec, Location location) {
@@ -334,6 +360,14 @@ public record FabricWorld(ServerLevel level) implements World {
         return new FabricBlockDisplayEntity(entity);
     }
 
+    // ════════════════════════════════════════════════════════
+    // Helper Methods
+    // ════════════════════════════════════════════════════════
+
+    // ────────────────────────────────────────────────────────
+    // Display Entity Helpers
+    // ────────────────────────────────────────────────────────
+
     private void setDisplayEntityPosition(Display entity, Location location) {
         Vector3 pos = location.position();
         entity.setPos(pos.x(), pos.y(), pos.z());
@@ -350,9 +384,9 @@ public record FabricWorld(ServerLevel level) implements World {
         });
     }
 
-    // ============================================================
-    // Helper Methods
-    // ============================================================
+    // ────────────────────────────────────────────────────────
+    // Mapping Helpers
+    // ────────────────────────────────────────────────────────
 
     private DimensionType mapDimensionType(ResourceKey<Level> dimension) {
         if (dimension == Level.OVERWORLD) return DimensionType.OVERWORLD;

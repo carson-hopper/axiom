@@ -11,6 +11,10 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implements Chunk {
 
+    // ============================================================
+    // Position & World
+    // ============================================================
+
     @Override
     public int x() {
         return levelChunk.getPos().x();
@@ -25,6 +29,10 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
     public World world() {
         return fabricWorld;
     }
+
+    // ============================================================
+    // Chunk State
+    // ============================================================
 
     @Override
     public boolean loaded() {
@@ -41,6 +49,10 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
     public void unload() {
         fabricWorld.level().unload(levelChunk);
     }
+
+    // ============================================================
+    // Biome Access & Modification
+    // ============================================================
 
     @Override
     public Biome biomeAt(int x, int y, int z) {

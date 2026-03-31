@@ -31,6 +31,10 @@ public class FabricBlock implements Block {
     // Block Properties
     // ============================================================
 
+    // ────────────────────────────────────────────────────────
+    // Position & World
+    // ────────────────────────────────────────────────────────
+
     @Override
     public Vector3 position() {
         return new Vector3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
@@ -41,16 +45,15 @@ public class FabricBlock implements Block {
         return world;
     }
 
+    // ────────────────────────────────────────────────────────
+    // Type & State
+    // ────────────────────────────────────────────────────────
+
     @Override
     public Material type() {
         var mcBlock = serverLevel.getBlockState(blockPos).getBlock();
         var identifier = BuiltInRegistries.BLOCK.getKey(mcBlock);
         return Material.of(identifier.toString());
-    }
-
-    @Override
-    public int lightLevel() {
-        return serverLevel.getBlockState(blockPos).getLightEmission();
     }
 
     @Override
@@ -65,6 +68,19 @@ public class FabricBlock implements Block {
 
         return new BlockState(properties);
     }
+
+    // ────────────────────────────────────────────────────────
+    // Lighting
+    // ────────────────────────────────────────────────────────
+
+    @Override
+    public int lightLevel() {
+        return serverLevel.getBlockState(blockPos).getLightEmission();
+    }
+
+    // ────────────────────────────────────────────────────────
+    // Material Properties
+    // ────────────────────────────────────────────────────────
 
     @Override
     public boolean solid() {
