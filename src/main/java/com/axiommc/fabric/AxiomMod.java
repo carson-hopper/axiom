@@ -66,19 +66,15 @@ public class AxiomMod implements ModInitializer {
         }
 
         try {
-            // Create command handler BEFORE plugin loader so plugins can register commands
             this.commandHandler = new FabricCommandHandler(eventBus);
             LOGGER.debug("Command handler created");
 
-            // Register command handler with Brigadier via CommandRegistrationCallback
             try {
                 CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
                     try {
-                        // First, unregister all built-in commands
                         unregisterAllCommands(dispatcher);
                         LOGGER.debug("Unregistered built-in commands");
 
-                        // Then register custom commands
                         commandHandler.register(dispatcher);
                         LOGGER.debug("Registered custom commands");
                     } catch (Throwable e) {
@@ -96,7 +92,6 @@ public class AxiomMod implements ModInitializer {
         }
 
         try {
-            // Create plugin loader (needs player provider and command handler)
             this.pluginLoader = new SimplePluginLoader(eventBus, playerProvider);
             pluginLoader.loadPlugin(com.axiommc.plugin.AxiomPlugin.class);
         } catch (Exception e) {
@@ -142,7 +137,7 @@ public class AxiomMod implements ModInitializer {
         LOGGER.info("Axiom Fabric mod initialized successfully");
     }
 
-    public static void unregisterAllCommands(CommandDispatcher<?> dispatcher) {
+    private static void unregisterAllCommands(CommandDispatcher<?> dispatcher) {
         var root = dispatcher.getRoot();
 
         try {
