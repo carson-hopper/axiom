@@ -10,7 +10,8 @@ public enum Sound implements SoundKey {
     VILLAGER_NO("minecraft:entity.villager.no"),
     ANVIL_USE("minecraft:block.anvil.use"),
     ITEM_PICKUP("minecraft:entity.item.pickup"),
-    FIREWORK("minecraft:entity.firework_rocket.blast");
+    FIREWORK("minecraft:entity.firework_rocket.blast"),
+    PLAYER_DEATH("minecraft:entity.player.death");
 
     private final String key;
 
