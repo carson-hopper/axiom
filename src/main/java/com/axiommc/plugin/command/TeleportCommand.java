@@ -21,14 +21,13 @@ public class TeleportCommand implements Command {
 
     @Execute
     public void teleportToPlayer(CommandSender sender, @Arg("player") Player target) {
-        if (!sender.isPlayer()) {
-            sender.sendMessage(ChatComponent.text("Only players can teleport").color(ChatColor.RED));
-            return;
-        }
-
-        Player senderPlayer = sender.asPlayer().get();
-        senderPlayer.teleport(target.location());
-        sender.sendMessage(ChatComponent.text("Teleported to " + target.name()).color(ChatColor.GREEN));
+        sender.asPlayer().ifPresentOrElse(
+                player -> {
+                    player.teleport(target.location());
+                    player.sendMessage(ChatComponent.text("Teleported to " + target.name()).color(ChatColor.GREEN));
+                },
+                () -> sender.sendMessage(ChatComponent.text("Only players can teleport").color(ChatColor.RED))
+        );
     }
 
     @Execute
@@ -39,16 +38,15 @@ public class TeleportCommand implements Command {
 
     @Execute
     public void teleportToCoordinates(CommandSender sender, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
-        if (!sender.isPlayer()) {
-            sender.sendMessage(ChatComponent.text("Only players can teleport").color(ChatColor.RED));
-            return;
-        }
-
-        Player senderPlayer = sender.asPlayer().get();
-        Location currentLocation = senderPlayer.location();
-        Location newLocation = new Location(currentLocation.world(), new Vector3(x, y, z), currentLocation.rotation());
-        senderPlayer.teleport(newLocation);
-        sender.sendMessage(ChatComponent.text("Teleported to " + x + ", " + y + ", " + z).color(ChatColor.GREEN));
+        sender.asPlayer().ifPresentOrElse(
+                player -> {
+                    Location currentLocation = player.location();
+                    Location newLocation = new Location(currentLocation.world(), new Vector3(x, y, z), currentLocation.rotation());
+                    player.teleport(newLocation);
+                    player.sendMessage(ChatComponent.text("Teleported to " + x + ", " + y + ", " + z).color(ChatColor.GREEN));
+                },
+                () -> sender.sendMessage(ChatComponent.text("Only players can teleport").color(ChatColor.RED))
+        );
     }
 
     @Execute
