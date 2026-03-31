@@ -86,8 +86,8 @@ public class TargetFilter {
     }
 
     private static boolean matchesEntityType(net.minecraft.world.entity.Entity entity, String typeName) {
-        String simpleName = entity.getClass().getSimpleName();
-        return simpleName.equalsIgnoreCase(typeName);
+        String simpleName = entity.getClass().getSimpleName().toLowerCase();
+        return simpleName.equals(typeName.toLowerCase());
     }
 
     private static List<LivingEntity> applyNegation(String filter, CommandSender sender) {

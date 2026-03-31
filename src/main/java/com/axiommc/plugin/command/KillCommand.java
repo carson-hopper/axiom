@@ -132,7 +132,7 @@ public class KillCommand implements Command {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
                 ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
                     if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
-                        String simpleName = entity.getClass().getSimpleName();
+                        String simpleName = entity.getClass().getSimpleName().toLowerCase();
                         mobTypes.add(simpleName);
                     }
                 });
