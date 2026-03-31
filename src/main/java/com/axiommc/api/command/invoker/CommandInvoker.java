@@ -62,6 +62,9 @@ public class CommandInvoker {
         for (Method method : command.getClass().getMethods()) {
             if (method.isAnnotationPresent(Execute.class)) {
                 executeMethods.add(method);
+                if (method.getName().contains("teleport")) {
+                    LOGGER.info("Scanning @Execute method: {} with {} params", method.getName(), method.getParameterCount());
+                }
             } else if (method.isAnnotationPresent(Subcommand.class)) {
                 Subcommand sub = method.getAnnotation(Subcommand.class);
                 String name = sub.value().isEmpty() ? method.getName() : sub.value();
@@ -81,7 +84,8 @@ public class CommandInvoker {
             Parameter[] params = method.getParameters();
             List<Parameter> nonSenderParams = new ArrayList<>();
             for (Parameter param : params) {
-                if (!CommandSender.class.isAssignableFrom(param.getType())) {
+                // Check by class name to handle classloader differences
+                if (!param.getType().getName().equals("com.axiommc.api.command.CommandSender")) {
                     nonSenderParams.add(param);
                 }
             }
@@ -174,12 +178,11 @@ public class CommandInvoker {
         for (int i = 0; i < params.length; i++) {
             Parameter param = params[i];
 
-            if (CommandSender.class.isAssignableFrom(param.getType())) {
+            // Check by class name to handle classloader differences
+            if (param.getType().getName().equals("com.axiommc.api.command.CommandSender")) {
                 result[i] = sender;
                 continue;
             }
-
-            LOGGER.info("    Parsing param {}: type={}", param.getName(), param.getType().getSimpleName());
 
             // @Default alone implies optionality — no @Optional annotation required
             boolean hasDefault = param.isAnnotationPresent(Default.class);
@@ -413,12 +416,12 @@ public class CommandInvoker {
     private int countNonSenderParams(Method method) {
         int count = 0;
         for (Parameter p : method.getParameters()) {
-            if (!CommandSender.class.isAssignableFrom(p.getType())) {
+            // Check by class name to handle classloader differences
+            String className = p.getType().getName();
+            boolean isSender = className.equals("com.axiommc.api.command.CommandSender");
+            if (!isSender) {
                 count++;
             }
-        }
-        if (method.getName().contains("teleport")) {
-            LOGGER.info("    countNonSenderParams({}): {} params", method.getName(), count);
         }
         return count;
     }
@@ -427,7 +430,8 @@ public class CommandInvoker {
     private int countRequiredParams(Method method) {
         int count = 0;
         for (Parameter p : method.getParameters()) {
-            if (!CommandSender.class.isAssignableFrom(p.getType())) {
+            // Check by class name to handle classloader differences
+            if (!p.getType().getName().equals("com.axiommc.api.command.CommandSender")) {
                 if (!p.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) && !p.isAnnotationPresent(Default.class)) {
                     count++;
                 }
@@ -440,7 +444,8 @@ public class CommandInvoker {
         Parameter[] params = method.getParameters();
         int commandParamIndex = 0;
         for (Parameter param : params) {
-            if (CommandSender.class.isAssignableFrom(param.getType())) continue;
+            // Check by class name to handle classloader differences
+            if (param.getType().getName().equals("com.axiommc.api.command.CommandSender")) continue;
 
             if (commandParamIndex == argPos) {
                 // Check for dynamic tab completion first
