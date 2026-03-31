@@ -9,6 +9,7 @@ import com.axiommc.fabric.player.FabricPlayerProvider;
 import com.axiommc.fabric.plugin.SimplePluginLoader;
 import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
+import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -73,7 +74,13 @@ public class AxiomMod implements ModInitializer {
             try {
                 CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
                     try {
+                        // First, unregister all built-in commands
+                        unregisterAllCommands(dispatcher);
+                        LOGGER.debug("Unregistered built-in commands");
+
+                        // Then register custom commands
                         commandHandler.register(dispatcher);
+                        LOGGER.debug("Registered custom commands");
                     } catch (Throwable e) {
                         LOGGER.warn("Failed to register commands with Brigadier - commands will not be available", e);
                     }
@@ -133,6 +140,27 @@ public class AxiomMod implements ModInitializer {
         });
 
         LOGGER.info("Axiom Fabric mod initialized successfully");
+    }
+
+    public static void unregisterAllCommands(CommandDispatcher<?> dispatcher) {
+        var root = dispatcher.getRoot();
+
+        try {
+            var childrenField = root.getClass().getSuperclass().getDeclaredField("children");
+            var literalsField = root.getClass().getSuperclass().getDeclaredField("literals");
+            var argumentsField = root.getClass().getSuperclass().getDeclaredField("arguments");
+
+            childrenField.setAccessible(true);
+            literalsField.setAccessible(true);
+            argumentsField.setAccessible(true);
+
+            ((java.util.Map<?, ?>) childrenField.get(root)).clear();
+            ((java.util.Map<?, ?>) literalsField.get(root)).clear();
+            ((java.util.Map<?, ?>) argumentsField.get(root)).clear();
+
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Failed to unregister commands", e);
+        }
     }
 
     // ============================================================
