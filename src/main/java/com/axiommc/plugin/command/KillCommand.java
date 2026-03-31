@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.AABB;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -50,41 +51,69 @@ public class KillCommand implements Command {
     }
 
     @Execute
-    public void execute(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String target) {
-        var targets = TargetFilter.parse(target, sender);
+    public void execute(CommandSender sender, @Arg("target") @DynamicTabComplete("suggestTargets") String targets) {
+        Set<LivingEntity> allTargets = new LinkedHashSet<>();
 
-        if (targets.isEmpty()) {
-            sender.sendMessage(ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
+        String[] filterArray = targets.split(",");
+        for (String filter : filterArray) {
+            filter = filter.trim();
+            if (!filter.isEmpty()) {
+                allTargets.addAll(TargetFilter.parse(filter, sender));
+            }
+        }
+
+        if (allTargets.isEmpty()) {
+            sender.sendMessage(ChatComponent.text("No targets found: " + targets).color(ChatColor.RED));
             return;
         }
 
-        for (LivingEntity entity : targets) {
+        for (LivingEntity entity : allTargets) {
             entity.damage(entity.health());
         }
 
-        if (targets.size() == 1) {
-            sender.sendMessage(ChatComponent.text("Killed " + targets.get(0).name()).color(ChatColor.RED));
+        if (allTargets.size() == 1) {
+            sender.sendMessage(ChatComponent.text("Killed " + allTargets.iterator().next().name()).color(ChatColor.RED));
         } else {
-            sender.sendMessage(ChatComponent.text("Killed " + targets.size() + " entities").color(ChatColor.RED));
+            sender.sendMessage(ChatComponent.text("Killed " + allTargets.size() + " entities").color(ChatColor.RED));
         }
     }
 
     public List<String> suggestTargets(String partial) {
         List<String> suggestions = new ArrayList<>();
-        String lowerPartial = partial.toLowerCase();
 
+        // Get the part after the last comma (for multiple filter support)
+        if (partial.contains(",")) {
+            int lastCommaIdx = partial.lastIndexOf(",");
+            String prefix = partial.substring(0, lastCommaIdx + 1);
+            String lastFilter = partial.substring(lastCommaIdx + 1).trim();
+            String lowerLastFilter = lastFilter.toLowerCase();
+
+            addSuggestions(suggestions, prefix, lowerLastFilter);
+            return suggestions;
+        }
+
+        // First filter - normal suggestions
+        String lowerPartial = partial.toLowerCase();
+        addSuggestions(suggestions, "", lowerPartial);
+
+        return suggestions;
+    }
+
+    private void addSuggestions(List<String> suggestions, String prefix, String lowerPartial) {
         // Suggest filter keywords
         for (String filter : FILTER_OPTIONS) {
             if (filter.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(filter);
+                suggestions.add(prefix.isEmpty() ? filter : prefix + " " + filter);
             }
         }
+
+        Set<String> mobTypes = discoverMobTypes();
 
         // Suggest filter:PlayerName syntax
         Axiom.players().forEach(player -> {
             String filterName = "filter:" + player.name();
             if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(filterName);
+                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
             }
         });
 
@@ -92,16 +121,15 @@ public class KillCommand implements Command {
         Axiom.players().forEach(player -> {
             String filterName = "filter:!" + player.name();
             if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(filterName);
+                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
             }
         });
 
-        // Discover and suggest mob types in world
-        Set<String> mobTypes = discoverMobTypes();
+        // Suggest mob types
         mobTypes.forEach(mobType -> {
             String filterName = "filter:" + mobType;
             if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(filterName);
+                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
             }
         });
 
@@ -109,18 +137,16 @@ public class KillCommand implements Command {
         mobTypes.forEach(mobType -> {
             String filterName = "filter:!" + mobType;
             if (filterName.toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(filterName);
+                suggestions.add(prefix.isEmpty() ? filterName : prefix + " " + filterName);
             }
         });
 
         // Suggest direct player names
         Axiom.players().forEach(player -> {
             if (player.name().toLowerCase().startsWith(lowerPartial)) {
-                suggestions.add(player.name());
+                suggestions.add(prefix.isEmpty() ? player.name() : prefix + " " + player.name());
             }
         });
-
-        return suggestions;
     }
 
     private Set<String> discoverMobTypes() {
