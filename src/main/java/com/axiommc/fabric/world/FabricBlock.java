@@ -9,6 +9,7 @@ import com.axiommc.api.world.block.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.HashMap;
@@ -119,18 +120,24 @@ public class FabricBlock implements Block {
     @Override
     public void type(Material type) {
         try {
-            var identifier = net.minecraft.resources.Identifier.tryParse(type.id());
-            if (identifier != null) {
-                var blockHolder = BuiltInRegistries.BLOCK.get(identifier);
-                if (blockHolder.isPresent()) {
-                    var mcBlock = blockHolder.get().value();
-                    var newBlockState = mcBlock.defaultBlockState();
-                    serverLevel.setBlock(blockPos, newBlockState, 3);
-                }
+            var newBlockState = parseBlockState(type);
+            if (newBlockState != null) {
+                serverLevel.setBlock(blockPos, newBlockState, 3);
             }
         } catch (Exception e) {
             // Silently ignore if block lookup fails
         }
+    }
+
+    private net.minecraft.world.level.block.state.BlockState parseBlockState(Material type) {
+        var identifier = Identifier.tryParse(type.id());
+        if (identifier == null) return null;
+
+        var blockHolder = BuiltInRegistries.BLOCK.get(identifier);
+        if (blockHolder.isEmpty()) return null;
+
+        var mcBlock = blockHolder.get().value();
+        return mcBlock.defaultBlockState();
     }
 
     @Override

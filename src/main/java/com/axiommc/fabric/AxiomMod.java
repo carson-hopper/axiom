@@ -149,9 +149,9 @@ public class AxiomMod implements ModInitializer {
             literalsField.setAccessible(true);
             argumentsField.setAccessible(true);
 
-            ((java.util.Map<?, ?>) childrenField.get(root)).clear();
-            ((java.util.Map<?, ?>) literalsField.get(root)).clear();
-            ((java.util.Map<?, ?>) argumentsField.get(root)).clear();
+            ((Map<?, ?>) childrenField.get(root)).clear();
+            ((Map<?, ?>) literalsField.get(root)).clear();
+            ((Map<?, ?>) argumentsField.get(root)).clear();
 
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Failed to unregister commands", e);
@@ -164,16 +164,7 @@ public class AxiomMod implements ModInitializer {
 
     private void loadPluginsFromDirectory() {
         File pluginsDir = new File("plugins");
-        if (!pluginsDir.exists()) {
-            LOGGER.info("Plugins directory does not exist, creating it");
-            if (!pluginsDir.mkdirs()) {
-                LOGGER.warn("Failed to create plugins directory");
-                return;
-            }
-        }
-
-        if (!pluginsDir.isDirectory()) {
-            LOGGER.warn("plugins is not a directory");
+        if (!ensurePluginDirectory(pluginsDir)) {
             return;
         }
 
@@ -186,17 +177,43 @@ public class AxiomMod implements ModInitializer {
         LOGGER.info("Loading plugins from plugins directory");
         int loadedCount = 0;
         for (File file : files) {
-            if (file.isFile() && file.getName().endsWith(".jar")) {
-                try {
-                    pluginLoader.loadPlugin(file);
-                    loadedCount++;
-                } catch (Exception e) {
-                    LOGGER.error("Failed to load plugin from file: {}", file.getName(), e);
-                }
+            if (isPluginJar(file)) {
+                loadedCount += loadPluginFile(file);
             }
         }
 
         LOGGER.info("Loaded {} plugins from plugins directory", loadedCount);
+    }
+
+    private boolean ensurePluginDirectory(File pluginsDir) {
+        if (pluginsDir.exists()) {
+            if (!pluginsDir.isDirectory()) {
+                LOGGER.warn("plugins is not a directory");
+                return false;
+            }
+            return true;
+        }
+
+        LOGGER.info("Plugins directory does not exist, creating it");
+        if (!pluginsDir.mkdirs()) {
+            LOGGER.warn("Failed to create plugins directory");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isPluginJar(File file) {
+        return file.isFile() && file.getName().endsWith(".jar");
+    }
+
+    private int loadPluginFile(File file) {
+        try {
+            pluginLoader.loadPlugin(file);
+            return 1;
+        } catch (Exception e) {
+            LOGGER.error("Failed to load plugin from file: {}", file.getName(), e);
+            return 0;
+        }
     }
 
     // ============================================================

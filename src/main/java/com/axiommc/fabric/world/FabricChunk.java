@@ -45,16 +45,14 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
     @Override
     public Biome biomeAt(int x, int y, int z) {
         var biomeHolder = levelChunk.getNoiseBiome(x >> 2, y >> 2, z >> 2);
-
         var optionalKey = biomeHolder.unwrapKey();
-        if (optionalKey.isPresent()) {
-            var resourceKey = optionalKey.get();
-            var identifier = resourceKey.identifier();
-            var biomeId = identifier.getNamespace() + ":" + identifier.getPath();
-            return Biome.of(biomeId);
-        }
 
-        return Biome.UNKNOWN;
+        if (optionalKey.isEmpty()) return Biome.UNKNOWN;
+
+        var resourceKey = optionalKey.get();
+        var identifier = resourceKey.identifier();
+        var biomeId = identifier.getNamespace() + ":" + identifier.getPath();
+        return Biome.of(biomeId);
     }
 
     @Override

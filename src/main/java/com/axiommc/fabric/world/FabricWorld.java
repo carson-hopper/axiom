@@ -63,14 +63,13 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public String name() {
-        var dim = level.dimension();
-        if (dim == Level.OVERWORLD) {
-            return "minecraft:overworld";
-        } else if (dim == Level.NETHER) {
-            return "minecraft:the_nether";
-        } else if (dim == Level.END) {
-            return "minecraft:the_end";
-        }
+        return getDimensionName(level.dimension());
+    }
+
+    private String getDimensionName(ResourceKey<Level> dimension) {
+        if (dimension == Level.OVERWORLD) return "minecraft:overworld";
+        if (dimension == Level.NETHER) return "minecraft:the_nether";
+        if (dimension == Level.END) return "minecraft:the_end";
         return "minecraft:custom";
     }
 
@@ -135,13 +134,9 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public Weather weather() {
-        if (level.isThundering()) {
-            return Weather.THUNDER;
-        } else if (level.isRaining()) {
-            return Weather.RAIN;
-        } else {
-            return Weather.CLEAR;
-        }
+        if (level.isThundering()) return Weather.THUNDER;
+        if (level.isRaining()) return Weather.RAIN;
+        return Weather.CLEAR;
     }
 
     @Override
@@ -199,7 +194,7 @@ public record FabricWorld(ServerLevel level) implements World {
                         position.y(),
                         position.z(),
                         soundEvent,
-                        net.minecraft.sounds.SoundSource.MASTER,
+                        SoundSource.MASTER,
                         volume,
                         pitch,
                         level().getRandom().nextLong()
@@ -271,8 +266,7 @@ public record FabricWorld(ServerLevel level) implements World {
         int chunkX = toChunkCoord(x);
         int chunkZ = toChunkCoord(z);
 
-        Chunk chunk = chunkAt(chunkX, chunkZ).orElse(null);
-        if (chunk == null) {
+        if (!chunkAt(chunkX, chunkZ).isPresent()) {
             loadChunk(chunkX, chunkZ);
         }
 
@@ -313,85 +307,57 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public TextDisplayEntity spawnTextDisplay(TextDisplaySpec spec, Location location) {
         Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
-
-        Vector3 pos = location.position();
-        entity.setPos(pos.x(), pos.y(), pos.z());
-        entity.setYRot(location.rotation().yaw());
-        entity.setXRot(location.rotation().pitch());
-
+        setDisplayEntityPosition(entity, location);
         DisplayEntityUtil.applyTextDisplaySpec(entity, spec);
         level.addFreshEntity(entity);
-
-        if (spec.ttl() > 0) {
-            TaskScheduler.global().scheduleTask(spec.ttl(), () -> {
-                if (!entity.isRemoved()) {
-                    entity.discard();
-                }
-            });
-        }
-
+        scheduleRemovalIfTtl(entity, spec.ttl());
         return new FabricTextDisplayEntity(entity);
     }
 
     @Override
     public ItemDisplayEntity spawnItemDisplay(ItemDisplaySpec spec, Location location) {
         Display.ItemDisplay entity = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
-
-        Vector3 pos = location.position();
-        entity.setPos(pos.x(), pos.y(), pos.z());
-        entity.setYRot(location.rotation().yaw());
-        entity.setXRot(location.rotation().pitch());
-
+        setDisplayEntityPosition(entity, location);
         DisplayEntityUtil.applyItemDisplaySpec(entity, spec);
         level.addFreshEntity(entity);
-
-        if (spec.ttl() > 0) {
-            TaskScheduler.global().scheduleTask(spec.ttl(), () -> {
-                if (!entity.isRemoved()) {
-                    entity.discard();
-                }
-            });
-        }
-
+        scheduleRemovalIfTtl(entity, spec.ttl());
         return new FabricItemDisplayEntity(entity);
     }
 
     @Override
     public BlockDisplayEntity spawnBlockDisplay(BlockDisplaySpec spec, Location location) {
         Display.BlockDisplay entity = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, level);
+        setDisplayEntityPosition(entity, location);
+        DisplayEntityUtil.applyBlockDisplaySpec(entity, spec);
+        level.addFreshEntity(entity);
+        scheduleRemovalIfTtl(entity, spec.ttl());
+        return new FabricBlockDisplayEntity(entity);
+    }
 
+    private void setDisplayEntityPosition(Display entity, Location location) {
         Vector3 pos = location.position();
         entity.setPos(pos.x(), pos.y(), pos.z());
         entity.setYRot(location.rotation().yaw());
         entity.setXRot(location.rotation().pitch());
+    }
 
-        DisplayEntityUtil.applyBlockDisplaySpec(entity, spec);
-        level.addFreshEntity(entity);
-
-        if (spec.ttl() > 0) {
-            TaskScheduler.global().scheduleTask(spec.ttl(), () -> {
-                if (!entity.isRemoved()) {
-                    entity.discard();
-                }
-            });
-        }
-
-        return new FabricBlockDisplayEntity(entity);
+    private void scheduleRemovalIfTtl(Display entity, int ttl) {
+        if (ttl <= 0) return;
+        TaskScheduler.global().scheduleTask(ttl, () -> {
+            if (!entity.isRemoved()) {
+                entity.discard();
+            }
+        });
     }
 
     // ============================================================
     // Helper Methods
     // ============================================================
 
-    private DimensionType mapDimensionType(net.minecraft.resources.ResourceKey<Level> dimension) {
-        if (dimension == Level.OVERWORLD) {
-            return DimensionType.OVERWORLD;
-        } else if (dimension == Level.NETHER) {
-            return DimensionType.NETHER;
-        } else if (dimension == Level.END) {
-            return DimensionType.THE_END;
-        } else {
-            return DimensionType.CUSTOM;
-        }
+    private DimensionType mapDimensionType(ResourceKey<Level> dimension) {
+        if (dimension == Level.OVERWORLD) return DimensionType.OVERWORLD;
+        if (dimension == Level.NETHER) return DimensionType.NETHER;
+        if (dimension == Level.END) return DimensionType.THE_END;
+        return DimensionType.CUSTOM;
     }
 }

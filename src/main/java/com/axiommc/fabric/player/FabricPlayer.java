@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class FabricPlayer extends FabricLivingEntity implements Player {
 
@@ -74,11 +73,22 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         Vector2 rotation = location.rotation();
 
         if (location.world().name().equalsIgnoreCase(world().name())) {
-            player.teleportTo(position.x(), position.y(), position.z());
-            rotation(location.rotation());
-        } else if (location.world() instanceof FabricWorld(net.minecraft.server.level.ServerLevel level)) {
-            player.teleportTo(level, position.x(), position.y(), position.z(), Set.of(), rotation.yaw(), rotation.pitch(), false);
+            teleportSameWorld(position, rotation);
+        } else {
+            teleportDifferentWorld(location, position, rotation);
         }
+    }
+
+    private void teleportSameWorld(Vector3 position, Vector2 rotation) {
+        player.teleportTo(position.x(), position.y(), position.z());
+        rotation(rotation);
+    }
+
+    private void teleportDifferentWorld(Location location, Vector3 position, Vector2 rotation) {
+        if (!(location.world() instanceof FabricWorld(net.minecraft.server.level.ServerLevel level))) {
+            return;
+        }
+        player.teleportTo(level, position.x(), position.y(), position.z(), Set.of(), rotation.yaw(), rotation.pitch(), false);
     }
 
     @Override
@@ -152,10 +162,11 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public void damage(double amount) {
-        if (world() instanceof FabricWorld(net.minecraft.server.level.ServerLevel level)) {
-            playSound(Sound.PLAYER_DEATH, 1, 1);
-            ((PlayerAccessor) player).invokeActuallyHurt(level, level.damageSources().generic(), (float) amount);
+        if (!(world() instanceof FabricWorld(net.minecraft.server.level.ServerLevel level))) {
+            return;
         }
+        playSound(Sound.PLAYER_DEATH, 1, 1);
+        ((PlayerAccessor) player).invokeActuallyHurt(level, level.damageSources().generic(), (float) amount);
     }
 
     @Override

@@ -45,6 +45,12 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
          */
         public Builder data(ParticleData data) {
             Objects.requireNonNull(data, "data");
+            validateParticleData(data);
+            this.data = data;
+            return this;
+        }
+
+        private void validateParticleData(ParticleData data) {
             Class<?> expected = type.dataType();
             if (expected == null) {
                 throw new IllegalArgumentException(type.key() + " does not accept data");
@@ -54,8 +60,6 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
                         type.key() + " requires " + expected.getSimpleName()
                                 + ", got " + data.getClass().getSimpleName());
             }
-            this.data = data;
-            return this;
         }
 
         public Builder count(int count) {
@@ -90,12 +94,16 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
          * @throws IllegalArgumentException if required data is missing
          */
         public ParticleEffect build() {
-            Class<?> required = type.dataType();
-            if (required != null && data == null) {
-                throw new IllegalArgumentException(
-                        type.key() + " requires " + required.getSimpleName() + " data");
-            }
+            validateParticleDataRequired();
             return new ParticleEffect(type, data, count, spreadX, spreadY, spreadZ, speed, force);
+        }
+
+        private void validateParticleDataRequired() {
+            Class<?> required = type.dataType();
+            if (required == null) return;
+            if (data != null) return;
+            throw new IllegalArgumentException(
+                    type.key() + " requires " + required.getSimpleName() + " data");
         }
     }
 }
