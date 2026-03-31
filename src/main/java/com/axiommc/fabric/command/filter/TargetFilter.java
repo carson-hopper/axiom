@@ -47,8 +47,18 @@ public class TargetFilter {
             case "hostile" -> getHostileMobs(sender);
             case "passive", "animals" -> getPassiveMobs(sender);
             case "all" -> getAllTargets(sender);
-            default -> new ArrayList<>();
+            default -> parsePlayerFilter(filter, sender);
         };
+    }
+
+    private static List<LivingEntity> parsePlayerFilter(String playerName, CommandSender sender) {
+        var player = Axiom.players().stream()
+                .filter(p -> p.name().equalsIgnoreCase(playerName))
+                .findFirst();
+
+        List<LivingEntity> result = new ArrayList<>();
+        player.ifPresent(result::add);
+        return result;
     }
 
     private static List<LivingEntity> applyNegation(String filter, CommandSender sender) {
@@ -70,8 +80,21 @@ public class TargetFilter {
                 targets.removeIf(e -> playerIds.contains(e.id()));
                 yield targets;
             }
-            default -> new ArrayList<>();
+            default -> applyNegationPlayerFilter(filter, targets);
         };
+    }
+
+    private static List<LivingEntity> applyNegationPlayerFilter(String playerName, List<LivingEntity> targets) {
+        var targetPlayer = Axiom.players().stream()
+                .filter(p -> p.name().equalsIgnoreCase(playerName))
+                .findFirst();
+
+        if (targetPlayer.isPresent()) {
+            UUID playerId = targetPlayer.get().id();
+            targets.removeIf(e -> e.id().equals(playerId));
+        }
+
+        return targets;
     }
 
     private static List<LivingEntity> getAllTargets(CommandSender sender) {

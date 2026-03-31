@@ -67,16 +67,32 @@ public class KillCommand implements Command {
 
     public List<String> suggestTargets(String partial) {
         List<String> suggestions = new ArrayList<>();
-
-        // Suggest filters
         String lowerPartial = partial.toLowerCase();
+
+        // Suggest filter keywords
         for (String filter : FILTER_OPTIONS) {
             if (filter.toLowerCase().startsWith(lowerPartial)) {
                 suggestions.add(filter);
             }
         }
 
-        // Suggest player names
+        // Suggest filter:PlayerName syntax
+        Axiom.players().forEach(player -> {
+            String filterName = "filter:" + player.name();
+            if (filterName.toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(filterName);
+            }
+        });
+
+        // Suggest filter:!PlayerName syntax
+        Axiom.players().forEach(player -> {
+            String filterName = "filter:!" + player.name();
+            if (filterName.toLowerCase().startsWith(lowerPartial)) {
+                suggestions.add(filterName);
+            }
+        });
+
+        // Suggest direct player names
         Axiom.players().forEach(player -> {
             if (player.name().toLowerCase().startsWith(lowerPartial)) {
                 suggestions.add(player.name());
