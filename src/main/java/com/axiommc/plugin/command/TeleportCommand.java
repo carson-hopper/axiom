@@ -39,8 +39,8 @@ public class TeleportCommand implements Command {
     }
 
     @Execute
-    public void teleportToCoordinates(CommandSender sender, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
-        if (y < MIN_Y) {
+    public void teleportToCoordinates(CommandSender sender, @Arg("location") Vector3 location) {
+        if (location.y() < MIN_Y) {
             sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
             return;
         }
@@ -48,24 +48,24 @@ public class TeleportCommand implements Command {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
                     Location currentLocation = player.location();
-                    Location newLocation = new Location(currentLocation.world(), new Vector3(x, y, z), currentLocation.rotation());
+                    Location newLocation = new Location(currentLocation.world(), location, currentLocation.rotation());
                     player.teleport(newLocation);
-                    player.sendMessage(ChatComponent.text("Teleported to " + x + ", " + y + ", " + z).color(ChatColor.GREEN));
+                    player.sendMessage(ChatComponent.text("Teleported to " + location.x() + ", " + location.y() + ", " + location.z()).color(ChatColor.GREEN));
                 },
                 () -> sender.sendMessage(ChatComponent.text("Only players can teleport").color(ChatColor.RED))
         );
     }
 
     @Execute
-    public void teleportPlayerToCoordinates(CommandSender sender, @Arg("player") Player player, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
-        if (y < MIN_Y) {
+    public void teleportPlayerToCoordinates(CommandSender sender, @Arg("player") Player player, @Arg("location") Vector3 location) {
+        if (location.y() < MIN_Y) {
             sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
             return;
         }
 
         Location currentLocation = player.location();
-        Location newLocation = new Location(currentLocation.world(), new Vector3(x, y, z), currentLocation.rotation());
+        Location newLocation = new Location(currentLocation.world(), location, currentLocation.rotation());
         player.teleport(newLocation);
-        sender.sendMessage(ChatComponent.text("Teleported " + player.name() + " to " + x + ", " + y + ", " + z).color(ChatColor.GREEN));
+        sender.sendMessage(ChatComponent.text("Teleported " + player.name() + " to " + location.x() + ", " + location.y() + ", " + location.z()).color(ChatColor.GREEN));
     }
 }
