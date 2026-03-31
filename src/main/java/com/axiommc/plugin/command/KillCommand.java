@@ -8,13 +8,14 @@ import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.CommandMeta;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
+import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.command.filter.TargetFilter;
 
 @CommandMeta(
         name = "kill",
-        description = "Kill a player",
+        description = "Kill a player or mob",
         permission = "axiom.kill"
 )
 public class KillCommand implements Command {
@@ -32,21 +33,21 @@ public class KillCommand implements Command {
 
     @Subcommand
     public void player(CommandSender sender, @Arg("target") String target) {
-        var players = TargetFilter.parse(target, sender);
+        var targets = TargetFilter.parse(target, sender);
 
-        if (players.isEmpty()) {
+        if (targets.isEmpty()) {
             sender.sendMessage(ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
             return;
         }
 
-        for (Player player : players) {
-            player.damage(player.health());
+        for (LivingEntity entity : targets) {
+            entity.damage(entity.health());
         }
 
-        if (players.size() == 1) {
-            sender.sendMessage(ChatComponent.text("Killed " + players.get(0).name()).color(ChatColor.RED));
+        if (targets.size() == 1) {
+            sender.sendMessage(ChatComponent.text("Killed " + targets.get(0).name()).color(ChatColor.RED));
         } else {
-            sender.sendMessage(ChatComponent.text("Killed " + players.size() + " players").color(ChatColor.RED));
+            sender.sendMessage(ChatComponent.text("Killed " + targets.size() + " entities").color(ChatColor.RED));
         }
     }
 }
