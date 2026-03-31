@@ -417,6 +417,9 @@ public class CommandInvoker {
                 count++;
             }
         }
+        if (method.getName().contains("teleport")) {
+            LOGGER.info("    countNonSenderParams({}): {} params", method.getName(), count);
+        }
         return count;
     }
 
