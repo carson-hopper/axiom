@@ -248,7 +248,7 @@ public class CommandInvoker {
                     }
                     result[i] = parsed;
                 } else {
-                    // Use @Default if available
+                    // Use @Default if available, otherwise use primitive default for optional flags
                     Default def = param.getAnnotation(Default.class);
                     if (def != null) {
                         ArgParser<?> parser = parserRegistry.get(param.getType());
@@ -258,7 +258,8 @@ public class CommandInvoker {
                             result[i] = null;
                         }
                     } else {
-                        result[i] = null;
+                        // Flag is @Optional without @Default - use primitive default
+                        result[i] = getPrimitiveDefault(param.getType());
                     }
                 }
                 continue;
@@ -529,6 +530,19 @@ public class CommandInvoker {
             }
         }
         return count;
+    }
+
+    /** Get default value for primitive types (0 for int, false for boolean, etc.) */
+    private Object getPrimitiveDefault(Class<?> type) {
+        if (type == int.class) return 0;
+        if (type == long.class) return 0L;
+        if (type == short.class) return (short) 0;
+        if (type == byte.class) return (byte) 0;
+        if (type == float.class) return 0.0f;
+        if (type == double.class) return 0.0;
+        if (type == boolean.class) return false;
+        if (type == char.class) return '\0';
+        return null;
     }
 
     private List<String> getParamSuggestions(Method method, int argPos, String partial) {
