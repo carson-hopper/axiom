@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public class TargetFilter {
 
@@ -57,12 +58,16 @@ public class TargetFilter {
             case "self" -> {
                 if (sender.isPlayer()) {
                     Player self = sender.asPlayer().get();
-                    targets.remove(self);
+                    UUID selfId = self.id();
+                    targets.removeIf(e -> e.id().equals(selfId));
                 }
                 yield targets;
             }
             case "players" -> {
-                targets.removeAll(Axiom.players());
+                var playerIds = Axiom.players().stream()
+                        .map(Player::id)
+                        .toList();
+                targets.removeIf(e -> playerIds.contains(e.id()));
                 yield targets;
             }
             default -> new ArrayList<>();
@@ -157,7 +162,7 @@ public class TargetFilter {
         }
 
         @Override
-        public java.util.UUID id() {
+        public UUID id() {
             return entity.getUUID();
         }
 
@@ -187,7 +192,6 @@ public class TargetFilter {
 
         @Override
         public void teleport(com.axiommc.api.player.Location location) {
-            var level = (net.minecraft.server.level.ServerLevel) entity.level();
             entity.teleportTo(location.position().x(), location.position().y(), location.position().z());
         }
 
