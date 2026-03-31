@@ -19,6 +19,8 @@ import com.axiommc.api.math.Vector3;
 )
 public class TeleportCommand implements Command {
 
+    private static final int MIN_Y = -64;
+
     @Execute
     public void teleportToPlayer(CommandSender sender, @Arg("player") Player target) {
         sender.asPlayer().ifPresentOrElse(
@@ -38,6 +40,11 @@ public class TeleportCommand implements Command {
 
     @Execute
     public void teleportToCoordinates(CommandSender sender, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
+        if (y < MIN_Y) {
+            sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
+            return;
+        }
+
         sender.asPlayer().ifPresentOrElse(
                 player -> {
                     Location currentLocation = player.location();
@@ -51,6 +58,11 @@ public class TeleportCommand implements Command {
 
     @Execute
     public void teleportPlayerToCoordinates(CommandSender sender, @Arg("player") Player player, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
+        if (y < MIN_Y) {
+            sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
+            return;
+        }
+
         Location currentLocation = player.location();
         Location newLocation = new Location(currentLocation.world(), new Vector3(x, y, z), currentLocation.rotation());
         player.teleport(newLocation);
