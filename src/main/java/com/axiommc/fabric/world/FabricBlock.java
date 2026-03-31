@@ -117,7 +117,7 @@ public class FabricBlock implements Block {
     // ============================================================
 
     @Override
-    public void setType(Material type) {
+    public void type(Material type) {
         try {
             var identifier = net.minecraft.resources.Identifier.tryParse(type.id());
             if (identifier != null) {

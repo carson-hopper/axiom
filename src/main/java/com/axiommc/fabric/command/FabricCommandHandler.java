@@ -11,11 +11,12 @@ import com.axiommc.api.command.parser.StringArgParser;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.plugin.PluginEnvironment;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class FabricCommandHandler {
@@ -25,91 +26,70 @@ public class FabricCommandHandler {
     private final EventBus eventBus;
     private final FabricCommandRegistry registry;
     private final ArgParserRegistry parserRegistry;
+    private final List<FabricCommandAdapter> adapters = new ArrayList<>();
     private CommandDispatcher<CommandSourceStack> dispatcher;
 
     public FabricCommandHandler(EventBus eventBus) {
         this.eventBus = eventBus;
         this.parserRegistry = new ArgParserRegistry();
         this.registry = new FabricCommandRegistry(parserRegistry, PluginEnvironment.SERVER);
-
         registerDefaultParsers();
     }
 
     public void registerCommand(com.axiommc.api.command.Command command) {
+        CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
+        if (meta == null) {
+            LOGGER.warn("Command {} has no @CommandMeta annotation, skipping", command.getClass().getSimpleName());
+            return;
+        }
+
         registry.register(command);
 
-        // If dispatcher is available (after CommandRegistrationCallback), register with Brigadier immediately
-        if (dispatcher != null) {
-            CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-            if (meta != null) {
-                CommandInvoker invoker = registry.get(meta.name());
-                if (invoker != null) {
-                    try {
-                        registerBrigadierCommand(dispatcher, meta.name(), invoker);
-                        LOGGER.info("Dynamically registered Brigadier command: {}", meta.name());
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to dynamically register Brigadier command: {}", meta.name(), e);
-                    }
-                }
+        try {
+            CommandInvoker invoker = registry.get(meta.name());
+            FabricCommandAdapter adapter = new FabricCommandAdapter(meta.name(), invoker);
+            adapters.add(adapter);
+
+            if (dispatcher != null) {
+                dispatcher.register(adapter.buildNode());
+                LOGGER.info("Dynamically registered Brigadier command: {}", meta.name());
             }
+        } catch (Exception e) {
+            LOGGER.error("Failed to register command: {}", meta.name(), e);
         }
     }
 
-    public void register(Object dispatcher) {
-        if (!(dispatcher instanceof CommandDispatcher)) {
-            LOGGER.warn("Expected CommandDispatcher, got {}", dispatcher.getClass().getName());
+    public void register(Object dispatcherObj) {
+        if (!(dispatcherObj instanceof CommandDispatcher)) {
+            LOGGER.warn("Expected CommandDispatcher, got {}", dispatcherObj.getClass().getName());
             return;
         }
 
         @SuppressWarnings("unchecked")
         CommandDispatcher<CommandSourceStack> brigadierDispatcher =
-            (CommandDispatcher<CommandSourceStack>) dispatcher;
+            (CommandDispatcher<CommandSourceStack>) dispatcherObj;
 
         this.dispatcher = brigadierDispatcher;
 
         Map<String, CommandInvoker> commands = registry.getAll();
         for (Map.Entry<String, CommandInvoker> entry : commands.entrySet()) {
-            String commandName = entry.getKey();
-            CommandInvoker invoker = entry.getValue();
-
             try {
-                registerBrigadierCommand(brigadierDispatcher, commandName, invoker);
-                LOGGER.debug("Registered Brigadier command: {}", commandName);
+                CommandInvoker invoker = entry.getValue();
+                FabricCommandAdapter adapter = new FabricCommandAdapter(entry.getKey(), invoker);
+                adapters.add(adapter);
+                dispatcher.register(adapter.buildNode());
+                LOGGER.debug("Registered Brigadier command: {}", entry.getKey());
             } catch (Exception e) {
-                LOGGER.error("Failed to register Brigadier command: {}", commandName, e);
+                LOGGER.error("Failed to register command: {}", entry.getKey(), e);
             }
         }
     }
 
-    private void registerBrigadierCommand(CommandDispatcher<CommandSourceStack> dispatcher,
-                                         String commandName, CommandInvoker invoker) {
-        LiteralArgumentBuilder<CommandSourceStack> builder =
-            LiteralArgumentBuilder.literal(commandName);
-
-        builder.executes(context -> {
-            CommandSourceStack source = context.getSource();
-            String[] args = {};
-            FabricCommandSender sender = new FabricCommandSender(source);
-            invoker.execute(sender, args);
-            return 1;
-        });
-
-        dispatcher.register(builder);
-    }
-
     private void registerDefaultParsers() {
-        parserRegistry.register(String.class, new StringArgParser());
-        parserRegistry.register(int.class, new IntArgParser());
         parserRegistry.register(Integer.class, new IntArgParser());
-        parserRegistry.register(long.class, new LongArgParser());
         parserRegistry.register(Long.class, new LongArgParser());
-        parserRegistry.register(float.class, new FloatArgParser());
         parserRegistry.register(Float.class, new FloatArgParser());
-        parserRegistry.register(double.class, new DoubleArgParser());
         parserRegistry.register(Double.class, new DoubleArgParser());
-    }
-
-    public FabricCommandRegistry getRegistry() {
-        return registry;
+        parserRegistry.register(String.class, new StringArgParser());
     }
 }

@@ -1,20 +1,24 @@
 package com.axiommc.fabric.gui;
 
-import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.gui.*;
+import com.axiommc.api.gui.Gui;
+import com.axiommc.api.gui.GuiItem;
+import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.player.FabricPlayer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import java.util.*;
+import net.minecraft.world.item.component.ItemLore;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FabricGuiManager implements GuiManager {
@@ -31,14 +35,15 @@ public class FabricGuiManager implements GuiManager {
 
         fillContainer(container, gui);
 
-        AxiomChestMenu menu = new AxiomChestMenu(0, container, gui, sessionId, this);
         Component title = serializer.serialize(gui.title());
 
-        // Open the menu with the title
-        sp.openMenu(new net.minecraft.world.SimpleMenuProvider(
-            (id, inventory, p) -> menu,
+        sp.openMenu(new SimpleMenuProvider(
+            (id, inventory, p) -> new AxiomChestMenu(id, container, gui, sessionId, this, sp),
             title
         ));
+
+        // Get the menu from the player's current container
+        AxiomChestMenu menu = (AxiomChestMenu) sp.containerMenu;
 
         GuiSession session = new GuiSession(sessionId, sp, menu, gui);
         sessions.put(sessionId, session);
@@ -78,27 +83,29 @@ public class FabricGuiManager implements GuiManager {
     private void fillContainer(Container container, Gui gui) {
         for (int i = 0; i < gui.size().slots(); i++) {
             GuiItem item = gui.getSlot(i);
-            container.setItem(i, item != null ? toItemStack(item.item()) : ItemStack.EMPTY);
+            ItemStack itemStack = item != null ? toItemStack(item.item()) : ItemStack.EMPTY;
+            container.setItem(i, itemStack);
         }
     }
 
     private ItemStack toItemStack(com.axiommc.api.chat.Item item) {
-        // For now, use a placeholder item until full item registry lookup is available
-        Item mcItem = Items.BARRIER;
+        Item mcItem = BuiltInRegistries.ITEM.get(net.minecraft.resources.Identifier.parse(item.materialKey()))
+            .map(holder -> holder.value())
+            .orElse(Items.BARRIER);
         ItemStack stack = new ItemStack(mcItem, item.count());
 
         if (!item.displayName().isEmpty()) {
             Component displayName = Component.literal(item.displayName())
                 .withStyle(s -> s.withItalic(false));
-            stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, displayName);
+            stack.set(DataComponents.CUSTOM_NAME, displayName);
         }
 
         if (!item.lore().isEmpty()) {
             List<Component> loreComponents = item.lore().stream()
                 .map(l -> (Component) Component.literal(l).withStyle(s -> s.withItalic(false)))
                 .toList();
-            stack.set(net.minecraft.core.component.DataComponents.LORE,
-                new net.minecraft.world.item.component.ItemLore(loreComponents));
+            stack.set(DataComponents.LORE,
+                new ItemLore(loreComponents));
         }
 
         return stack;

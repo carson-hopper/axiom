@@ -1,6 +1,11 @@
 package com.axiommc.api.world;
 
-import com.axiommc.api.entity.display.*;
+import com.axiommc.api.entity.display.BlockDisplayEntity;
+import com.axiommc.api.entity.display.BlockDisplaySpec;
+import com.axiommc.api.entity.display.ItemDisplayEntity;
+import com.axiommc.api.entity.display.ItemDisplaySpec;
+import com.axiommc.api.entity.display.TextDisplayEntity;
+import com.axiommc.api.entity.display.TextDisplaySpec;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.particle.ParticleEffect;
 import com.axiommc.api.player.Location;
@@ -56,7 +61,7 @@ public interface World {
     Difficulty difficulty();
     void difficulty(Difficulty difficulty);
     boolean pvpEnabled();
-    void playSound(SoundKey sound, float volume, float pitch);
+    void playSound(SoundKey sound, float volume, float pitch, Vector3 position);
 
     // Spawn
     Location spawnLocation();
@@ -96,9 +101,7 @@ public interface World {
         return blockAt(location.position());
     }
 
-    Optional<Biome> biomeAt(int x, int y, int z);
     int highestBlockY(int x, int z);
-    void setBlock(int x, int y, int z, Material type);
 
     // Particles
 

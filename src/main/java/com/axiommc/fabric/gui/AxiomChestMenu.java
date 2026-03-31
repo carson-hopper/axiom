@@ -1,10 +1,14 @@
 package com.axiommc.fabric.gui;
 
-import com.axiommc.api.gui.*;
+import com.axiommc.api.gui.Gui;
+import com.axiommc.api.gui.GuiItem;
+import com.axiommc.api.gui.GuiSize;
 import com.axiommc.fabric.player.FabricPlayer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import java.util.UUID;
 
@@ -14,24 +18,26 @@ public class AxiomChestMenu extends AbstractContainerMenu {
     private Gui gui;
     private final FabricGuiManager manager;
     private final Container container;
+    private final ServerPlayer player;
 
-    public AxiomChestMenu(int containerId, Container container, Gui gui, UUID sessionId, FabricGuiManager manager) {
+    public AxiomChestMenu(int containerId, Container container, Gui gui, UUID sessionId, FabricGuiManager manager, ServerPlayer player) {
         super(menuType(gui.size()), containerId);
         this.gui = gui;
         this.sessionId = sessionId;
         this.manager = manager;
         this.container = container;
+        this.player = player;
 
         int rows = gui.size().rows();
         int rowOffset = 10;
 
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(container, row * 9 + col, 8 + col * 18, rowOffset + row * 18));
+                int slotIndex = row * 9 + col;
+                GuiItem guiItem = gui.getSlot(slotIndex);
+                addSlot(new GuiSlot(container, slotIndex, 8 + col * 18, rowOffset + row * 18, guiItem, player));
             }
         }
-
-        addPlayerInventory(container, rowOffset + rows * 18 + 10);
     }
 
     private static MenuType<?> menuType(GuiSize size) {
@@ -45,17 +51,6 @@ public class AxiomChestMenu extends AbstractContainerMenu {
         };
     }
 
-    private void addPlayerInventory(Container container, int yOffset) {
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(container, 27 + row * 9 + col, 8 + col * 18, yOffset + row * 18));
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(container, col, 8 + col * 18, yOffset + 58));
-        }
-    }
-
     @Override
     public ItemStack quickMoveStack(Player player, int slot) {
         return ItemStack.EMPTY;
@@ -66,10 +61,11 @@ public class AxiomChestMenu extends AbstractContainerMenu {
         return true;
     }
 
+
     @Override
     public void removed(Player player) {
         super.removed(player);
-        FabricPlayer fabricPlayer = new FabricPlayer((net.minecraft.server.level.ServerPlayer) player);
+        FabricPlayer fabricPlayer = new FabricPlayer((ServerPlayer) player);
         gui.handleClose(fabricPlayer);
         manager.removeSession(sessionId);
     }
@@ -82,24 +78,15 @@ public class AxiomChestMenu extends AbstractContainerMenu {
         return container;
     }
 
-    public void handleSlotClick(int slot, int button) {
-        if (slot < 0 || slot >= gui.size().slots()) {
-            return;
-        }
-
-        GuiItem guiItem = gui.getSlot(slot);
-        if (guiItem != null && guiItem.hasClickHandler()) {
-            ClickType apiClickType = toApiClickType(button);
-            // Note: Player will be obtained from server context when called
-            guiItem.handleClick(new GuiClickEvent(null, slot, apiClickType));
-        }
+    public com.axiommc.api.gui.Gui getGui() {
+        return gui;
     }
 
-    private static ClickType toApiClickType(int button) {
+    private static com.axiommc.api.gui.ClickType toApiClickType(int button) {
         return switch (button) {
-            case 0 -> ClickType.LEFT;
-            case 1 -> ClickType.RIGHT;
-            default -> ClickType.UNKNOWN;
+            case 0 -> com.axiommc.api.gui.ClickType.LEFT;
+            case 1 -> com.axiommc.api.gui.ClickType.RIGHT;
+            default -> com.axiommc.api.gui.ClickType.UNKNOWN;
         };
     }
 }

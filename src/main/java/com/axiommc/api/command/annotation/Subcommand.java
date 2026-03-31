@@ -10,7 +10,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Subcommand {
-    String value();
+    /** Subcommand name. If empty, uses the method name. */
+    String value() default "";
     /** Which side(s) this subcommand is available on. Defaults to {@link CommandSide#BOTH}. */
     CommandSide side() default CommandSide.BOTH;
 }

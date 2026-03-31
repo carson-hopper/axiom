@@ -1,6 +1,8 @@
 package com.axiommc.fabric.world;
 
+import com.axiommc.api.math.Vector3;
 import com.axiommc.api.world.Biome;
+import com.axiommc.api.world.BiomeWritable;
 import com.axiommc.api.world.Chunk;
 import com.axiommc.api.world.World;
 import net.minecraft.server.level.FullChunkStatus;
@@ -53,5 +55,17 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
         }
 
         return Biome.UNKNOWN;
+    }
+
+    @Override
+    public void biome(Biome biome, Vector3 position) {
+        int x = (int) position.x();
+        int y = (int) position.y();
+        int z = (int) position.z();
+
+        ((BiomeWritable) levelChunk).setBiome(x >> 2, y >> 2, z >> 2, biome,
+                fabricWorld.level().registryAccess());
+
+        levelChunk.markUnsaved();
     }
 }

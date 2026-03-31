@@ -3,8 +3,15 @@ package com.axiommc.api.command.invoker;
 import com.axiommc.api.command.Command;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.CommandSide;
-import com.axiommc.api.command.annotation.*;
-import com.axiommc.api.command.annotation.Optional;
+import com.axiommc.api.command.annotation.Arg;
+import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Default;
+import com.axiommc.api.command.annotation.DynamicTabComplete;
+import com.axiommc.api.command.annotation.Execute;
+import com.axiommc.api.command.annotation.Greedy;
+import com.axiommc.api.command.annotation.Range;
+import com.axiommc.api.command.annotation.Subcommand;
+import com.axiommc.api.command.annotation.TabComplete;
 import com.axiommc.api.command.parser.ArgParseException;
 import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.command.parser.ArgParserRegistry;
@@ -13,7 +20,15 @@ import com.axiommc.api.plugin.PluginEnvironment;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class CommandInvoker {
 
@@ -45,7 +60,8 @@ public class CommandInvoker {
                 executeMethods.add(method);
             } else if (method.isAnnotationPresent(Subcommand.class)) {
                 Subcommand sub = method.getAnnotation(Subcommand.class);
-                String name = sub.value().toLowerCase();
+                String name = sub.value().isEmpty() ? method.getName() : sub.value();
+                name = name.toLowerCase();
                 if (!sideMatches(sub.side())) {
                     excludedSubcommands.add(name);
                     continue;
@@ -150,7 +166,7 @@ public class CommandInvoker {
 
             // @Default alone implies optionality — no @Optional annotation required
             boolean hasDefault = param.isAnnotationPresent(Default.class);
-            boolean isOptional = param.isAnnotationPresent(Optional.class) || hasDefault;
+            boolean isOptional = param.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) || hasDefault;
             boolean isGreedy = param.isAnnotationPresent(Greedy.class);
 
             if (isGreedy && param.getType() == String.class) {
@@ -225,11 +241,14 @@ public class CommandInvoker {
 
     public List<String> suggest(CommandSender sender, String[] args) {
         CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-        if (meta != null && !meta.permission().isEmpty() && sender.hasPermission(meta.permission())) {
+        if (meta != null && !meta.permission().isEmpty() && !sender.hasPermission(meta.permission())) {
             return Collections.emptyList();
         }
 
-        if (args.length == 0) return Collections.emptyList();
+        if (args.length == 0) {
+            // When no args, return subcommand names as suggestions
+            return new ArrayList<>(subcommandMethods.keySet());
+        }
 
         String last = args[args.length - 1].toLowerCase();
 
@@ -306,7 +325,7 @@ public class CommandInvoker {
         int count = 0;
         for (Parameter p : method.getParameters()) {
             if (!CommandSender.class.isAssignableFrom(p.getType())) {
-                if (!p.isAnnotationPresent(Optional.class) && !p.isAnnotationPresent(Default.class)) {
+                if (!p.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) && !p.isAnnotationPresent(Default.class)) {
                     count++;
                 }
             }
@@ -346,7 +365,14 @@ public class CommandInvoker {
                 // Check for arg parser
                 ArgParser<?> parser = parserRegistry.get(param.getType());
                 if (parser != null) {
-                    return parser.suggest(partial);
+                    List<String> suggestions = parser.suggest(partial);
+                    // If parser has no suggestions, use the parameter name as guidance
+                    if (suggestions.isEmpty()) {
+                        Arg arg = param.getAnnotation(Arg.class);
+                        String paramName = arg != null ? arg.value() : param.getName();
+                        return Arrays.asList("<" + paramName + ">");
+                    }
+                    return suggestions;
                 }
                 return Collections.emptyList();
             }

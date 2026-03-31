@@ -1,6 +1,6 @@
 package com.axiommc.fabric.particle;
 
-import com.axiommc.api.particle.*;
+import com.axiommc.api.particle.ParticleEffect;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;

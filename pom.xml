@@ -82,6 +82,18 @@
             <version>4.0.6+a9b9c17647</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>net.fabricmc</groupId>
+            <artifactId>sponge-mixin</artifactId>
+            <version>0.17.0+mixin.0.8.7</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- SLF4J - present in MC at runtime, needed for compile -->
         <dependency>
@@ -119,7 +131,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.123.Final</version>
+            <version>4.2.5.Final</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -134,6 +146,13 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <failOnWarning>false</failOnWarning>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>net.fabricmc</groupId>
+                            <artifactId>sponge-mixin</artifactId>
+                            <version>0.17.0+mixin.0.8.7</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -150,7 +169,6 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <!-- Provided at runtime by MC/Fabric -->
                                     <exclude>com.mojang:minecraft-server</exclude>
                                     <exclude>net.fabricmc:*</exclude>
                                     <exclude>net.fabricmc.fabric-api:*</exclude>
@@ -159,7 +177,8 @@
                                     <exclude>com.mojang:datafixerupper</exclude>
                                     <exclude>it.unimi.dsi:fastutil</exclude>
                                     <exclude>com.google.code.gson:gson</exclude>
-                                    <!-- jackson-databind is intentionally NOT excluded — it gets shaded in -->
+                                    <exclude>org.ow2.asm:*</exclude>
+                                    <exclude>org.objectweb.asm:*</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>

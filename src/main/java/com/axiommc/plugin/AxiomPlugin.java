@@ -8,6 +8,11 @@ import com.axiommc.api.plugin.Plugin;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.PluginSide;
 import com.axiommc.plugin.command.AxiomCommand;
+import com.axiommc.plugin.command.TestConfigCommand;
+import com.axiommc.plugin.command.TestGuiCommand;
+import com.axiommc.plugin.command.TestPlayerCommand;
+import com.axiommc.plugin.command.TestSidebarCommand;
+import com.axiommc.plugin.command.TestWorldCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +28,11 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         instance = this;
 
         context.registerCommand(new AxiomCommand());
+        context.registerCommand(new TestConfigCommand(context));
+        context.registerCommand(new TestGuiCommand());
+        context.registerCommand(new TestPlayerCommand());
+        context.registerCommand(new TestSidebarCommand());
+        context.registerCommand(new TestWorldCommand());
 
         EventBus eventBus = context.eventBus();
         eventBus.subscribe(PlayerJoinEvent.class, event -> {

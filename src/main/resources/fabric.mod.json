@@ -18,6 +18,9 @@
       "com.axiommc.fabric.AxiomMod"
     ]
   },
+  "mixins": [
+    "axiom.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.18.5",
     "fabric-api": ">=0.144.3+26.1",

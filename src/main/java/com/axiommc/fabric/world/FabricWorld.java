@@ -21,16 +21,27 @@ import com.axiommc.api.world.Weather;
 import com.axiommc.api.world.World;
 import com.axiommc.api.world.block.Block;
 import com.axiommc.api.world.block.Material;
+import com.axiommc.fabric.entity.display.DisplayEntityUtil;
+import com.axiommc.fabric.entity.display.FabricBlockDisplayEntity;
+import com.axiommc.fabric.entity.display.FabricItemDisplayEntity;
+import com.axiommc.fabric.entity.display.FabricTextDisplayEntity;
 import com.axiommc.fabric.particle.FabricParticleConverter;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.util.TaskScheduler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.slf4j.Logger;
@@ -75,18 +86,19 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public Dimension dimension() {
         var dimType = mapDimensionType(level.dimension());
+        var mcDimType = level.dimensionTypeRegistration().value();
 
         return new Dimension(
             name(),
             dimType,
-            dimType == DimensionType.OVERWORLD,
-            dimType == DimensionType.NETHER,
-            false, // hasFixedTime
-                level.getMinY(),     // minY - approximation
-                level.getMaxY(),   // height - approximation
-            256,   // logicalHeight - approximation
-            0.0f,  // ambientLight
-            1.0d   // coordinateScale
+            mcDimType.hasSkyLight(),
+            mcDimType.hasCeiling(),
+            mcDimType.hasFixedTime(),
+            level.getMinY(),
+            level.getHeight(),
+            mcDimType.logicalHeight(),
+            mcDimType.ambientLight(),
+            mcDimType.coordinateScale()
         );
     }
 
@@ -173,6 +185,28 @@ public record FabricWorld(ServerLevel level) implements World {
         return true; // Default to true; actual value not easily accessible in 26.1
     }
 
+    @Override
+    public void playSound(SoundKey sound, float volume, float pitch, Vector3 position) {
+        Registry<SoundEvent> registry = level().registryAccess().lookupOrThrow(Registries.SOUND_EVENT);
+
+        Identifier identifier = Identifier.parse(sound.key());
+        Optional<Holder.Reference<SoundEvent>> holder = registry.get(identifier);
+
+        holder.ifPresent(soundEvent ->
+                level().playSeededSound(
+                        null,
+                        position.x(),
+                        position.y(),
+                        position.z(),
+                        soundEvent,
+                        net.minecraft.sounds.SoundSource.MASTER,
+                        volume,
+                        pitch,
+                        level().getRandom().nextLong()
+                )
+        );
+    }
+
     // ============================================================
     // Spawn & Players
     // ============================================================
@@ -246,43 +280,8 @@ public record FabricWorld(ServerLevel level) implements World {
     }
 
     @Override
-    public Optional<Biome> biomeAt(int x, int y, int z) {
-        BlockPos blockPos = BlockPos.containing(x, y, z);
-        try {
-            var holder = level.getBiome(blockPos);
-            var keyOpt = holder.unwrapKey();
-            if (keyOpt.isPresent()) {
-                var resourceKey = keyOpt.get();
-                var identifier = resourceKey.identifier();
-                var biomeId = identifier.getNamespace() + ":" + identifier.getPath();
-                return Optional.of(Biome.of(biomeId));
-            }
-        } catch (Exception _) {
-        }
-        return Optional.empty();
-    }
-
-    @Override
     public int highestBlockY(int x, int z) {
         return level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-    }
-
-    @Override
-    public void setBlock(int x, int y, int z, Material type) {
-        try {
-            BlockPos blockPos = BlockPos.containing(x, y, z);
-            var identifier = net.minecraft.resources.Identifier.tryParse(type.id());
-            if (identifier != null) {
-                var blockHolder = BuiltInRegistries.BLOCK.get(identifier);
-                if (blockHolder.isPresent()) {
-                    var mcBlock = blockHolder.get().value();
-                    var newBlockState = mcBlock.defaultBlockState();
-                    level.setBlock(blockPos, newBlockState, 3);
-                }
-            }
-        } catch (Exception e) {
-            // Silently ignore if block lookup fails
-        }
     }
 
     // ============================================================
@@ -312,42 +311,15 @@ public record FabricWorld(ServerLevel level) implements World {
     }
 
     @Override
-    public void playSound(SoundKey sound, float volume, float pitch) {
-        var loc = Identifier.tryParse(sound.key());
-        if (loc == null) {
-            LOGGER.warn("Invalid sound key: {}", sound.key());
-            return;
-        }
-
-        var holder = BuiltInRegistries.SOUND_EVENT
-            .getOptional(loc)
-            .map(net.minecraft.core.Holder::direct)
-            .orElse(net.minecraft.core.Holder.direct(net.minecraft.sounds.SoundEvent.createVariableRangeEvent(loc)));
-
-        var spawn = spawnLocation();
-        level.playSeededSound(
-            null,
-            spawn.position().x(),
-            spawn.position().y(),
-            spawn.position().z(),
-            holder,
-            net.minecraft.sounds.SoundSource.MASTER,
-            volume, pitch,
-            level.getRandom().nextLong()
-        );
-    }
-
-    @Override
     public TextDisplayEntity spawnTextDisplay(TextDisplaySpec spec, Location location) {
-        net.minecraft.world.entity.Display.TextDisplay entity =
-            new net.minecraft.world.entity.Display.TextDisplay(net.minecraft.world.entity.EntityType.TEXT_DISPLAY, level);
+        Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
 
         Vector3 pos = location.position();
         entity.setPos(pos.x(), pos.y(), pos.z());
         entity.setYRot(location.rotation().yaw());
         entity.setXRot(location.rotation().pitch());
 
-        com.axiommc.fabric.entity.display.DisplayEntityUtil.applyTextDisplaySpec(entity, spec);
+        DisplayEntityUtil.applyTextDisplaySpec(entity, spec);
         level.addFreshEntity(entity);
 
         if (spec.ttl() > 0) {
@@ -358,20 +330,19 @@ public record FabricWorld(ServerLevel level) implements World {
             });
         }
 
-        return new com.axiommc.fabric.entity.display.FabricTextDisplayEntity(entity);
+        return new FabricTextDisplayEntity(entity);
     }
 
     @Override
     public ItemDisplayEntity spawnItemDisplay(ItemDisplaySpec spec, Location location) {
-        net.minecraft.world.entity.Display.ItemDisplay entity =
-            new net.minecraft.world.entity.Display.ItemDisplay(net.minecraft.world.entity.EntityType.ITEM_DISPLAY, level);
+        Display.ItemDisplay entity = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
 
         Vector3 pos = location.position();
         entity.setPos(pos.x(), pos.y(), pos.z());
         entity.setYRot(location.rotation().yaw());
         entity.setXRot(location.rotation().pitch());
 
-        com.axiommc.fabric.entity.display.DisplayEntityUtil.applyItemDisplaySpec(entity, spec);
+        DisplayEntityUtil.applyItemDisplaySpec(entity, spec);
         level.addFreshEntity(entity);
 
         if (spec.ttl() > 0) {
@@ -382,20 +353,19 @@ public record FabricWorld(ServerLevel level) implements World {
             });
         }
 
-        return new com.axiommc.fabric.entity.display.FabricItemDisplayEntity(entity);
+        return new FabricItemDisplayEntity(entity);
     }
 
     @Override
     public BlockDisplayEntity spawnBlockDisplay(BlockDisplaySpec spec, Location location) {
-        net.minecraft.world.entity.Display.BlockDisplay entity =
-            new net.minecraft.world.entity.Display.BlockDisplay(net.minecraft.world.entity.EntityType.BLOCK_DISPLAY, level);
+        Display.BlockDisplay entity = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, level);
 
         Vector3 pos = location.position();
         entity.setPos(pos.x(), pos.y(), pos.z());
         entity.setYRot(location.rotation().yaw());
         entity.setXRot(location.rotation().pitch());
 
-        com.axiommc.fabric.entity.display.DisplayEntityUtil.applyBlockDisplaySpec(entity, spec);
+        DisplayEntityUtil.applyBlockDisplaySpec(entity, spec);
         level.addFreshEntity(entity);
 
         if (spec.ttl() > 0) {
@@ -406,7 +376,7 @@ public record FabricWorld(ServerLevel level) implements World {
             });
         }
 
-        return new com.axiommc.fabric.entity.display.FabricBlockDisplayEntity(entity);
+        return new FabricBlockDisplayEntity(entity);
     }
 
     // ============================================================

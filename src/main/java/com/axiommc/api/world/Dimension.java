@@ -32,11 +32,4 @@ public record Dimension(
         return type == DimensionType.CUSTOM;
     }
 
-    /** Convenience factory for custom/unknown dimensions. */
-    public static Dimension custom(String id, boolean hasSkyLight, boolean hasCeiling,
-            boolean hasFixedTime, int minY, int height, int logicalHeight,
-            float ambientLight, double coordinateScale) {
-        return new Dimension(id, DimensionType.CUSTOM, hasSkyLight, hasCeiling,
-                hasFixedTime, minY, height, logicalHeight, ambientLight, coordinateScale);
-    }
 }

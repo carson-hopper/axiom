@@ -1,6 +1,7 @@
 package com.axiommc.api.world.block;
 
 import com.axiommc.api.math.Vector3;
+import com.axiommc.api.world.Biome;
 import com.axiommc.api.world.Chunk;
 import com.axiommc.api.world.World;
 
@@ -15,7 +16,7 @@ public interface Block {
     Material type();
 
     /** Set the block type to the given material. */
-    void setType(Material type);
+    void type(Material type);
 
     /** Break this block naturally, dropping items. Returns true if successful, false otherwise. */
     boolean breakNaturally();
@@ -47,5 +48,10 @@ public interface Block {
         int cx = world().toChunkCoord((int) position().x());
         int cz = world().toChunkCoord((int) position().z());
         return world().loadChunk(cx, cz);
+    }
+
+    /** Returns the biome at the block location. */
+    default Biome biome() {
+        return chunk().biomeAt(position());
     }
 }

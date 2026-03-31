@@ -1,6 +1,7 @@
 package com.axiommc.fabric.player;
 
 import com.axiommc.api.chat.ChatComponent;
+import com.axiommc.api.gui.Gui;
 import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
@@ -8,11 +9,14 @@ import com.axiommc.api.player.Player;
 import com.axiommc.api.sound.SoundKey;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundClearTitlesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -20,6 +24,7 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -212,6 +217,11 @@ public record FabricPlayer(ServerPlayer player) implements Player {
     }
 
     @Override
+    public void clearTitle() {
+        player.connection.send(new ClientboundClearTitlesPacket(true));
+    }
+
+    @Override
     public void sendActionBar(ChatComponent component) {
         net.minecraft.network.chat.Component mc = new FabricComponentSerializer().serialize(component);
         player.connection.send(new ClientboundSetActionBarTextPacket(mc));
@@ -219,25 +229,26 @@ public record FabricPlayer(ServerPlayer player) implements Player {
 
     @Override
     public void playSound(SoundKey sound, float volume, float pitch) {
-        // Create a variable range sound event and send directly
-        try {
-            var idClass = Class.forName("net.minecraft.resources.Identifier");
-            var constructor = idClass.getConstructor(String.class);
-            var loc = constructor.newInstance(sound.key());
+        Registry<SoundEvent> registry = player.level().registryAccess().lookupOrThrow(Registries.SOUND_EVENT);
 
-            @SuppressWarnings("unchecked")
-            var castLoc = (net.minecraft.resources.Identifier) loc;
-            var soundEvent = SoundEvent.createVariableRangeEvent(castLoc);
-            var holder = net.minecraft.core.Holder.direct(soundEvent);
+        Identifier identifier = Identifier.parse(sound.key());
+        registry.get(identifier).ifPresent(soundEvent -> {
+            var packet = new ClientboundSoundPacket(
+                soundEvent,
+                player.getSoundSource(),
+                location().position().x(),
+                location().position().y(),
+                location().position().z(),
+                volume,
+                pitch,
+                player.level().getRandom().nextLong()
+            );
+            player.connection.send(packet);
+        });
+    }
 
-            player.connection.send(new ClientboundSoundPacket(
-                holder,
-                SoundSource.PLAYERS,
-                player.getX(), player.getY(), player.getZ(),
-                volume, pitch, player.getRandom().nextLong()
-            ));
-        } catch (Exception e) {
-            LOGGER.error("Failed to play sound {} for player {}", sound.key(), name(), e);
-        }
+    @Override
+    public void openGui(Gui gui) {
+        Axiom.guiManager().open(this, gui);
     }
 }
