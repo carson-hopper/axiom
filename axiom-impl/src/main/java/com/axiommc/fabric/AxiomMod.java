@@ -116,6 +116,7 @@ public class AxiomMod implements ModInitializer {
 
         try {
             this.pluginLoader = new SimplePluginLoader(eventBus, playerProvider);
+            pluginLoader.printLoadHeader();
             pluginLoader.loadPlugin(com.axiommc.plugin.AxiomPlugin.class);
         } catch (Exception e) {
             Axiom.logger().error("Failed to create plugin loader", e);

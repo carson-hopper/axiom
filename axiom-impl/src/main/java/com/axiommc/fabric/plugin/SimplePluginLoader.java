@@ -6,6 +6,7 @@ import com.axiommc.api.event.EventBus;
 import com.axiommc.api.plugin.AxiomPlugin;
 import com.axiommc.api.plugin.Plugin;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.chat.ConsoleColorFormatter;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 
 import java.io.File;
@@ -125,20 +126,27 @@ public class SimplePluginLoader {
     /**
      * Prints a formatted summary of all loaded plugins in Maven-style output.
      */
+    /**
+     * Prints the opening separator before plugins start loading.
+     */
+    public void printLoadHeader() {
+        System.out.println(formatSeparator());
+    }
+
+    /**
+     * Prints the closing separator after all plugins are loaded.
+     */
     public void printLoadSummary() {
         if (entries.isEmpty()) {
             Axiom.logger().info("No plugins loaded");
             return;
         }
+        System.out.println(formatSeparator());
+    }
 
-        String separator = "-".repeat(LINE_WIDTH);
-        Axiom.logger().info(ChatComponent.text(separator).color(ChatColor.DARK_GRAY));
-
-        for (PluginEntry entry : entries) {
-            printEntry(entry);
-        }
-
-        Axiom.logger().info(ChatComponent.text(separator).color(ChatColor.DARK_GRAY));
+    private String formatSeparator() {
+        return ConsoleColorFormatter.format(
+                ChatComponent.text("-".repeat(LINE_WIDTH)).color(ChatColor.DARK_GRAY));
     }
 
     private void printEntry(PluginEntry entry) {
@@ -147,11 +155,20 @@ public class SimplePluginLoader {
         int dotsLen = LINE_WIDTH - name.length() - status.length() - 2;
         String dots = " " + ".".repeat(Math.max(1, dotsLen)) + " ";
 
-        Axiom.logger().info(
-                ChatComponent.text(name).color(ChatColor.WHITE)
-                        .append(ChatComponent.text(dots).color(ChatColor.DARK_GRAY))
-                        .append(ChatComponent.text(status).color(entry.state.color))
-        );
+        ChatComponent line = ChatComponent.text(name).color(ChatColor.WHITE)
+                .append(ChatComponent.text(dots).color(ChatColor.DARK_GRAY))
+                .append(ChatComponent.text(status).color(entry.state.color));
+
+        String formatted = ConsoleColorFormatter.format(line);
+
+        if (entry.state == PluginState.LOADED || entry.state == PluginState.FAILED) {
+            // Final state — finish the line
+            System.out.println("\r" + formatted);
+        } else {
+            // Intermediate state — overwrite in place
+            System.out.print("\r" + formatted);
+            System.out.flush();
+        }
     }
 
     private void updateStatus(String name, PluginState state) {
