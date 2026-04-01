@@ -1,5 +1,6 @@
 package com.axiommc.fabric.event;
 
+import com.axiommc.api.event.EventListener;
 import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerJoinEvent;
 import com.axiommc.api.event.player.PlayerLeaveEvent;
@@ -84,6 +85,15 @@ public class FabricEventBus extends SimpleEventBus {
         } catch (Exception e) {
             LOGGER.debug("Error checking player changes", e);
         }
+    }
+
+    /**
+     * Registers all @EventHandler methods from an event listener.
+     *
+     * @param listener the event listener to register
+     */
+    public void registerListener(EventListener listener) {
+        EventHandlerScanner.registerListener(listener, this);
     }
 
     /**

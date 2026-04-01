@@ -10,6 +10,9 @@ import java.util.function.Consumer;
 /**
  * Thread-safe priority-aware event bus implementation.
  * Platform event buses (FabricEventBus, VelocityEventBus) extend this class.
+ *
+ * <p>Subclasses can override {@link #registerListener} to scan and register
+ * @EventHandler methods on EventListener instances.
  */
 public class SimpleEventBus implements EventBus {
 
@@ -56,5 +59,15 @@ public class SimpleEventBus implements EventBus {
             }
             ph.handler().accept(event);
         }
+    }
+
+    /**
+     * Registers all @EventHandler methods from an event listener.
+     * Default implementation does nothing; subclasses should override to use EventHandlerScanner.
+     *
+     * @param listener the event listener to register
+     */
+    public void registerListener(EventListener listener) {
+        // Default implementation - subclasses should override
     }
 }
