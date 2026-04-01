@@ -69,6 +69,11 @@ public class TargetFilter {
             }
         }
 
+        // If only negative filters (positive is empty), start with all targets
+        if (positive.isEmpty() && !negative.isEmpty()) {
+            positive.addAll(getAllTargets(sender));
+        }
+
         // Remove negative targets from positive set
         var negativeIds = negative.stream().map(LivingEntity::id).toList();
         positive.removeIf(e -> negativeIds.contains(e.id()));
