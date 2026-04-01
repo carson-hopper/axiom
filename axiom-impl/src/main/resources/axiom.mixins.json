@@ -4,11 +4,11 @@
   "package": "com.axiommc.fabric.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "net.minecraft.world.entity.player.PlayerAccessor",
-    "net.minecraft.world.level.chunk.LevelChunkSectionMixin",
-    "net.minecraft.world.level.chunk.ChunkAccessMixin"
+    "net.minecraft.world.entity.player.PlayerAccessor"
   ],
-  "server": [],
+  "server": [
+    "net.minecraft.world.level.chunk.LevelChunkSectionMixin"
+  ],
   "client": [],
   "injectors": {
     "defaultRequire": 1
