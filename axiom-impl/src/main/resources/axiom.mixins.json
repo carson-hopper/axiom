@@ -8,8 +8,7 @@
   ],
   "server": [
     "net.minecraft.world.level.chunk.LevelChunkSectionMixin",
-    "net.minecraft.world.level.chunk.ChunkAccessMixin",
-    "net.minecraft.server.RconConsoleSourceMixin"
+    "net.minecraft.world.level.chunk.ChunkAccessMixin"
   ],
   "client": [],
   "injectors": {
