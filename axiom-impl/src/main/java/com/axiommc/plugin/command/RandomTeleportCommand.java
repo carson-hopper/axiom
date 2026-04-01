@@ -39,11 +39,31 @@ public class RandomTeleportCommand {
 
     @Execute
     @Permission("axiom.rtp")
+    public void execute(CommandSender sender) {
+        sender.asPlayer().ifPresentOrElse(
+                player -> {
+                    int radius = getRadiusForWorld(player.world().name());
+                    Location safeLocation = findSafeLocation(player.world(), radius);
+                    if (safeLocation == null) {
+                        player.sendMessage(ChatComponent.text("Could not find a safe location").color(ChatColor.RED));
+                        return;
+                    }
+
+                    player.teleport(safeLocation);
+                    player.sendMessage(ChatComponent.text("Teleported to random location").color(ChatColor.GREEN));
+                },
+                () -> sender.sendMessage(ChatComponent.text("Only players can use /rtp").color(ChatColor.RED))
+        );
+    }
+
+    @Execute
+    @Permission("axiom.rtp.world")
     @Usage("[world]")
     public void execute(CommandSender sender, @Arg("world") @Optional World world) {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
                     World targetWorld = world != null ? world : player.world();
+
                     int radius = getRadiusForWorld(targetWorld.name());
                     Location safeLocation = findSafeLocation(targetWorld, radius);
                     if (safeLocation == null) {
@@ -59,34 +79,64 @@ public class RandomTeleportCommand {
         );
     }
 
+    @Execute
+    @Permission("axiom.rtp.other")
+    @Usage("<target> [world]")
+    public void execute(CommandSender sender, @Arg("target") @Optional Player player, @Arg("world") @Optional World world) {
+        World targetWorld = world != null ? world : player.world();
+
+        int radius = getRadiusForWorld(targetWorld.name());
+        Location safeLocation = findSafeLocation(targetWorld, radius);
+        if (safeLocation == null) {
+            sender.sendMessage(ChatComponent.text("Could not find a safe location for " + player.name()).color(ChatColor.RED));
+            return;
+        }
+
+        player.teleport(safeLocation);
+        player.sendMessage(ChatComponent.text("Teleported to random location in " + targetWorld.name()).color(ChatColor.GREEN));
+        sender.sendMessage(ChatComponent.text("Teleported " + player.name() + " to random location in " + targetWorld.name()).color(ChatColor.GREEN));
+    }
+
     private int getRadiusForWorld(String worldName) {
         PluginConfig config = context.config();
         String key = "rtp." + worldName.replace("minecraft:", "") + ".radius";
-        return config.getInt(key, DEFAULT_RADIUS);
+        return context.config().getInt(key, DEFAULT_RADIUS);
     }
 
     private Location findSafeLocation(World world, int radius) {
-        int seaLevel =  64;
+        boolean isNether = world.name().toLowerCase().contains("nether");
 
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
             int x = random.nextInt(radius * 2 + 1) - radius;
             int z = random.nextInt(radius * 2 + 1) - radius;
 
-            // Start from sea level and search upwards
-            for (int y = seaLevel; y < world.maxHeight(); y++) {
-                if (isSafeLocation(world, x, y, z)) {
-                    Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
-                    Vector2 rotation = new Vector2(0, 0);
-                    return new Location(world, position, rotation);
+            if (isNether) {
+                // For the Nether, search from roof downwards
+                for (int y = world.maxHeight() - 1; y >= world.minHeight(); y--) {
+                    if (isSafeLocation(world, x, y, z)) {
+                        Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
+                        Vector2 rotation = new Vector2(0, 0);
+                        return new Location(world, position, rotation);
+                    }
                 }
-            }
+            } else {
+                // For other worlds, search from sea level upwards
+                int seaLevel = 64;
+                for (int y = seaLevel; y < world.maxHeight(); y++) {
+                    if (isSafeLocation(world, x, y, z)) {
+                        Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
+                        Vector2 rotation = new Vector2(0, 0);
+                        return new Location(world, position, rotation);
+                    }
+                }
 
-            // If not found going up, try going down from sea level
-            for (int y = seaLevel - 1; y >= world.minHeight(); y--) {
-                if (isSafeLocation(world, x, y, z)) {
-                    Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
-                    Vector2 rotation = new Vector2(0, 0);
-                    return new Location(world, position, rotation);
+                // If not found going up, try going down from sea level
+                for (int y = seaLevel - 1; y >= world.minHeight(); y--) {
+                    if (isSafeLocation(world, x, y, z)) {
+                        Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
+                        Vector2 rotation = new Vector2(0, 0);
+                        return new Location(world, position, rotation);
+                    }
                 }
             }
         }
