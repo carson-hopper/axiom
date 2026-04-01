@@ -145,29 +145,29 @@ public final class ScreenEntitySpawner {
         entity.setYRot(yaw + 180f);
 
         int argb = panelStyleToArgb(panel.style());
-        float worldWidth = panel.width() * screen.width();
-        float worldHeight = panel.height() * screen.height();
 
-        // TextDisplay renders at ~0.025 blocks per pixel by default
-        // We need enough text to fill worldWidth x worldHeight in world space
-        // line_width controls the pixel width; newlines control height
-        // At default scale, 1 line ≈ 10px ≈ 0.25 blocks tall
-        int pixelWidth = (int) (worldWidth / 0.025f);
-        int lineCount = (int) (worldHeight / 0.25f) + 1;
-
-        String spaceLine = " ".repeat(Math.max(1, pixelWidth / 4)); // each space ≈ 4px
-        String fill = (spaceLine + "\n").repeat(Math.max(1, lineCount));
-
+        // Single space — the background color is the visual. Scale controls size.
         invokeMethod(entity, Display.TextDisplay.class, "setText",
                 net.minecraft.network.chat.Component.class,
-                net.minecraft.network.chat.Component.literal(fill));
+                net.minecraft.network.chat.Component.literal(" "));
 
         setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
                 Integer.class, argb);
         setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, pixelWidth);
+                Integer.class, 1); // narrow line width forces background to fill
         setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
                 Byte.class, (byte) -1);
+
+        // Scale the entity so 1 text pixel maps to the desired world size
+        // A single space with lineWidth=1 renders as a small box
+        // Scale X and Y to stretch it to panel dimensions
+        float worldWidth = panel.width() * screen.width();
+        float worldHeight = panel.height() * screen.height();
+        float baseSize = 0.1f; // approximate size of a single-space text display
+        float sx = worldWidth / baseSize;
+        float sy = worldHeight / baseSize;
+        setData(entity, Display.class, "DATA_SCALE_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(sx, sy, 1f));
 
         setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
                 Byte.class, BILLBOARD_FIXED);
