@@ -49,6 +49,7 @@ public class CommandInvoker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandInvoker.class);
     private static final String COMMAND_SENDER_CLASS_NAME = "com.axiommc.api.command.CommandSender";
+    private static final String PLAYER_CLASS_NAME = "com.axiommc.api.player.Player";
 
     private final Object command;
     private final ArgParserRegistry parserRegistry;
@@ -495,7 +496,7 @@ public class CommandInvoker {
         for (Parameter param : method.getParameters()) {
             // Skip CommandSender and @Flag parameters
             String className = param.getType().getName();
-            boolean isSender = className.equals("com.axiommc.api.command.CommandSender");
+            boolean isSender = className.equals(COMMAND_SENDER_CLASS_NAME) || className.equals(PLAYER_CLASS_NAME);
             boolean isFlag = param.isAnnotationPresent(Flag.class);
             if (isSender || isFlag) continue;
 
@@ -597,7 +598,7 @@ public class CommandInvoker {
         for (Parameter p : method.getParameters()) {
             // Check by class name to handle classloader differences
             String className = p.getType().getName();
-            boolean isSender = className.equals("com.axiommc.api.command.CommandSender");
+            boolean isSender = className.equals(COMMAND_SENDER_CLASS_NAME) || className.equals(PLAYER_CLASS_NAME);
             boolean isFlag = p.isAnnotationPresent(Flag.class);
             if (!isSender && !isFlag) {
                 count++;
@@ -611,7 +612,7 @@ public class CommandInvoker {
         int count = 0;
         for (Parameter p : method.getParameters()) {
             // Check by class name to handle classloader differences
-            if (!p.getType().getName().equals("com.axiommc.api.command.CommandSender")) {
+            if (!isCommandSenderParameter(p)) {
                 // Exclude @Flag parameters
                 if (!p.isAnnotationPresent(Flag.class)) {
                     if (!p.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) && !p.isAnnotationPresent(Default.class)) {
@@ -749,7 +750,8 @@ public class CommandInvoker {
      * CommandSender loaded from a different classloader, making Class.equals() fail.
      */
     private boolean isCommandSenderParameter(Parameter param) {
-        return param.getType().getName().equals(COMMAND_SENDER_CLASS_NAME);
+        String name = param.getType().getName();
+        return name.equals(COMMAND_SENDER_CLASS_NAME) || name.equals(PLAYER_CLASS_NAME);
     }
 
     private List<String> filterPrefix(List<String> list, String prefix) {

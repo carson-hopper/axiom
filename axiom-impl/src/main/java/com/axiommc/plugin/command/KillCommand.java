@@ -3,6 +3,7 @@ package com.axiommc.plugin.command;
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.command.CommandSender;
+import com.axiommc.api.command.SenderType;
 import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.annotation.Description;
@@ -49,16 +50,11 @@ public class KillCommand {
         "!all"
     };
 
-    @Execute
+    @Execute(type = SenderType.PLAYER)
     @Permission("axiom.kill")
-    public void execute(CommandSender sender) {
-        sender.asPlayer().ifPresentOrElse(
-                player -> {
-                    player.damage(player.health());
-                    player.sendMessage(ChatComponent.text("You have been killed").color(ChatColor.RED));
-                },
-                () -> sender.sendMessage(ChatComponent.text("Only players can be killed").color(ChatColor.RED))
-        );
+    public void execute(Player player) {
+        player.damage(player.health());
+        player.sendMessage(ChatComponent.text("You have been killed").color(ChatColor.RED));
     }
 
     @Execute
