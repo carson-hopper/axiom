@@ -145,13 +145,18 @@ public final class ScreenEntitySpawner {
         entity.setYRot(yaw + 180f);
 
         int argb = panelStyleToArgb(panel.style());
+        float worldWidth = panel.width() * screen.width();
+        float worldHeight = panel.height() * screen.height();
 
-        // Build a block of spaces with newlines to create a filled rectangle
-        // The background color renders behind this text area
-        int lineWidth = 200;
-        int lineCount = 20;
-        String spaceLine = " ".repeat(lineWidth);
-        String fill = (spaceLine + "\n").repeat(lineCount);
+        // TextDisplay renders at ~0.025 blocks per pixel by default
+        // We need enough text to fill worldWidth x worldHeight in world space
+        // line_width controls the pixel width; newlines control height
+        // At default scale, 1 line ≈ 10px ≈ 0.25 blocks tall
+        int pixelWidth = (int) (worldWidth / 0.025f);
+        int lineCount = (int) (worldHeight / 0.25f) + 1;
+
+        String spaceLine = " ".repeat(Math.max(1, pixelWidth / 4)); // each space ≈ 4px
+        String fill = (spaceLine + "\n").repeat(Math.max(1, lineCount));
 
         invokeMethod(entity, Display.TextDisplay.class, "setText",
                 net.minecraft.network.chat.Component.class,
@@ -160,14 +165,10 @@ public final class ScreenEntitySpawner {
         setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
                 Integer.class, argb);
         setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, 10000);
+                Integer.class, pixelWidth);
         setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
-                Byte.class, (byte) -1); // fully opaque
+                Byte.class, (byte) -1);
 
-        float worldWidth = panel.width() * screen.width();
-        float worldHeight = panel.height() * screen.height();
-        setData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(worldWidth, worldHeight, 1f));
         setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
                 Byte.class, BILLBOARD_FIXED);
         setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
