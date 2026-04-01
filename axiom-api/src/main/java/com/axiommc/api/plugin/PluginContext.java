@@ -5,6 +5,7 @@ import com.axiommc.api.config.PluginConfig;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.player.PlayerManager;
+import com.axiommc.api.service.ServiceRegistry;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.BossBarManager;
 import org.slf4j.Logger;

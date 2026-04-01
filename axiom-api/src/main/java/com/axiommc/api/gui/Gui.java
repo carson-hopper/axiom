@@ -37,7 +37,7 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
      * @param slot the slot index (0-based)
      * @return the item in the slot, or null if empty or out of range
      */
-    public GuiItem getSlot(int slot) {
+    public GuiItem slot(int slot) {
         if (slot < 0 || slot >= slots.length) return null;
         return slots[slot];
     }

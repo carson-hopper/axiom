@@ -33,9 +33,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Invokes command methods with reflection, parsing arguments and handling subcommands.
+ *
+ * <p>Uses string-based class name matching for parameter type checks (e.g., checking
+ * if a parameter is CommandSender by comparing fully-qualified class name) to handle
+ * plugin classloader isolation. Plugins may be loaded in separate URLClassLoaders,
+ * which means CommandSender.class from the plugin's classloader differs from the
+ * framework's CommandSender.class. String-based matching works across classloader
+ * boundaries and is the most reliable approach here.
+ */
 public class CommandInvoker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandInvoker.class);
+    private static final String COMMAND_SENDER_CLASS_NAME = "com.axiommc.api.command.CommandSender";
 
     private final Command command;
     private final ArgParserRegistry parserRegistry;
@@ -83,7 +94,7 @@ public class CommandInvoker {
             List<Parameter> nonSenderParams = new ArrayList<>();
             for (Parameter param : params) {
                 // Check by class name to handle classloader differences
-                if (!param.getType().getName().equals("com.axiommc.api.command.CommandSender")) {
+                if (!isCommandSenderParameter(param)) {
                     nonSenderParams.add(param);
                 }
             }
@@ -222,7 +233,7 @@ public class CommandInvoker {
             Parameter param = params[i];
 
             // Check by class name to handle classloader differences
-            if (param.getType().getName().equals("com.axiommc.api.command.CommandSender")) {
+            if (isCommandSenderParameter(param)) {
                 result[i] = sender;
                 continue;
             }
@@ -422,14 +433,14 @@ public class CommandInvoker {
             int maxAccepted = countNonSenderParams(m);
             if (argCount >= minRequired && argCount <= maxAccepted) {
                 matching.add(m);
-                LOGGER.info("  Optional match: {}({}-{})", m.getName(), minRequired, maxAccepted);
+                LOGGER.debug("Optional match:  {}({}-{})", m.getName(), minRequired, maxAccepted);
             }
         }
 
         // If no methods found but we have executeMethods, return all as fallback
         if (matching.isEmpty() && !executeMethods.isEmpty()) {
             matching.addAll(executeMethods);
-            LOGGER.info("  No matches found, using all methods as fallback");
+            LOGGER.debug("No matches found, using all methods as fallback");
         }
 
         return matching;
@@ -453,51 +464,25 @@ public class CommandInvoker {
         }
 
         // Multiple candidates: try parsing with each and use first that succeeds
-        LOGGER.info("Trying {} candidate methods for {} args", candidates.size(), args.length);
+        LOGGER.debug("Trying {} candidate methods for {} args", candidates.size(), args.length);
         for (Method candidate : candidates) {
             try {
                 // Try building args without actually invoking
                 Object[] invokeArgs = buildArgs(sender, candidate, args);
                 if (invokeArgs != null) {
-                    LOGGER.info("Selected method: {}", candidate.getName());
+                    LOGGER.debug("Selected method: {}", candidate.getName());
                     return candidate; // This method's args parsed successfully
                 }
             } catch (Exception e) {
                 // This method failed (any exception = parse failure), try next
-                LOGGER.info("Method {} failed to parse args: {}", candidate.getName(), e.getMessage());
+                LOGGER.debug("Method failed to parse args: {}", candidate.getName(), e.getMessage());
                 continue;
             }
         }
 
         // If none succeeded, return first candidate (will fail with proper error)
-        LOGGER.info("No method succeeded parsing, returning first candidate: {}", candidates.getFirst().getName());
+        LOGGER.debug("No method succeeded parsing, returning first candidate: {}", candidates.getFirst().getName());
         return candidates.getFirst();
-    }
-
-    /**
-     * Select the best @Execute method for the given argument count.
-     * Prefers exact matches, then methods with optional parameters that can handle the arg count.
-     */
-    private Method selectExecuteMethod(int argCount) {
-        // First pass: find exact match
-        for (Method m : executeMethods) {
-            int paramCount = countNonSenderParams(m);
-            if (paramCount == argCount) {
-                return m;
-            }
-        }
-
-        // Second pass: find method that can handle with optional params
-        for (Method m : executeMethods) {
-            int minRequired = countRequiredParams(m);
-            int maxAccepted = countNonSenderParams(m);
-            if (argCount >= minRequired && argCount <= maxAccepted) {
-                return m;
-            }
-        }
-
-        // Fallback: return first method if any exist
-        return executeMethods.isEmpty() ? null : executeMethods.getFirst();
     }
 
     /** Count parameters that are not CommandSender and not @Flag */
@@ -550,7 +535,7 @@ public class CommandInvoker {
         int commandParamIndex = 0;
         for (Parameter param : params) {
             // Check by class name to handle classloader differences
-            if (param.getType().getName().equals("com.axiommc.api.command.CommandSender")) continue;
+            if (isCommandSenderParameter(param)) continue;
 
             // Skip @Flag parameters in positional counting
             if (param.isAnnotationPresent(Flag.class)) continue;
@@ -595,6 +580,16 @@ public class CommandInvoker {
             commandParamIndex++;
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Checks if a parameter's type is CommandSender by fully-qualified class name.
+     *
+     * <p>Uses string matching to handle classloader isolation — plugins may have
+     * CommandSender loaded from a different classloader, making Class.equals() fail.
+     */
+    private boolean isCommandSenderParameter(Parameter param) {
+        return param.getType().getName().equals(COMMAND_SENDER_CLASS_NAME);
     }
 
     private List<String> filterPrefix(List<String> list, String prefix) {

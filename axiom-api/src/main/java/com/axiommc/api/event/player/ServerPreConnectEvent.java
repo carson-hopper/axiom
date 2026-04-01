@@ -37,7 +37,7 @@ public class ServerPreConnectEvent extends Event implements Cancellable {
     }
 
     @Override
-    public void setCancelled(boolean cancelled) {
+    public void cancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 }

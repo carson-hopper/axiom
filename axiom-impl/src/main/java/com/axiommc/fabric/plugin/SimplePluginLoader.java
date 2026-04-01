@@ -28,6 +28,7 @@ public class SimplePluginLoader {
     private final FabricPlayerProvider playerProvider;
     private final Map<String, AxiomPlugin> plugins = new LinkedHashMap<>();
     private final Map<AxiomPlugin, Boolean> enabledStatus = new HashMap<>();
+    private final List<URLClassLoader> classLoaders = new ArrayList<>();
 
     public SimplePluginLoader(EventBus eventBus, FabricPlayerProvider playerProvider) {
         this.eventBus = eventBus;
@@ -65,36 +66,46 @@ public class SimplePluginLoader {
             return;
         }
 
-        try (URLClassLoader loader = new URLClassLoader(
-                new URL[]{pluginFile.toURI().toURL()},
-                Thread.currentThread().getContextClassLoader()
-        );
-             ZipFile zipFile = new ZipFile(pluginFile)) {
+        URLClassLoader loader = null;
+        try {
+            loader = new URLClassLoader(
+                    new URL[]{pluginFile.toURI().toURL()},
+                    Thread.currentThread().getContextClassLoader()
+            );
+            classLoaders.add(loader);
 
-            for (ZipEntry entry : Collections.list(zipFile.entries())) {
-                if (!entry.getName().endsWith(".class")) {
-                    continue;
-                }
-
-                String className = entry.getName()
-                        .replace("/", ".")
-                        .replace(".class", "");
-
-                try {
-                    Class<?> clazz = loader.loadClass(className);
-
-                    if (clazz.getAnnotation(Plugin.class) != null &&
-                            AxiomPlugin.class.isAssignableFrom(clazz)) {
-                        loadPlugin(clazz);
+            try (ZipFile zipFile = new ZipFile(pluginFile)) {
+                for (ZipEntry entry : Collections.list(zipFile.entries())) {
+                    if (!entry.getName().endsWith(".class")) {
+                        continue;
                     }
-                } catch (ClassNotFoundException e) {
-                    LOGGER.trace("Could not load class from JAR: {}", className, e);
-                }
-            }
 
-            LOGGER.info("Scanned plugin JAR: {}", pluginFile.getName());
+                    String className = entry.getName()
+                            .replace("/", ".")
+                            .replace(".class", "");
+
+                    try {
+                        Class<?> clazz = loader.loadClass(className);
+
+                        if (clazz.getAnnotation(Plugin.class) != null &&
+                                AxiomPlugin.class.isAssignableFrom(clazz)) {
+                            loadPlugin(clazz);
+                        }
+                    } catch (ClassNotFoundException e) {
+                        LOGGER.trace("Could not load class from JAR: {}", className, e);
+                    }
+                }
+
+                LOGGER.info("Scanned plugin JAR: {}", pluginFile.getName());
+            }
         } catch (Exception e) {
             LOGGER.error("Failed to load plugins from JAR: {}", pluginFile.getName(), e);
+            if (loader != null) {
+                classLoaders.remove(loader);
+                try {
+                    loader.close();
+                } catch (Exception ignored) {}
+            }
         }
     }
 

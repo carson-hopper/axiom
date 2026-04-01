@@ -1,12 +1,16 @@
 package com.axiommc.fabric;
 
 import com.axiommc.api.event.EventBus;
+import com.axiommc.api.gui.GuiManager;
+import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.command.FabricCommandHandler;
 import com.axiommc.fabric.event.FabricEventBus;
+import com.axiommc.fabric.gui.FabricGuiManager;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import com.axiommc.fabric.plugin.SimplePluginLoader;
+import com.axiommc.fabric.sidebar.FabricSidebarManager;
 import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
 import com.mojang.brigadier.CommandDispatcher;
@@ -38,6 +42,8 @@ public class AxiomMod implements ModInitializer {
     private FabricPlayerProvider playerProvider;
     private FabricCommandHandler commandHandler;
     private MinecraftServer minecraftServer;
+    private GuiManager guiManager;
+    private SidebarManager sidebarManager;
     private final Map<String, World> worlds = new ConcurrentHashMap<>();
 
     // ============================================================
@@ -126,6 +132,8 @@ public class AxiomMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             LOGGER.info("Minecraft server started");
             this.minecraftServer = server;
+            this.guiManager = new FabricGuiManager();
+            this.sidebarManager = new FabricSidebarManager(server);
 
             for (ServerLevel level : server.getAllLevels()) {
                 World world = new FabricWorld(level);
@@ -165,6 +173,18 @@ public class AxiomMod implements ModInitializer {
     // Command Management
     // ============================================================
 
+    /**
+     * Unregisters all commands (including vanilla ones) from Brigadier dispatcher.
+     *
+     * <p>This replaces the entire command tree with a clean slate, allowing Axiom
+     * to register only custom commands via {@link FabricCommandHandler}. This is
+     * an intentional architectural choice that removes vanilla commands like /tp,
+     * /gamemode, and /give.
+     *
+     * <p>Uses reflection to access private Brigadier fields and clear them. This
+     * is fragile and may break with Brigadier updates, but is necessary because
+     * Brigadier does not provide a public API for removing registered commands.
+     */
     private static void unregisterAllCommands(CommandDispatcher<?> dispatcher) {
         var root = dispatcher.getRoot();
 
@@ -293,6 +313,14 @@ public class AxiomMod implements ModInitializer {
 
     public Optional<World> world(String name) {
         return Optional.ofNullable(worlds.get(name));
+    }
+
+    public GuiManager guiManager() {
+        return guiManager;
+    }
+
+    public SidebarManager sidebarManager() {
+        return sidebarManager;
     }
 
     public MinecraftServer minecraftServer() {

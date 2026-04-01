@@ -78,13 +78,11 @@ public class Axiom {
         if (mod == null) {
             throw new IllegalStateException("Axiom is not initialized");
         }
-        var server = mod.minecraftServer();
-        if (server == null) {
+        GuiManager manager = mod.guiManager();
+        if (manager == null) {
             throw new IllegalStateException("Server not started yet");
         }
-        // Return a singleton GuiManager via AxiomMod
-        // For now, create instances per call since GuiManager is stateless
-        return new com.axiommc.fabric.gui.FabricGuiManager();
+        return manager;
     }
 
     public static SidebarManager sidebarManager() {
@@ -92,10 +90,10 @@ public class Axiom {
         if (mod == null) {
             throw new IllegalStateException("Axiom is not initialized");
         }
-        var server = mod.minecraftServer();
-        if (server == null) {
+        SidebarManager manager = mod.sidebarManager();
+        if (manager == null) {
             throw new IllegalStateException("Server not started yet");
         }
-        return new com.axiommc.fabric.sidebar.FabricSidebarManager(server);
+        return manager;
     }
 }

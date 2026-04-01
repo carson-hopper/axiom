@@ -1,5 +1,7 @@
 package com.axiommc.api.world;
 
+import com.axiommc.api.bossbar.BossBar;
+
 /**
  * Manager for boss bars.
  */

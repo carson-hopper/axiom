@@ -105,7 +105,10 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public World world() {
-        return new FabricWorld(player.level());
+        var level = player.level();
+        String worldName = new FabricWorld(level).name();
+        return com.axiommc.fabric.AxiomMod.instance().world(worldName)
+                .orElseGet(() -> new FabricWorld(level));
     }
 
     // ============================================================
@@ -180,7 +183,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public void health(double health) {
-        player.setHealth((int) health);
+        player.setHealth((float) health);
     }
 
     @Override

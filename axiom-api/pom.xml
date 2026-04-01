@@ -34,12 +34,12 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Jackson - used for event serialization, must be available at runtime -->
+        <!-- Jackson - provided by axiom-impl at runtime (shaded into final JAR) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.18.3</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

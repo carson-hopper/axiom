@@ -34,7 +34,7 @@ public class AxiomChestMenu extends AbstractContainerMenu {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < 9; col++) {
                 int slotIndex = row * 9 + col;
-                GuiItem guiItem = gui.getSlot(slotIndex);
+                GuiItem guiItem = gui.slot(slotIndex);
                 addSlot(new GuiSlot(container, slotIndex, 8 + col * 18, rowOffset + row * 18, guiItem, player));
             }
         }

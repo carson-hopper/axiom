@@ -1,14 +1,14 @@
 package com.axiommc.fabric.plugin;
 
+import com.axiommc.api.bossbar.BossBar;
 import com.axiommc.api.command.Command;
 import com.axiommc.api.config.PluginConfig;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.player.PlayerManager;
 import com.axiommc.api.plugin.PluginContext;
-import com.axiommc.api.plugin.ServiceRegistry;
+import com.axiommc.api.service.ServiceRegistry;
 import com.axiommc.api.sidebar.SidebarManager;
-import com.axiommc.api.world.BossBar;
 import com.axiommc.api.world.BossBarManager;
 import com.axiommc.fabric.AxiomMod;
 import com.axiommc.fabric.config.TomlPluginConfig;
@@ -35,6 +35,7 @@ public class SimplePluginContext implements PluginContext {
     private final File dataFolder;
     private final Logger logger;
     private final GuiManager guiManager;
+    private final ServiceRegistry serviceRegistry;
     private SidebarManager sidebarManager;
 
     public SimplePluginContext(String pluginId, String pluginName, EventBus eventBus, FabricPlayerProvider playerProvider) {
@@ -47,6 +48,7 @@ public class SimplePluginContext implements PluginContext {
         this.pluginConfig = new TomlPluginConfig(new File(dataFolder, "config.toml"));
         this.logger = LoggerFactory.getLogger(pluginName);
         this.guiManager = new FabricGuiManager();
+        this.serviceRegistry = new SimpleServiceRegistry();
         this.sidebarManager = null; // Initialized lazily in sidebarManager() method
     }
 
@@ -76,17 +78,22 @@ public class SimplePluginContext implements PluginContext {
         }
 
         @Override
-        public String id() {
-            return id;
-        }
-
-        @Override
-        public boolean isActive() {
-            return active;
+        public void title(com.axiommc.api.chat.ChatComponent title) {
+            // Placeholder - would integrate with actual Minecraft boss bar
         }
 
         @Override
         public void process(float progress) {
+            // Placeholder - would integrate with actual Minecraft boss bar
+        }
+
+        @Override
+        public void color(com.axiommc.api.bossbar.BossBarColor color) {
+            // Placeholder - would integrate with actual Minecraft boss bar
+        }
+
+        @Override
+        public void style(com.axiommc.api.bossbar.BossBarStyle style) {
             // Placeholder - would integrate with actual Minecraft boss bar
         }
 
@@ -104,6 +111,11 @@ public class SimplePluginContext implements PluginContext {
         public void destroy() {
             active = false;
         }
+
+        @Override
+        public boolean isActive() {
+            return active;
+        }
     }
 
     @Override
@@ -113,7 +125,7 @@ public class SimplePluginContext implements PluginContext {
 
     @Override
     public ServiceRegistry services() {
-        return new SimpleServiceRegistry();
+        return serviceRegistry;
     }
 
     @Override

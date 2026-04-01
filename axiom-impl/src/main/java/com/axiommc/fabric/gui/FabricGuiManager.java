@@ -82,7 +82,7 @@ public class FabricGuiManager implements GuiManager {
 
     private void fillContainer(Container container, Gui gui) {
         for (int i = 0; i < gui.size().slots(); i++) {
-            GuiItem item = gui.getSlot(i);
+            GuiItem item = gui.slot(i);
             ItemStack itemStack = item != null ? toItemStack(item.item()) : ItemStack.EMPTY;
             container.setItem(i, itemStack);
         }
