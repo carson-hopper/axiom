@@ -133,6 +133,9 @@ public class AxiomMod implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             TaskScheduler.global().tick();
+            if (screenManager instanceof FabricScreenManager fsm) {
+                fsm.tick();
+            }
         });
 
         eventBus.subscribe(ServerStartEvent.class, event -> {
