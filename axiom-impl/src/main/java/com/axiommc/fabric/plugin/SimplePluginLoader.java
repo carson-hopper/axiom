@@ -55,13 +55,8 @@ public class SimplePluginLoader {
         PluginEntry entry = new PluginEntry(displayName, annotation.version());
         entries.add(entry);
 
-        updateStatus(displayName, PluginState.LOADING);
-
         try {
             AxiomPlugin plugin = (AxiomPlugin) pluginClass.getDeclaredConstructor().newInstance();
-
-            updateStatus(displayName, PluginState.ENABLING);
-
             plugin.enable(new SimplePluginContext(annotation.id(), annotation.name(), eventBus, playerProvider));
             plugins.put(annotation.id(), plugin);
             enabledStatus.put(plugin, true);
@@ -193,8 +188,6 @@ public class SimplePluginLoader {
     }
 
     private enum PluginState {
-        LOADING("LOADING", ChatColor.YELLOW),
-        ENABLING("ENABLING", ChatColor.GOLD),
         LOADED("LOADED", ChatColor.GREEN),
         FAILED("FAILED", ChatColor.RED);
 
@@ -215,7 +208,7 @@ public class SimplePluginLoader {
         PluginEntry(String name, String version) {
             this.name = name;
             this.version = version;
-            this.state = PluginState.LOADING;
+            this.state = PluginState.FAILED;
         }
     }
 }
