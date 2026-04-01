@@ -50,16 +50,19 @@ public final class ScreenEntitySpawner {
 
         float playerYaw = player.getYRot();
 
+        // Text/button/item entities sit slightly in front of panels
+        Vec3 frontOffset = forward.scale(-0.05);
+
         for (ScreenElement element : screen.elements()) {
             switch (element) {
                 case ScreenElement.Panel panel ->
                     entityIds.add(spawnPanel(player, panel, screen, center, right, up, playerYaw));
                 case ScreenElement.Label label ->
-                    entityIds.add(spawnLabel(player, label, screen, center, right, up, playerYaw));
+                    entityIds.add(spawnLabel(player, label, screen, center.add(frontOffset), right, up, playerYaw));
                 case ScreenElement.Button button ->
-                    entityIds.add(spawnButton(player, button, screen, center, right, up, playerYaw));
+                    entityIds.add(spawnButton(player, button, screen, center.add(frontOffset), right, up, playerYaw));
                 case ScreenElement.ItemSlot itemSlot ->
-                    entityIds.add(spawnItemSlot(player, itemSlot, screen, center, right, up, playerYaw));
+                    entityIds.add(spawnItemSlot(player, itemSlot, screen, center.add(frontOffset), right, up, playerYaw));
             }
         }
 
