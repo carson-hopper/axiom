@@ -32,7 +32,9 @@
 
 ## About
 
-Axiom is an open-source plugin framework for Minecraft servers that provides a structured, opinionated foundation for building server plugins. Rather than wiring together boilerplate for every project, Axiom gives you the primitives — commands, events, permissions, configuration, GUIs, and more — wrapped in a modern Java API that feels like it belongs in 2025, not 2013.
+Axiom is an open-source plugin framework for Minecraft servers that provides a structured, opinionated foundation for building server plugins. 
+Rather than wiring together boilerplate for every project, Axiom gives you the primitives commands, events, permissions, configuration, GUIs, 
+and more wrapped in a modern Java API that feels like it belongs in 2025, not 2013.
 
 Axiom follows **record-style accessor conventions** (`name()` instead of `getName()`), enforces clean architecture patterns, and targets **Java 25+** on **Fabric 0.18.5+** as its baseline.
 
