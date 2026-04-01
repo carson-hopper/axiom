@@ -158,6 +158,7 @@ public class SimplePluginLoader {
         for (PluginEntry entry : entries) {
             if (entry.name.equals(name)) {
                 entry.state = state;
+                printEntry(entry);
                 return;
             }
         }
