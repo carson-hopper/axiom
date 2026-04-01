@@ -1,5 +1,6 @@
 package com.axiommc.plugin.command;
 
+import com.axiommc.api.block.Material;
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.command.CommandSender;
@@ -18,6 +19,8 @@ import com.axiommc.api.player.Player;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Random;
@@ -26,7 +29,8 @@ import java.util.Random;
 @Description("Randomly teleport to a safe location")
 public class RandomTeleportCommand {
 
-    private static final int DEFAULT_RADIUS = 5000;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RandomTeleportCommand.class);
+    private static final int DEFAULT_RADIUS = 500;
     private static final int MAX_ATTEMPTS = 100;
     private final PluginContext context;
     private final Random random = new Random();
@@ -106,19 +110,25 @@ public class RandomTeleportCommand {
 
     private boolean isSafeLocation(World world, int x, int y, int z) {
         try {
-            // Check that player block is air and block below is solid
-            String playerBlockType = world.blockAt(x, y, z).type().id();
-            String headBlockType = world.blockAt(x, y + 1, z).type().id();
-            String groundBlockType = world.blockAt(x, y - 1, z).type().id();
+            Material playerBlockType = world.blockAt(x, y, z).type();
+            Material headBlockType = world.blockAt(x, y + 1, z).type();
+            Material groundBlockType = world.blockAt(x, y - 1, z).type();
 
-            boolean playerBlockAir = playerBlockType.equals("minecraft:air");
-            boolean headBlockAir = headBlockType.equals("minecraft:air");
-            boolean groundSolid = !groundBlockType.equals("minecraft:air") &&
-                    !groundBlockType.contains("water") &&
-                    !groundBlockType.contains("lava");
+            boolean playerBlockAir = playerBlockType == Material.AIR || playerBlockType == Material.CAVE_AIR;
+            boolean headBlockAir = headBlockType == Material.AIR || headBlockType == Material.CAVE_AIR;
+            boolean groundSolid = groundBlockType != Material.AIR &&
+                    groundBlockType != Material.CAVE_AIR &&
+                    groundBlockType != Material.VOID_AIR &&
+                    groundBlockType != Material.WATER &&
+                    groundBlockType != Material.LAVA;
+
+            if (!playerBlockAir || !headBlockAir || !groundSolid) {
+                LOGGER.debug("Not safe at {},{},{}: player={} head={} ground={}", x, y, z, playerBlockType, headBlockType, groundBlockType);
+            }
 
             return playerBlockAir && headBlockAir && groundSolid;
         } catch (Exception e) {
+            LOGGER.warn("Error checking safe location at {},{},{}", x, y, z, e);
             return false;
         }
     }
