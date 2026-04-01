@@ -49,7 +49,6 @@ public class CommandInvoker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandInvoker.class);
     private static final String COMMAND_SENDER_CLASS_NAME = "com.axiommc.api.command.CommandSender";
-    private static final String PLAYER_CLASS_NAME = "com.axiommc.api.player.Player";
 
     private final Object command;
     private final ArgParserRegistry parserRegistry;
@@ -239,7 +238,7 @@ public class CommandInvoker {
 
             // Check by class name to handle classloader differences
             if (isCommandSenderParameter(param)) {
-                if (param.getType().getName().equals(PLAYER_CLASS_NAME) && sender.isPlayer()) {
+                if (isPlayerParameter(param) && sender.isPlayer()) {
                     result[i] = sender.asPlayer().orElse(null);
                 } else {
                     result[i] = sender;
@@ -498,8 +497,7 @@ public class CommandInvoker {
         int paramIndex = 0;
         for (Parameter param : method.getParameters()) {
             // Skip CommandSender and @Flag parameters
-            String className = param.getType().getName();
-            boolean isSender = className.equals(COMMAND_SENDER_CLASS_NAME) || className.equals(PLAYER_CLASS_NAME);
+            boolean isSender = isCommandSenderParameter(param);
             boolean isFlag = param.isAnnotationPresent(Flag.class);
             if (isSender || isFlag) continue;
 
@@ -599,11 +597,8 @@ public class CommandInvoker {
     private int countNonSenderParams(Method method) {
         int count = 0;
         for (Parameter p : method.getParameters()) {
-            // Check by class name to handle classloader differences
-            String className = p.getType().getName();
-            boolean isSender = className.equals(COMMAND_SENDER_CLASS_NAME) || className.equals(PLAYER_CLASS_NAME);
             boolean isFlag = p.isAnnotationPresent(Flag.class);
-            if (!isSender && !isFlag) {
+            if (!isCommandSenderParameter(p) && !isFlag) {
                 count++;
             }
         }
@@ -747,14 +742,32 @@ public class CommandInvoker {
     }
 
     /**
-     * Checks if a parameter's type is CommandSender by fully-qualified class name.
+     * Checks if a parameter's type is CommandSender or any subtype (e.g. Player).
      *
-     * <p>Uses string matching to handle classloader isolation — plugins may have
-     * CommandSender loaded from a different classloader, making Class.equals() fail.
+     * <p>Walks the type hierarchy using string matching to handle classloader
+     * isolation — plugins may have CommandSender loaded from a different classloader.
      */
     private boolean isCommandSenderParameter(Parameter param) {
-        String name = param.getType().getName();
-        return name.equals(COMMAND_SENDER_CLASS_NAME) || name.equals(PLAYER_CLASS_NAME);
+        return implementsCommandSender(param.getType());
+    }
+
+    private boolean implementsCommandSender(Class<?> type) {
+        if (type == null) {
+            return false;
+        }
+        if (type.getName().equals(COMMAND_SENDER_CLASS_NAME)) {
+            return true;
+        }
+        for (Class<?> iface : type.getInterfaces()) {
+            if (implementsCommandSender(iface)) {
+                return true;
+            }
+        }
+        return implementsCommandSender(type.getSuperclass());
+    }
+
+    private boolean isPlayerParameter(Parameter param) {
+        return param.getType().getName().equals("com.axiommc.api.player.Player");
     }
 
     private List<String> filterPrefix(List<String> list, String prefix) {
