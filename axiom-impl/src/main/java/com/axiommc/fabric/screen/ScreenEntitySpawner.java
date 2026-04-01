@@ -247,10 +247,14 @@ public final class ScreenEntitySpawner {
         entity.setId(id);
 
         entity.setPos(pos.x, pos.y, pos.z);
-        setText(entity, net.minecraft.network.chat.Component.literal("⬤").withColor(0xFFFFFF));
+        setText(entity, net.minecraft.network.chat.Component.literal("•").withColor(0xFFFFFF));
         setTextBackground(entity, 0x00000000);
-        setScale(entity, 0.3f, 0.3f, 0.3f);
-        setBillboard(entity, Display.BillboardConstraints.FIXED);
+        setScale(entity, 0.5f, 0.5f, 0.5f);
+        setBillboard(entity, Display.BillboardConstraints.CENTER);
+
+        // Smooth movement interpolation (2 ticks)
+        setEntityData(entity, Display.class, "DATA_POS_ROT_INTERPOLATION_DURATION_ID",
+                Integer.class, 2);
 
         sendSpawnPackets(player, entity, id);
         return id;

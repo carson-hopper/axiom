@@ -36,6 +36,7 @@ public class FabricScreenManager implements ScreenManager {
     private final EventBus eventBus;
     private final Map<UUID, ScreenSession> sessions = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> playerSessions = new ConcurrentHashMap<>();
+    private final Map<UUID, float[]> lastCursorPos = new ConcurrentHashMap<>();
 
     public FabricScreenManager(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -104,6 +105,7 @@ public class FabricScreenManager implements ScreenManager {
         }
 
         playerSessions.remove(session.player().getUUID());
+        lastCursorPos.remove(sessionId);
         ScreenEntitySpawner.despawnEntities(session.player(), session.entityIds());
         ScreenCameraLock.unlock(session.player(), session.originalMode());
         session.screen().handleClose(new FabricPlayer(session.player()));
@@ -146,6 +148,13 @@ public class FabricScreenManager implements ScreenManager {
         float v = 0.5f + (pitchDelta / PITCH_RANGE);
         u = Math.max(0f, Math.min(1f, u));
         v = Math.max(0f, Math.min(1f, v));
+
+        // Skip update if cursor hasn't moved significantly
+        float[] last = lastCursorPos.get(session.sessionId());
+        if (last != null && Math.abs(u - last[0]) < 0.001f && Math.abs(v - last[1]) < 0.001f) {
+            return;
+        }
+        lastCursorPos.put(session.sessionId(), new float[]{u, v});
 
         // Calculate world position for cursor entity
         Vec3 eyePos = player.getEyePosition();
