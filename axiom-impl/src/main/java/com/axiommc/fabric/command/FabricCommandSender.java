@@ -3,6 +3,7 @@ package com.axiommc.fabric.command;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.player.Player;
+import com.axiommc.fabric.chat.ConsoleColorFormatter;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.player.FabricPlayer;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,13 +16,23 @@ public record FabricCommandSender(CommandSourceStack source) implements CommandS
 
     @Override
     public void sendMessage(String message) {
-        source.sendSuccess(() -> Component.literal(message), false);
+        String formatted = isConsole() ? ConsoleColorFormatter.formatWithAnsi(message) : message;
+        source.sendSuccess(() -> Component.literal(formatted), false);
     }
 
     @Override
     public void sendMessage(ChatComponent component) {
-        Component minecraftComponent = new FabricComponentSerializer().serialize(component);
-        source.sendSuccess(() -> minecraftComponent, false);
+        if (isConsole()) {
+            String consoleText = ConsoleColorFormatter.format(component);
+            source.sendSuccess(() -> Component.literal(consoleText), false);
+        } else {
+            Component minecraftComponent = new FabricComponentSerializer().serialize(component);
+            source.sendSuccess(() -> minecraftComponent, false);
+        }
+    }
+
+    private boolean isConsole() {
+        return source.getEntity() == null;
     }
 
     @Override
