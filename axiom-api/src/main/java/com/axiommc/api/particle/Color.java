@@ -3,8 +3,9 @@ package com.axiommc.api.particle;
 public record Color(int r, int g, int b) {
 
     public Color {
-        if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+        if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
             throw new IllegalArgumentException("RGB values must be 0–255");
+        }
     }
 
     public static Color of(int r, int g, int b) { return new Color(r, g, b); }

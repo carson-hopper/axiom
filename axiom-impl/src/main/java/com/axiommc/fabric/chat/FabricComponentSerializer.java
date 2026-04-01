@@ -35,16 +35,21 @@ public class FabricComponentSerializer implements ChatComponentSerializer<Compon
             style = style.withColor(rgb);
         }
 
-        if (component.bold())
+        if (component.bold()) {
             style = style.withBold(true);
-        if (component.italic())
+        }
+        if (component.italic()) {
             style = style.withItalic(true);
-        if (component.underlined())
+        }
+        if (component.underlined()) {
             style = style.withUnderlined(true);
-        if (component.strikethrough())
+        }
+        if (component.strikethrough()) {
             style = style.withStrikethrough(true);
-        if (component.obfuscated())
+        }
+        if (component.obfuscated()) {
             style = style.withObfuscated(true);
+        }
         return style;
     }
 }

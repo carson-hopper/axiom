@@ -19,10 +19,12 @@ public record DisplayTransform(
 ) {
 
     public DisplayTransform {
-        if (leftRotation  == null || leftRotation.length  != 4)
+        if (leftRotation == null || leftRotation.length != 4) {
             throw new IllegalArgumentException("leftRotation must be float[4]");
-        if (rightRotation == null || rightRotation.length != 4)
+        }
+        if (rightRotation == null || rightRotation.length != 4) {
             throw new IllegalArgumentException("rightRotation must be float[4]");
+        }
         leftRotation  = leftRotation.clone();
         rightRotation = rightRotation.clone();
     }

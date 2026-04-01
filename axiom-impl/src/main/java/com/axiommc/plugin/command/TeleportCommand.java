@@ -4,7 +4,12 @@ import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 
 import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.annotation.*;
+import com.axiommc.api.command.annotation.Arg;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
+import com.axiommc.api.command.annotation.Execute;
+import com.axiommc.api.command.annotation.Permission;
+import com.axiommc.api.command.annotation.Usage;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.math.Vector3;

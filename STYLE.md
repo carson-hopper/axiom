@@ -77,7 +77,7 @@ Empty blocks may be closed immediately: `void doNothing() {}` - unless they appe
 
 ### 2.2 Indentation
 
-**+2 spaces** per block level. Never tabs.
+**+4 spaces** per block level. Never tabs.
 
 ### 2.3 One Statement Per Line
 
