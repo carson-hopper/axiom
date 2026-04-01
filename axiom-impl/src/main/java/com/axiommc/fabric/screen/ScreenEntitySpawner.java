@@ -144,10 +144,10 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        // Empty text — the background color IS the visual element
+        // Space character gives the background something to render around
         invokeMethod(entity, Display.TextDisplay.class, "setText",
                 net.minecraft.network.chat.Component.class,
-                net.minecraft.network.chat.Component.empty());
+                net.minecraft.network.chat.Component.literal(" "));
 
         setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
                 Integer.class, panelStyleToArgb(panel.style()));
