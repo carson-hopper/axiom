@@ -3,9 +3,8 @@ package com.axiommc.fabric.plugin;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.plugin.AxiomPlugin;
 import com.axiommc.api.plugin.Plugin;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayerProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
@@ -22,8 +21,6 @@ import java.util.zip.ZipFile;
 
 public class SimplePluginLoader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimplePluginLoader.class);
-
     private final EventBus eventBus;
     private final FabricPlayerProvider playerProvider;
     private final Map<String, AxiomPlugin> plugins = new LinkedHashMap<>();
@@ -37,13 +34,13 @@ public class SimplePluginLoader {
 
     public void loadPlugin(Class<?> pluginClass) {
         if (!AxiomPlugin.class.isAssignableFrom(pluginClass)) {
-            LOGGER.warn("Class {} does not implement AxiomPlugin", pluginClass.getName());
+            Axiom.logger().warn("Class {} does not implement AxiomPlugin", pluginClass.getName());
             return;
         }
 
         Plugin annotation = pluginClass.getAnnotation(Plugin.class);
         if (annotation == null) {
-            LOGGER.warn("Class {} is missing @Plugin annotation", pluginClass.getName());
+            Axiom.logger().warn("Class {} is missing @Plugin annotation", pluginClass.getName());
             return;
         }
 
@@ -54,15 +51,15 @@ public class SimplePluginLoader {
             plugins.put(annotation.id(), plugin);
             enabledStatus.put(plugin, true);
 
-            LOGGER.info("Loaded plugin: {} v{}", annotation.name(), annotation.version());
+            Axiom.logger().info("Loaded plugin: {} v{}", annotation.name(), annotation.version());
         } catch (Exception e) {
-            LOGGER.error("Failed to load plugin from class {}", pluginClass.getName(), e);
+            Axiom.logger().error("Failed to load plugin from class {}", pluginClass.getName(), e);
         }
     }
 
     public void loadPlugin(File pluginFile) {
         if (!pluginFile.exists()) {
-            LOGGER.warn("Plugin file does not exist: {}", pluginFile.getAbsolutePath());
+            Axiom.logger().warn("Plugin file does not exist: {}", pluginFile.getAbsolutePath());
             return;
         }
 
@@ -92,14 +89,14 @@ public class SimplePluginLoader {
                             loadPlugin(clazz);
                         }
                     } catch (ClassNotFoundException e) {
-                        LOGGER.trace("Could not load class from JAR: {}", className, e);
+                        Axiom.logger().trace("Could not load class from JAR: {}", className, e);
                     }
                 }
 
-                LOGGER.info("Scanned plugin JAR: {}", pluginFile.getName());
+                Axiom.logger().info("Scanned plugin JAR: {}", pluginFile.getName());
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to load plugins from JAR: {}", pluginFile.getName(), e);
+            Axiom.logger().error("Failed to load plugins from JAR: {}", pluginFile.getName(), e);
             if (loader != null) {
                 classLoaders.remove(loader);
                 try {
@@ -124,9 +121,9 @@ public class SimplePluginLoader {
         try {
             plugin.onDisable();
             enabledStatus.put(plugin, false);
-            LOGGER.info("Disabled plugin");
+            Axiom.logger().info("Disabled plugin");
         } catch (Exception e) {
-            LOGGER.error("Failed to disable plugin", e);
+            Axiom.logger().error("Failed to disable plugin", e);
         }
     }
 

@@ -5,8 +5,7 @@ import com.axiommc.api.event.EventListener;
 import com.axiommc.api.event.EventPriority;
 import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.annotation.EventHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -15,8 +14,6 @@ import java.lang.reflect.Parameter;
  * Scans EventListener classes and registers their @EventHandler methods.
  */
 public final class EventHandlerScanner {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventHandlerScanner.class);
 
     private EventHandlerScanner() {}
 
@@ -42,14 +39,14 @@ public final class EventHandlerScanner {
             // Validate method signature
             Parameter[] parameters = method.getParameters();
             if (parameters.length != 1) {
-                LOGGER.warn("Event handler method {} has {} parameters, expected 1",
+                Axiom.logger().warn("Event handler method {} has {} parameters, expected 1",
                     method.getName(), parameters.length);
                 continue;
             }
 
             Class<?> eventType = parameters[0].getType();
             if (!Event.class.isAssignableFrom(eventType)) {
-                LOGGER.warn("Event handler method {} parameter is not an Event: {}",
+                Axiom.logger().warn("Event handler method {} parameter is not an Event: {}",
                     method.getName(), eventType.getName());
                 continue;
             }
@@ -62,17 +59,17 @@ public final class EventHandlerScanner {
                 method.setAccessible(true);
                 registerHandler(listener, method, eventType, priority, eventBus);
                 handlersRegistered++;
-                LOGGER.debug("Registered event handler {}.{} for {} with priority {}",
+                Axiom.logger().debug("Registered event handler {}.{} for {} with priority {}",
                     listenerClass.getSimpleName(), method.getName(),
                     eventType.getSimpleName(), priority);
             } catch (Exception e) {
-                LOGGER.warn("Failed to register event handler {}.{}",
+                Axiom.logger().warn("Failed to register event handler {}.{}",
                     listenerClass.getSimpleName(), method.getName(), e);
             }
         }
 
         if (handlersRegistered > 0) {
-            LOGGER.debug("Registered {} event handlers from {}",
+            Axiom.logger().debug("Registered {} event handlers from {}",
                 handlersRegistered, listenerClass.getSimpleName());
         }
     }
@@ -90,7 +87,7 @@ public final class EventHandlerScanner {
                 try {
                     method.invoke(listener, event);
                 } catch (Exception e) {
-                    LOGGER.warn("Error invoking event handler {}.{}",
+                    Axiom.logger().warn("Error invoking event handler {}.{}",
                         listener.getClass().getSimpleName(), method.getName(), e);
                 }
             },

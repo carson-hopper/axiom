@@ -8,8 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 /**
  * Manages console command history by storing commands to the JLine3 history file.
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class ConsoleHistory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleHistory.class);
     private static final String HISTORY_FILENAME = ".jline_history";
     private static File historyFile;
 
@@ -36,10 +34,10 @@ public final class ConsoleHistory {
         try {
             if (!historyFile.exists()) {
                 historyFile.createNewFile();
-                LOGGER.debug("Created JLine3 history file at {}", historyFile.getAbsolutePath());
+                Axiom.logger().debug("Created JLine3 history file at {}", historyFile.getAbsolutePath());
             }
         } catch (IOException e) {
-            LOGGER.warn("Failed to initialize console history in home directory", e);
+            Axiom.logger().warn("Failed to initialize console history in home directory", e);
         }
     }
 
@@ -66,7 +64,7 @@ public final class ConsoleHistory {
             Files.write(path, (trimmedCommand + "\n").getBytes(StandardCharsets.UTF_8),
                     StandardOpenOption.APPEND, StandardOpenOption.CREATE);
         } catch (IOException e) {
-            LOGGER.debug("Failed to append to console history", e);
+            Axiom.logger().debug("Failed to append to console history", e);
         }
     }
 
@@ -84,7 +82,7 @@ public final class ConsoleHistory {
         try {
             return Files.readAllLines(historyFile.toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            LOGGER.debug("Failed to read console history", e);
+            Axiom.logger().debug("Failed to read console history", e);
             return new ArrayList<>();
         }
     }
@@ -97,7 +95,7 @@ public final class ConsoleHistory {
             try {
                 Files.write(historyFile.toPath(), new byte[0]);
             } catch (IOException e) {
-                LOGGER.debug("Failed to clear console history", e);
+                Axiom.logger().debug("Failed to clear console history", e);
             }
         }
     }

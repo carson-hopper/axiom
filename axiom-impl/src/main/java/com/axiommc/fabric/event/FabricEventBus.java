@@ -8,9 +8,8 @@ import com.axiommc.fabric.event.adapter.FabricEventAdapter;
 import com.axiommc.fabric.event.adapter.PlayerChatAdapter;
 import com.axiommc.fabric.event.adapter.PlayerConnectionAdapter;
 import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayerProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,6 @@ import java.util.List;
  */
 public class FabricEventBus extends SimpleEventBus {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricEventBus.class);
     private final List<FabricEventAdapter> adapters = new ArrayList<>();
     private boolean initialized = false;
 
@@ -47,9 +45,9 @@ public class FabricEventBus extends SimpleEventBus {
         for (FabricEventAdapter adapter : adapters) {
             try {
                 adapter.register(this, playerProvider);
-                LOGGER.info("Registered event adapter: {}", adapter.getClass().getSimpleName());
+                Axiom.logger().info("Registered event adapter: {}", adapter.getClass().getSimpleName());
             } catch (Exception e) {
-                LOGGER.warn("Failed to register adapter: {}", adapter.getClass().getSimpleName(), e);
+                Axiom.logger().warn("Failed to register adapter: {}", adapter.getClass().getSimpleName(), e);
             }
         }
     }

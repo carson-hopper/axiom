@@ -3,8 +3,7 @@ package com.axiommc.fabric.config;
 import com.axiommc.api.config.PluginConfig;
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TomlPluginConfig implements PluginConfig {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TomlPluginConfig.class);
 
     private final File configFile;
     private Map<String, Object> data;
@@ -43,7 +40,7 @@ public class TomlPluginConfig implements PluginConfig {
             }
             return defaultValue;
         } catch (Exception e) {
-            LOGGER.warn("Error getting string value for key {}", key, e);
+            Axiom.logger().warn("Error getting string value for key {}", key, e);
             return defaultValue;
         }
     }
@@ -57,7 +54,7 @@ public class TomlPluginConfig implements PluginConfig {
             }
             return defaultValue;
         } catch (Exception e) {
-            LOGGER.warn("Error getting int value for key {}", key, e);
+            Axiom.logger().warn("Error getting int value for key {}", key, e);
             return defaultValue;
         }
     }
@@ -71,7 +68,7 @@ public class TomlPluginConfig implements PluginConfig {
             }
             return defaultValue;
         } catch (Exception e) {
-            LOGGER.warn("Error getting boolean value for key {}", key, e);
+            Axiom.logger().warn("Error getting boolean value for key {}", key, e);
             return defaultValue;
         }
     }
@@ -88,7 +85,7 @@ public class TomlPluginConfig implements PluginConfig {
             }
             return defaultValue;
         } catch (Exception e) {
-            LOGGER.warn("Error getting double value for key {}", key, e);
+            Axiom.logger().warn("Error getting double value for key {}", key, e);
             return defaultValue;
         }
     }
@@ -108,7 +105,7 @@ public class TomlPluginConfig implements PluginConfig {
             }
             return new ArrayList<>();
         } catch (Exception e) {
-            LOGGER.warn("Error getting list value for key {}", key, e);
+            Axiom.logger().warn("Error getting list value for key {}", key, e);
             return new ArrayList<>();
         }
     }
@@ -135,9 +132,9 @@ public class TomlPluginConfig implements PluginConfig {
             try (FileWriter fileWriter = new FileWriter(configFile)) {
                 writer.write(data, fileWriter);
             }
-            LOGGER.debug("Saved config to {}", configFile.getAbsolutePath());
+            Axiom.logger().debug("Saved config to {}", configFile.getAbsolutePath());
         } catch (IOException e) {
-            LOGGER.warn("Failed to save config to {}", configFile.getAbsolutePath(), e);
+            Axiom.logger().warn("Failed to save config to {}", configFile.getAbsolutePath(), e);
         }
     }
 
@@ -151,13 +148,13 @@ public class TomlPluginConfig implements PluginConfig {
             if (configFile.exists()) {
                 Toml toml = new Toml().read(configFile);
                 data = new LinkedHashMap<>(toml.toMap());
-                LOGGER.debug("Loaded config from {}", configFile.getAbsolutePath());
+                Axiom.logger().debug("Loaded config from {}", configFile.getAbsolutePath());
             } else {
                 data = new LinkedHashMap<>();
-                LOGGER.debug("Config file {} does not exist, using empty config", configFile.getAbsolutePath());
+                Axiom.logger().debug("Config file {} does not exist, using empty config", configFile.getAbsolutePath());
             }
         } catch (Exception e) {
-            LOGGER.warn("Failed to load config from {}", configFile.getAbsolutePath(), e);
+            Axiom.logger().warn("Failed to load config from {}", configFile.getAbsolutePath(), e);
             data = new LinkedHashMap<>();
         }
     }
@@ -171,12 +168,12 @@ public class TomlPluginConfig implements PluginConfig {
             InputStream defaultConfig = getClass().getResourceAsStream("/default-config.toml");
             if (defaultConfig != null) {
                 Files.copy(defaultConfig, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                LOGGER.info("Created default config at {}", configFile.getAbsolutePath());
+                Axiom.logger().info("Created default config at {}", configFile.getAbsolutePath());
             } else {
-                LOGGER.warn("Default config template not found in resources");
+                Axiom.logger().warn("Default config template not found in resources");
             }
         } catch (IOException e) {
-            LOGGER.warn("Failed to create default config at {}", configFile.getAbsolutePath(), e);
+            Axiom.logger().warn("Failed to create default config at {}", configFile.getAbsolutePath(), e);
         }
     }
 

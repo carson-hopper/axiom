@@ -30,15 +30,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Set;
 
 public class FabricPlayer extends FabricLivingEntity implements Player {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricPlayer.class);
     private final ServerPlayer player;
 
     // ============================================================
@@ -155,7 +152,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
             Object packet = constructor.newInstance(server.host(), server.port());
             player.connection.send((net.minecraft.network.protocol.Packet<?>) packet);
         } catch (Exception e) {
-            LOGGER.error("Failed to transfer player {} to server {}:{}", name(), server.host(), server.port(), e);
+            Axiom.logger().error("Failed to transfer player {} to server {}:{}", name(), server.host(), server.port(), e);
         }
     }
 
@@ -171,7 +168,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         // } catch (Exception e) {
         //     logger.error("Failed to transfer player {}", name(), e);
         // }
-        LOGGER.warn("Player transfer not yet implemented for {}", name());
+        Axiom.logger().warn("Player transfer not yet implemented for {}", name());
     }
 
     // ============================================================

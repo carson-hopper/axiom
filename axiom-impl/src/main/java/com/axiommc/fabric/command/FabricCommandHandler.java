@@ -20,16 +20,13 @@ import com.axiommc.api.math.Vector3;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class FabricCommandHandler {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricCommandHandler.class);
 
     private final EventBus eventBus;
     private final FabricCommandRegistry registry;
@@ -47,7 +44,7 @@ public class FabricCommandHandler {
     public void registerCommand(Object command) {
         Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
         if (cmdAnnotation == null) {
-            LOGGER.warn("Command {} has no @Command annotation, skipping", command.getClass().getSimpleName());
+            Axiom.logger().warn("Command {} has no @Command annotation, skipping", command.getClass().getSimpleName());
             return;
         }
 
@@ -60,16 +57,16 @@ public class FabricCommandHandler {
 
             if (dispatcher != null) {
                 dispatcher.register(adapter.buildNode());
-                LOGGER.info("Dynamically registered Brigadier command: {}", cmdAnnotation.name());
+                Axiom.logger().info("Dynamically registered Brigadier command: {}", cmdAnnotation.name());
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to register command: {}", cmdAnnotation.name(), e);
+            Axiom.logger().error("Failed to register command: {}", cmdAnnotation.name(), e);
         }
     }
 
     public void register(Object dispatcherObj) {
         if (!(dispatcherObj instanceof CommandDispatcher)) {
-            LOGGER.warn("Expected CommandDispatcher, got {}", dispatcherObj.getClass().getName());
+            Axiom.logger().warn("Expected CommandDispatcher, got {}", dispatcherObj.getClass().getName());
             return;
         }
 
@@ -86,9 +83,9 @@ public class FabricCommandHandler {
                 FabricCommandAdapter adapter = new FabricCommandAdapter(entry.getKey(), invoker);
                 adapters.add(adapter);
                 dispatcher.register(adapter.buildNode());
-                LOGGER.debug("Registered Brigadier command: {}", entry.getKey());
+                Axiom.logger().debug("Registered Brigadier command: {}", entry.getKey());
             } catch (Exception e) {
-                LOGGER.error("Failed to register command: {}", entry.getKey(), e);
+                Axiom.logger().error("Failed to register command: {}", entry.getKey(), e);
             }
         }
     }

@@ -5,15 +5,12 @@ import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.invoker.CommandInvoker;
 import com.axiommc.api.command.parser.ArgParserRegistry;
 import com.axiommc.api.plugin.PluginEnvironment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class FabricCommandRegistry implements CommandRegistry {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricCommandRegistry.class);
 
     private final ArgParserRegistry parserRegistry;
     private final PluginEnvironment environment;
@@ -28,7 +25,7 @@ public class FabricCommandRegistry implements CommandRegistry {
     public void register(Object command) {
         Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
         if (cmdAnnotation == null) {
-            LOGGER.warn("Command {} does not have @Command annotation, skipping registration",
+            Axiom.logger().warn("Command {} does not have @Command annotation, skipping registration",
                 command.getClass().getName());
             return;
         }
@@ -36,10 +33,10 @@ public class FabricCommandRegistry implements CommandRegistry {
         try {
             CommandInvoker invoker = new CommandInvoker(command, parserRegistry, environment);
             commands.put(cmdAnnotation.name(), invoker);
-            LOGGER.info("Registered command: {} {}", cmdAnnotation.name(),
+            Axiom.logger().info("Registered command: {} {}", cmdAnnotation.name(),
                 cmdAnnotation.aliases().length > 0 ? "with aliases: " + String.join(", ", cmdAnnotation.aliases()) : "");
         } catch (Exception e) {
-            LOGGER.error("Failed to register command {}", command.getClass().getName(), e);
+            Axiom.logger().error("Failed to register command {}", command.getClass().getName(), e);
         }
     }
 
@@ -54,7 +51,7 @@ public class FabricCommandRegistry implements CommandRegistry {
     @Override
     public void unregister(String name) {
         commands.remove(name);
-        LOGGER.info("Unregistered command: {}", name);
+        Axiom.logger().info("Unregistered command: {}", name);
     }
 
     public CommandInvoker get(String name) {

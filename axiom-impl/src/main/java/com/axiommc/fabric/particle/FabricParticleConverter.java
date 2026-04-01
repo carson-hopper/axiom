@@ -4,12 +4,9 @@ import com.axiommc.api.particle.ParticleEffect;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 public class FabricParticleConverter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricParticleConverter.class);
 
     public static ParticleOptions toMinecraftParticle(ParticleEffect effect) {
         String key = effect.type().key();
@@ -19,21 +16,21 @@ public class FabricParticleConverter {
             ParticleOptions particleOptions = mapParticle(key);
 
             if (particleOptions == null) {
-                LOGGER.warn("Unknown or unsupported particle type: {}", key);
+                Axiom.logger().warn("Unknown or unsupported particle type: {}", key);
                 return null;
             }
 
             // Check if data is required but not provided
             if (effect.data() != null && !(particleOptions instanceof SimpleParticleType)) {
                 // Complex particle types with data are not yet supported
-                LOGGER.warn("Particle type {} with data is not yet supported", key);
+                Axiom.logger().warn("Particle type {} with data is not yet supported", key);
                 return null;
             }
 
             return particleOptions;
 
         } catch (Exception e) {
-            LOGGER.error("Failed to convert particle: {}", key, e);
+            Axiom.logger().error("Failed to convert particle: {}", key, e);
             return null;
         }
     }

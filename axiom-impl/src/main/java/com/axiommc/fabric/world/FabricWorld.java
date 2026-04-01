@@ -45,8 +45,7 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.chunk.LevelChunk;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -54,8 +53,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public record FabricWorld(ServerLevel level) implements World {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricWorld.class);
 
     // ============================================================
     // Identity & Metadata
@@ -113,7 +110,7 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public void time(long time) {
-        LOGGER.warn("Setting time directly is not supported in Minecraft 26.1");
+        Axiom.logger().warn("Setting time directly is not supported in Minecraft 26.1");
     }
 
     @Override
@@ -124,7 +121,7 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public void fullTime(long time) {
         // Cannot directly set game time in Minecraft 26.1
-        LOGGER.warn("Setting full time is not directly supported in Minecraft 26.1");
+        Axiom.logger().warn("Setting full time is not directly supported in Minecraft 26.1");
     }
 
     @Override
@@ -309,7 +306,7 @@ public record FabricWorld(ServerLevel level) implements World {
     public void spawnParticle(ParticleEffect effect, Location location) {
         ParticleOptions particleOptions = FabricParticleConverter.toMinecraftParticle(effect);
         if (particleOptions == null) {
-            LOGGER.warn("Failed to convert particle effect: {}", effect.type().key());
+            Axiom.logger().warn("Failed to convert particle effect: {}", effect.type().key());
             return;
         }
 

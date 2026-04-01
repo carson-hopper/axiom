@@ -3,8 +3,7 @@ package com.axiommc.fabric.player;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.player.PlayerManager;
 import net.minecraft.server.MinecraftServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -14,12 +13,11 @@ import java.util.stream.Collectors;
 
 public class FabricPlayerProvider implements PlayerManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricPlayerProvider.class);
     private MinecraftServer server;
 
     public void setServer(MinecraftServer server) {
         this.server = server;
-        LOGGER.debug("FabricPlayerProvider initialized with MinecraftServer");
+        Axiom.logger().debug("FabricPlayerProvider initialized with MinecraftServer");
     }
 
     @Override

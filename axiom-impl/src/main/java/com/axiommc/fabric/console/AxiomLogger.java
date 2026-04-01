@@ -50,6 +50,13 @@ public class AxiomLogger {
         }
     }
 
+    public void trace(String message, Object... args) {
+        if (delegate.isTraceEnabled()) {
+            String formatted = format(message, args);
+            delegate.trace(ConsoleColorFormatter.formatWithAnsi("§8" + formatted));
+        }
+    }
+
     /**
      * Sends a ChatComponent message to the console with its own colors.
      */

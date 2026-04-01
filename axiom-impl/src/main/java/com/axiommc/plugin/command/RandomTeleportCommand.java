@@ -19,8 +19,7 @@ import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.world.World;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.util.Random;
 
@@ -28,7 +27,6 @@ import java.util.Random;
 @Description("Randomly teleport to a safe location")
 public class RandomTeleportCommand {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RandomTeleportCommand.class);
     private static final int DEFAULT_RADIUS = 500;
     private static final int MAX_ATTEMPTS = 100;
     private final PluginContext context;
@@ -147,19 +145,19 @@ public class RandomTeleportCommand {
                     groundBlockType != Material.LAVA;
 
             if (!playerBlockAir || !headBlockAir || !groundSolid) {
-                LOGGER.debug("Not safe at {},{},{}: player={} head={} ground={}", x, y, z, playerBlockType, headBlockType, groundBlockType);
+                Axiom.logger().debug("Not safe at {},{},{}: player={} head={} ground={}", x, y, z, playerBlockType, headBlockType, groundBlockType);
                 return false;
             }
 
             // Check for mobs in a 3-block radius
             if (hasNearbyMobs(world, x, y, z)) {
-                LOGGER.debug("Not safe at {},{},{}: mobs nearby", x, y, z);
+                Axiom.logger().debug("Not safe at {},{},{}: mobs nearby", x, y, z);
                 return false;
             }
 
             return true;
         } catch (Exception e) {
-            LOGGER.warn("Error checking safe location at {},{},{}", x, y, z, e);
+            Axiom.logger().warn("Error checking safe location at {},{},{}", x, y, z, e);
             return false;
         }
     }

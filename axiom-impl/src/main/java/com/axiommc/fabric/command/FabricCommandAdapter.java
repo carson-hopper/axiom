@@ -12,15 +12,12 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandSourceStack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FabricCommandAdapter.class);
 
     public LiteralArgumentBuilder<CommandSourceStack> buildNode() {
         LiteralArgumentBuilder<CommandSourceStack> builder = LiteralArgumentBuilder.literal(commandName);
@@ -42,7 +39,7 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
             invoker.execute(sender, new String[0]);
             addToConsoleHistory(ctx.getSource(), "");
         } catch (Exception e) {
-            LOGGER.error("Error executing command: /{}", commandName, e);
+            Axiom.logger().error("Error executing command: /{}", commandName, e);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -59,7 +56,7 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
             invoker.execute(sender, args);
             addToConsoleHistory(ctx.getSource(), rawArgs);
         } catch (Exception e) {
-            LOGGER.error("Error executing command: /{}", commandName, e);
+            Axiom.logger().error("Error executing command: /{}", commandName, e);
         }
         return Command.SINGLE_SUCCESS;
     }

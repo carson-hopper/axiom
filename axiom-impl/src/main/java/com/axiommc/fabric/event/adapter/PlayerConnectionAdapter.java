@@ -9,16 +9,13 @@ import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 /**
  * Fires PlayerJoinEvent and PlayerLeaveEvent using Fabric's connection callbacks.
  * Suppresses the default join/leave chat messages.
  */
 public class PlayerConnectionAdapter implements FabricEventAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlayerConnectionAdapter.class);
 
     @Override
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
@@ -29,7 +26,7 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
                         .orElseGet(() -> new FabricPlayer(serverPlayer));
                 eventBus.publish(new PlayerJoinEvent(player));
             } catch (Exception e) {
-                LOGGER.debug("Error firing PlayerJoinEvent", e);
+                Axiom.logger().debug("Error firing PlayerJoinEvent", e);
             }
         });
 
@@ -37,10 +34,10 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
             try {
                 var serverPlayer = handler.getPlayer();
                 var player = new FabricPlayer(serverPlayer);
-                LOGGER.debug("Firing PlayerLeaveEvent for {}", player.name());
+                Axiom.logger().debug("Firing PlayerLeaveEvent for {}", player.name());
                 eventBus.publish(new PlayerLeaveEvent(player));
             } catch (Exception e) {
-                LOGGER.debug("Error firing PlayerLeaveEvent", e);
+                Axiom.logger().debug("Error firing PlayerLeaveEvent", e);
             }
         });
 

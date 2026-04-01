@@ -1,8 +1,7 @@
 package com.axiommc.fabric.plugin;
 
 import com.axiommc.api.service.ServiceRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,14 +9,12 @@ import java.util.Optional;
 
 public class SimpleServiceRegistry implements ServiceRegistry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleServiceRegistry.class);
-
     private final Map<Class<?>, Object> services = new HashMap<>();
 
     @Override
     public <T> void register(Class<T> type, T implementation) {
         services.put(type, implementation);
-        LOGGER.debug("Registered service: {}", type.getSimpleName());
+        Axiom.logger().debug("Registered service: {}", type.getSimpleName());
     }
 
     @Override
@@ -29,7 +26,7 @@ public class SimpleServiceRegistry implements ServiceRegistry {
     @Override
     public <T> void unregister(Class<T> type) {
         services.remove(type);
-        LOGGER.debug("Unregistered service: {}", type.getSimpleName());
+        Axiom.logger().debug("Unregistered service: {}", type.getSimpleName());
     }
 
     @Override

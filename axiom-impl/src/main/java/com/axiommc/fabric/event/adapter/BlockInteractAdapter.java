@@ -11,16 +11,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.axiommc.fabric.Axiom;
 
 /**
  * Fires BlockInteractEvent.MainHand and BlockInteractEvent.OffHand
  * using Fabric's UseBlockCallback.
  */
 public class BlockInteractAdapter implements FabricEventAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlockInteractAdapter.class);
 
     @Override
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
@@ -57,7 +54,7 @@ public class BlockInteractAdapter implements FabricEventAdapter {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.debug("Error firing BlockInteractEvent", e);
+                Axiom.logger().debug("Error firing BlockInteractEvent", e);
             }
 
             return InteractionResult.PASS;
