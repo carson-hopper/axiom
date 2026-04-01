@@ -8,10 +8,12 @@ import java.lang.annotation.Target;
 /**
  * Specifies the usage syntax for a command.
  *
- * <p>Applied to command classes. If not specified, no usage information is provided.
+ * <p>Can be applied at class level for the entire command, or on individual methods
+ * (@Execute, @Subcommand) to describe specific variants.
+ * If not specified, no usage information is provided.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Usage {
     /**
      * The command usage syntax.

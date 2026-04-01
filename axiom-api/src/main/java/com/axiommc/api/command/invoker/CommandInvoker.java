@@ -15,6 +15,7 @@ import com.axiommc.api.command.annotation.Range;
 import com.axiommc.api.command.annotation.Side;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.command.annotation.TabComplete;
+import com.axiommc.api.command.annotation.Usage;
 import com.axiommc.api.command.parser.ArgParseException;
 import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.command.parser.ArgParserRegistry;
@@ -369,6 +370,13 @@ public class CommandInvoker {
                     seen.addAll(getParamSuggestions(method, 0, ""));
                 }
             }
+
+            // Add class-level usage if present
+            Usage classUsage = command.getClass().getAnnotation(Usage.class);
+            if (classUsage != null && !classUsage.value().isEmpty()) {
+                seen.add(classUsage.value());
+            }
+
             return new ArrayList<>(seen);
         }
 
@@ -381,8 +389,23 @@ public class CommandInvoker {
                 List<Method> methods = getMatchingExecuteMethods(args.length);
                 for (Method method : methods) {
                     seen.addAll(getParamSuggestions(method, 0, last));
+                    // Add usage for this @Execute method if present
+                    Usage methodUsage = method.getAnnotation(Usage.class);
+                    if (methodUsage != null && !methodUsage.value().isEmpty()) {
+                        seen.add(methodUsage.value());
+                    }
                 }
             }
+
+            // Add subcommand usages
+            for (String subName : subcommandMethods.keySet()) {
+                Method subMethod = subcommandMethods.get(subName);
+                Usage subUsage = subMethod.getAnnotation(Usage.class);
+                if (subUsage != null && !subUsage.value().isEmpty()) {
+                    seen.add(subUsage.value());
+                }
+            }
+
             return filterPrefix(new ArrayList<>(seen), last);
         }
 
