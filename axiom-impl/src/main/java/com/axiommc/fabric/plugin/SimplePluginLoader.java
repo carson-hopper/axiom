@@ -100,7 +100,7 @@ public class SimplePluginLoader {
                             loadPlugin(clazz);
                         }
                     } catch (ClassNotFoundException e) {
-                        // Skip classes that can't be loaded
+                        
                     }
                 }
             }

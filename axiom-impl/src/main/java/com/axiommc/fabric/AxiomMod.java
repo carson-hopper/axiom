@@ -118,6 +118,7 @@ public class AxiomMod implements ModInitializer {
             this.pluginLoader = new SimplePluginLoader(eventBus, playerProvider);
             pluginLoader.printLoadHeader();
             pluginLoader.loadPlugin(com.axiommc.plugin.AxiomPlugin.class);
+            pluginLoader.printLoadSummary();
         } catch (Exception e) {
             Axiom.logger().error("Failed to create plugin loader", e);
             return;
@@ -144,7 +145,6 @@ public class AxiomMod implements ModInitializer {
             playerProvider.setServer(minecraftServer);
 
             loadPluginsFromDirectory();
-            pluginLoader.printLoadSummary();
         });
 
         eventBus.subscribe(ServerStopEvent.class, event -> {
@@ -208,10 +208,18 @@ public class AxiomMod implements ModInitializer {
             return;
         }
 
+        boolean hasPlugins = false;
         for (File file : files) {
             if (isPluginJar(file)) {
+                if (!hasPlugins) {
+                    pluginLoader.printLoadHeader();
+                    hasPlugins = true;
+                }
                 loadPluginFile(file);
             }
+        }
+        if (hasPlugins) {
+            pluginLoader.printLoadSummary();
         }
     }
 
