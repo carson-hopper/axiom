@@ -5,13 +5,12 @@ import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.event.EventPriority;
 import com.axiommc.api.event.player.PlayerJoinEvent;
-import com.axiommc.api.event.server.ServerStartEvent;
 import com.axiommc.api.plugin.Plugin;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.PluginSide;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.plugin.command.AxiomCommand;
-import com.axiommc.plugin.command.KillCommand;
+import com.axiommc.plugin.command.player.KillCommand;
 import com.axiommc.plugin.command.RandomTeleportCommand;
 import com.axiommc.plugin.command.TeleportCommand;
 import com.axiommc.plugin.command.TestConfigCommand;
@@ -19,8 +18,6 @@ import com.axiommc.plugin.command.TestGuiCommand;
 import com.axiommc.plugin.command.TestPlayerCommand;
 import com.axiommc.plugin.command.TestSidebarCommand;
 import com.axiommc.plugin.command.TestWorldCommand;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Plugin(id = "axiom", name = "Axiom", version = "1.0.0", side = PluginSide.SERVER)
 public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {

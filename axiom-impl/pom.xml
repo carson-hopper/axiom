@@ -85,6 +85,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.joml</groupId>
+            <artifactId>joml</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>net.fabricmc</groupId>
             <artifactId>sponge-mixin</artifactId>
             <scope>provided</scope>

@@ -93,6 +93,14 @@ public final class ScreenEntitySpawner {
         // Set block state via reflection (private method)
         invokePrivate(entity, "setBlockState", BlockState.class, panelStyleToBlock(panel.style()));
 
+        // Scale to flat panel: width/height in world units, paper-thin Z
+        float scaleX = panel.width() * screen.width();
+        float scaleY = panel.height() * screen.height();
+        setScale(entity, scaleX, scaleY, 0.01f);
+        // Center the panel on its position (default origin is corner)
+        setTranslation(entity, -scaleX / 2f, -scaleY / 2f, 0f);
+        setBillboard(entity, (byte) 0); // FIXED
+
         sendSpawnPackets(player, entity, id);
         return id;
     }
@@ -109,6 +117,7 @@ public final class ScreenEntitySpawner {
 
         invokePrivate(entity, "setText", net.minecraft.network.chat.Component.class, SERIALIZER.serialize(label.text()));
         invokePrivate(entity, "setBackgroundColor", int.class, 0);
+        setBillboard(entity, (byte) 0); // FIXED
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -128,6 +137,7 @@ public final class ScreenEntitySpawner {
 
         invokePrivate(entity, "setText", net.minecraft.network.chat.Component.class, SERIALIZER.serialize(button.label()));
         invokePrivate(entity, "setBackgroundColor", int.class, 0x40000000);
+        setBillboard(entity, (byte) 0); // FIXED
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -145,6 +155,8 @@ public final class ScreenEntitySpawner {
 
         var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(itemSlot.item()));
         invokePrivate(entity, "setItemStack", ItemStack.class, new ItemStack(item));
+        setScale(entity, itemSlot.size(), itemSlot.size(), itemSlot.size());
+        setBillboard(entity, (byte) 0); // FIXED
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -166,6 +178,42 @@ public final class ScreenEntitySpawner {
             case BORDER -> Blocks.BLACKSTONE.defaultBlockState();
             case ACCENT -> Blocks.WARPED_PLANKS.defaultBlockState();
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setScale(Display entity, float x, float y, float z) {
+        try {
+            var field = Display.class.getDeclaredField("DATA_SCALE_ID");
+            field.setAccessible(true);
+            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<org.joml.Vector3fc>) field.get(null);
+            entity.getEntityData().set(accessor, new org.joml.Vector3f(x, y, z));
+        } catch (Exception e) {
+            Axiom.logger().debug("Failed to set scale", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setTranslation(Display entity, float x, float y, float z) {
+        try {
+            var field = Display.class.getDeclaredField("DATA_TRANSLATION_ID");
+            field.setAccessible(true);
+            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<org.joml.Vector3fc>) field.get(null);
+            entity.getEntityData().set(accessor, new org.joml.Vector3f(x, y, z));
+        } catch (Exception e) {
+            Axiom.logger().debug("Failed to set translation", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setBillboard(Display entity, byte mode) {
+        try {
+            var field = Display.class.getDeclaredField("DATA_BILLBOARD_RENDER_CONSTRAINTS_ID");
+            field.setAccessible(true);
+            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<Byte>) field.get(null);
+            entity.getEntityData().set(accessor, mode);
+        } catch (Exception e) {
+            Axiom.logger().debug("Failed to set billboard", e);
+        }
     }
 
     private static void sendSpawnPackets(ServerPlayer player, Display entity, int entityId) {

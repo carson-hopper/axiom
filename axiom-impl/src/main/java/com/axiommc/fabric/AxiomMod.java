@@ -97,7 +97,7 @@ public class AxiomMod implements ModInitializer {
             try {
                 CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
                     try {
-                        unregisterAllCommands(dispatcher);
+                        // unregisterAllCommands(dispatcher);
                         commandHandler.register(dispatcher);
                     } catch (Throwable e) {
                         Axiom.logger().warn("Failed to register commands with Brigadier - commands will not be available", e);

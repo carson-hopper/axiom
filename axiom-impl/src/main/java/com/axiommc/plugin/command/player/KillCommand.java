@@ -1,4 +1,4 @@
-package com.axiommc.plugin.command;
+package com.axiommc.plugin.command.player;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
@@ -13,7 +13,6 @@ import com.axiommc.api.command.annotation.Flag;
 import com.axiommc.api.command.annotation.Greedy;
 import com.axiommc.api.command.annotation.Optional;
 import com.axiommc.api.command.annotation.Permission;
-import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.command.annotation.Usage;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
