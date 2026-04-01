@@ -163,7 +163,7 @@ public final class ScreenEntitySpawner {
         // Scale X and Y to stretch it to panel dimensions
         float worldWidth = panel.width() * screen.width();
         float worldHeight = panel.height() * screen.height();
-        float baseSize = 0.1f; // approximate size of a single-space text display
+        float baseSize = 1.0f; // approximate size of a single-space text display at default scale
         float sx = worldWidth / baseSize;
         float sy = worldHeight / baseSize;
         setData(entity, Display.class, "DATA_SCALE_ID",
