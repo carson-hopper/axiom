@@ -6,19 +6,23 @@ import com.axiommc.api.event.server.ServerStopEvent;
 import com.axiommc.api.world.Server;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Fires ServerStartEvent and ServerStopEvent using Fabric lifecycle callbacks.
+ * Stores the MinecraftServer reference so AxiomMod can access it via event subscription.
  */
 public class ServerLifecycleAdapter implements FabricEventAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerLifecycleAdapter.class);
+    private static MinecraftServer currentServer;
 
     @Override
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
         ServerLifecycleEvents.SERVER_STARTED.register(mcServer -> {
+            currentServer = mcServer;
             LOGGER.debug("Firing ServerStartEvent");
             String host = mcServer.getLocalIp().isEmpty() ? "localhost" : mcServer.getLocalIp();
             int port = mcServer.getPort();
@@ -32,6 +36,14 @@ public class ServerLifecycleAdapter implements FabricEventAdapter {
             int port = mcServer.getPort();
             Server server = new Server("axiom-server", host, port);
             eventBus.publish(new ServerStopEvent(server));
+            currentServer = null;
         });
+    }
+
+    /**
+     * Returns the current MinecraftServer instance, available after ServerStartEvent fires.
+     */
+    public static MinecraftServer getMinecraftServer() {
+        return currentServer;
     }
 }

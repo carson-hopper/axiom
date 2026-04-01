@@ -1,6 +1,9 @@
 package com.axiommc.fabric;
 
 import com.axiommc.api.event.EventBus;
+import com.axiommc.api.event.server.ServerStartEvent;
+import com.axiommc.api.event.server.ServerStopEvent;
+import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
 import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
@@ -18,7 +21,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.CommandNode;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -130,35 +132,36 @@ public class AxiomMod implements ModInitializer {
         }
 
         // ────────────────────────────────────────────────────────
-        // Server Lifecycle Events
+        // Server Lifecycle Events (via event bus)
         // ────────────────────────────────────────────────────────
-
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            LOGGER.info("Minecraft server started");
-            this.minecraftServer = server;
-            this.guiManager = new FabricGuiManager();
-            this.sidebarManager = new FabricSidebarManager(server);
-
-            ConsoleHistory.initialize(server.getServerDirectory().toFile());
-            LOGGER.debug("Console history initialized");
-
-            for (ServerLevel level : server.getAllLevels()) {
-                World world = new FabricWorld(level);
-                worlds.put(world.name(), world);
-                LOGGER.debug("Registered world: {}", world.name());
-            }
-
-            playerProvider.setServer(server);
-            LOGGER.debug("Player provider initialized");
-
-            loadPluginsFromDirectory();
-        });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             TaskScheduler.global().tick();
         });
 
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+        eventBus.subscribe(ServerStartEvent.class, event -> {
+            MinecraftServer mcServer = ServerLifecycleAdapter.getMinecraftServer();
+            LOGGER.info("Minecraft server started");
+            this.minecraftServer = mcServer;
+            this.guiManager = new FabricGuiManager();
+            this.sidebarManager = new FabricSidebarManager(mcServer);
+
+            ConsoleHistory.initialize(mcServer.getServerDirectory().toFile());
+            LOGGER.debug("Console history initialized");
+
+            for (ServerLevel level : mcServer.getAllLevels()) {
+                World world = new FabricWorld(level);
+                worlds.put(world.name(), world);
+                LOGGER.debug("Registered world: {}", world.name());
+            }
+
+            playerProvider.setServer(mcServer);
+            LOGGER.debug("Player provider initialized");
+
+            loadPluginsFromDirectory();
+        });
+
+        eventBus.subscribe(ServerStopEvent.class, event -> {
             LOGGER.info("Minecraft server stopping");
             pluginLoader.disableAllPlugins();
         });
@@ -297,10 +300,10 @@ public class AxiomMod implements ModInitializer {
         if (minecraftServer == null) {
             throw new IllegalStateException("Server not started yet");
         }
-        String serverId = "axiom-server";
-        String host = "localhost";
-        int port = 25565; // Default Minecraft port
 
+        String serverId = "axiom-server";
+        String host = minecraftServer.getLocalIp().isEmpty() ? "localhost" : minecraftServer.getLocalIp();;
+        int port = minecraftServer.getPort();
         return new Server(serverId, host, port);
     }
 
