@@ -1,5 +1,7 @@
 package com.axiommc.fabric.plugin;
 
+import com.axiommc.api.chat.ChatColor;
+import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.plugin.AxiomPlugin;
 import com.axiommc.api.plugin.Plugin;
@@ -26,6 +28,7 @@ public class SimplePluginLoader {
     private final Map<String, AxiomPlugin> plugins = new LinkedHashMap<>();
     private final Map<AxiomPlugin, Boolean> enabledStatus = new HashMap<>();
     private final List<URLClassLoader> classLoaders = new ArrayList<>();
+    private final List<PluginResult> loadResults = new ArrayList<>();
 
     public SimplePluginLoader(EventBus eventBus, FabricPlayerProvider playerProvider) {
         this.eventBus = eventBus;
@@ -34,32 +37,31 @@ public class SimplePluginLoader {
 
     public void loadPlugin(Class<?> pluginClass) {
         if (!AxiomPlugin.class.isAssignableFrom(pluginClass)) {
-            Axiom.logger().warn("Class {} does not implement AxiomPlugin", pluginClass.getName());
+            loadResults.add(new PluginResult(pluginClass.getSimpleName(), "1.0.0", false));
             return;
         }
 
         Plugin annotation = pluginClass.getAnnotation(Plugin.class);
         if (annotation == null) {
-            Axiom.logger().warn("Class {} is missing @Plugin annotation", pluginClass.getName());
+            loadResults.add(new PluginResult(pluginClass.getSimpleName(), "1.0.0", false));
             return;
         }
 
         try {
             AxiomPlugin plugin = (AxiomPlugin) pluginClass.getDeclaredConstructor().newInstance();
-
             plugin.enable(new SimplePluginContext(annotation.id(), annotation.name(), eventBus, playerProvider));
             plugins.put(annotation.id(), plugin);
             enabledStatus.put(plugin, true);
-
-            Axiom.logger().info("Loaded plugin: {} v{}", annotation.name(), annotation.version());
+            loadResults.add(new PluginResult(annotation.name(), annotation.version(), true));
         } catch (Exception e) {
-            Axiom.logger().error("Failed to load plugin from class {}", pluginClass.getName(), e);
+            loadResults.add(new PluginResult(annotation.name(), annotation.version(), false));
+            Axiom.logger().error("Failed to load plugin: {}", annotation.name(), e);
         }
     }
 
     public void loadPlugin(File pluginFile) {
         if (!pluginFile.exists()) {
-            Axiom.logger().warn("Plugin file does not exist: {}", pluginFile.getAbsolutePath());
+            loadResults.add(new PluginResult(pluginFile.getName(), "?", false));
             return;
         }
 
@@ -83,20 +85,18 @@ public class SimplePluginLoader {
 
                     try {
                         Class<?> clazz = loader.loadClass(className);
-
-                        if (clazz.getAnnotation(Plugin.class) != null &&
-                                AxiomPlugin.class.isAssignableFrom(clazz)) {
+                        if (clazz.getAnnotation(Plugin.class) != null
+                                && AxiomPlugin.class.isAssignableFrom(clazz)) {
                             loadPlugin(clazz);
                         }
                     } catch (ClassNotFoundException e) {
-                        Axiom.logger().trace("Could not load class from JAR: {}", className, e);
+                        // Skip classes that can't be loaded
                     }
                 }
-
-                Axiom.logger().info("Scanned plugin JAR: {}", pluginFile.getName());
             }
         } catch (Exception e) {
-            Axiom.logger().error("Failed to load plugins from JAR: {}", pluginFile.getName(), e);
+            loadResults.add(new PluginResult(pluginFile.getName(), "?", false));
+            Axiom.logger().error("Failed to load plugin JAR: {}", pluginFile.getName(), e);
             if (loader != null) {
                 classLoaders.remove(loader);
                 try {
@@ -104,6 +104,49 @@ public class SimplePluginLoader {
                 } catch (Exception ignored) {}
             }
         }
+    }
+
+    /**
+     * Prints a formatted summary of all loaded plugins.
+     */
+    public void printLoadSummary() {
+        if (loadResults.isEmpty()) {
+            Axiom.logger().info("No plugins loaded");
+            return;
+        }
+
+        int maxNameLen = 0;
+        for (PluginResult result : loadResults) {
+            String entry = result.name + " v" + result.version;
+            if (entry.length() > maxNameLen) {
+                maxNameLen = entry.length();
+            }
+        }
+
+        int tableWidth = Math.max(maxNameLen + 12, 40);
+        String separator = "=".repeat(tableWidth);
+
+        Axiom.logger().info(ChatComponent.text(separator).color(ChatColor.DARK_GRAY));
+
+        for (PluginResult result : loadResults) {
+            String entry = result.name + " v" + result.version;
+            int padding = tableWidth - entry.length() - 8;
+            String pad = " ".repeat(Math.max(1, padding));
+
+            if (result.loaded) {
+                Axiom.logger().info(
+                        ChatComponent.text("  " + entry + pad).color(ChatColor.WHITE)
+                                .append(ChatComponent.text("LOADED").color(ChatColor.GREEN))
+                );
+            } else {
+                Axiom.logger().info(
+                        ChatComponent.text("  " + entry + pad).color(ChatColor.WHITE)
+                                .append(ChatComponent.text("FAILED").color(ChatColor.RED))
+                );
+            }
+        }
+
+        Axiom.logger().info(ChatComponent.text(separator).color(ChatColor.DARK_GRAY));
     }
 
     public Optional<AxiomPlugin> plugin(String id) {
@@ -116,12 +159,11 @@ public class SimplePluginLoader {
 
     public void disablePlugin(AxiomPlugin plugin) {
         if (!enabledStatus.getOrDefault(plugin, false)) {
-            return; // Not enabled
+            return;
         }
         try {
             plugin.onDisable();
             enabledStatus.put(plugin, false);
-            Axiom.logger().info("Disabled plugin");
         } catch (Exception e) {
             Axiom.logger().error("Failed to disable plugin", e);
         }
@@ -130,4 +172,6 @@ public class SimplePluginLoader {
     public void disableAllPlugins() {
         plugins.values().forEach(this::disablePlugin);
     }
+
+    private record PluginResult(String name, String version, boolean loaded) {}
 }

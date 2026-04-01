@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  * Custom logger that automatically colorizes output based on log level.
  *
  * <ul>
- *   <li>INFO  → Blue</li>
+ *   <li>INFO  → White</li>
  *   <li>WARN  → Yellow</li>
  *   <li>ERROR → Red</li>
  *   <li>DEBUG → Gray</li>
@@ -19,68 +19,62 @@ import org.slf4j.LoggerFactory;
  */
 public class AxiomLogger {
 
-    private static final ChatColor INFO_COLOR = ChatColor.BLUE;
-    private static final ChatColor WARN_COLOR = ChatColor.YELLOW;
-    private static final ChatColor ERROR_COLOR = ChatColor.RED;
-    private static final ChatColor DEBUG_COLOR = ChatColor.GRAY;
-    private static final ChatColor TRACE_COLOR = ChatColor.DARK_GRAY;
-
-    private final Logger delegate;
+    private final Logger logger;
 
     public AxiomLogger(String name) {
-        this.delegate = LoggerFactory.getLogger(name);
+        this.logger = LoggerFactory.getLogger(name);
     }
 
     public AxiomLogger(Class<?> clazz) {
-        this.delegate = LoggerFactory.getLogger(clazz);
+        this.logger = LoggerFactory.getLogger(clazz);
     }
 
     public void info(String message, Object... args) {
         String formatted = format(message, args);
-        delegate.info(colorize(formatted, INFO_COLOR));
+        logger.info(colorize(formatted, ChatColor.WHITE));
     }
 
     public void warn(String message, Object... args) {
         String formatted = format(message, args);
-        delegate.warn(colorize(formatted, WARN_COLOR));
+        logger.warn(colorize(formatted, ChatColor.YELLOW));
     }
 
     public void error(String message, Object... args) {
         String formatted = format(message, args);
-        delegate.error(colorize(formatted, ERROR_COLOR));
+        logger.error(colorize(formatted, ChatColor.RED));
     }
 
     public void debug(String message, Object... args) {
-        if (delegate.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             String formatted = format(message, args);
-            delegate.debug(colorize(formatted, DEBUG_COLOR));
+            logger.debug(colorize(formatted, ChatColor.GRAY));
         }
     }
 
     public void trace(String message, Object... args) {
-        if (delegate.isTraceEnabled()) {
+        if (logger.isTraceEnabled()) {
             String formatted = format(message, args);
-            delegate.trace(colorize(formatted, TRACE_COLOR));
+            logger.trace(colorize(formatted, ChatColor.DARK_GRAY));
         }
     }
 
     public void info(ChatComponent component) {
-        delegate.info(ConsoleColorFormatter.format(component));
+        logger.info(ConsoleColorFormatter.format(component));
     }
 
     public void warn(ChatComponent component) {
-        delegate.warn(ConsoleColorFormatter.format(component));
+        logger.warn(ConsoleColorFormatter.format(component));
     }
 
     public void error(ChatComponent component) {
-        delegate.error(ConsoleColorFormatter.format(component));
+        logger.error(ConsoleColorFormatter.format(component));
     }
 
     /**
      * Returns the underlying SLF4J logger.
      */
-    public Logger delegate() {
-        return delegate;
+    public Logger logger() {
+        return logger;
     }
 
     private String colorize(String message, ChatColor color) {

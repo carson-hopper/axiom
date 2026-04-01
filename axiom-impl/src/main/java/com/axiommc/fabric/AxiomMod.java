@@ -158,6 +158,7 @@ public class AxiomMod implements ModInitializer {
             LOGGER.debug("Player provider initialized");
 
             loadPluginsFromDirectory();
+            pluginLoader.printLoadSummary();
         });
 
         eventBus.subscribe(ServerStopEvent.class, event -> {
@@ -221,19 +222,14 @@ public class AxiomMod implements ModInitializer {
 
         File[] files = pluginsDir.listFiles();
         if (files == null || files.length == 0) {
-            LOGGER.info("No plugins found in plugins directory");
             return;
         }
 
-        LOGGER.info("Loading plugins from plugins directory");
-        int loadedCount = 0;
         for (File file : files) {
             if (isPluginJar(file)) {
-                loadedCount += loadPluginFile(file);
+                loadPluginFile(file);
             }
         }
-
-        LOGGER.info("Loaded {} plugins from plugins directory", loadedCount);
     }
 
     private boolean ensurePluginDirectory(File pluginsDir) {
