@@ -144,24 +144,29 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        // Space character gives the background something to render around
+        // Fill with newlines so background covers vertical area
+        // Each newline adds ~10px height at default scale
+        int lines = Math.max(1, (int) (panel.height() * screen.height() * 10));
+        String fill = "\n".repeat(lines);
         invokeMethod(entity, Display.TextDisplay.class, "setText",
                 net.minecraft.network.chat.Component.class,
-                net.minecraft.network.chat.Component.literal(" "));
+                net.minecraft.network.chat.Component.literal(fill));
 
         setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
                 Integer.class, panelStyleToArgb(panel.style()));
+        // Line width controls how wide the background renders
         setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, 10000);
+                Integer.class, (int) (panel.width() * screen.width() * 100));
         setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
-                Byte.class, (byte) -1);  // -1 = 255 unsigned = fully opaque
+                Byte.class, (byte) 0); // text invisible, only background shows
 
-        float scaleX = panel.width() * screen.width();
-        float scaleY = panel.height() * screen.height();
-        setData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(scaleX, scaleY, 0.001f));
+        // Use display width/height to set bounding box
+        float worldWidth = panel.width() * screen.width();
+        float worldHeight = panel.height() * screen.height();
+        setData(entity, Display.class, "DATA_WIDTH_ID", Float.class, worldWidth);
+        setData(entity, Display.class, "DATA_HEIGHT_ID", Float.class, worldHeight);
         setData(entity, Display.class, "DATA_TRANSLATION_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(-scaleX / 2f, -scaleY / 2f, 0f));
+                org.joml.Vector3f.class, new org.joml.Vector3f(-worldWidth / 2f, -worldHeight / 2f, 0f));
         setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
                 Byte.class, BILLBOARD_FIXED);
         setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
