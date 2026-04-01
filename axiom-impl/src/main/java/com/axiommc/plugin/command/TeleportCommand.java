@@ -4,11 +4,7 @@ import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 
 import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.annotation.Arg;
-import com.axiommc.api.command.annotation.Command;
-import com.axiommc.api.command.annotation.Description;
-import com.axiommc.api.command.annotation.Permission;
-import com.axiommc.api.command.annotation.Execute;
+import com.axiommc.api.command.annotation.*;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.math.Vector3;
@@ -21,7 +17,8 @@ public class TeleportCommand {
 
     @Execute
     @Permission("axiom.teleport")
-    public void teleportToPlayer(CommandSender sender, @Arg("player") Player target) {
+    @Usage("<player>")
+    public void teleportToPlayer(CommandSender sender, @Arg("source") Player target) {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
                     player.teleport(target.location());
@@ -33,13 +30,15 @@ public class TeleportCommand {
 
     @Execute
     @Permission("axiom.teleport.other")
-    public void teleportPlayerToPlayer(CommandSender sender, @Arg("player1") Player player1, @Arg("player2") Player player2) {
+    @Usage("<source> <target>")
+    public void teleportPlayerToPlayer(CommandSender sender, @Arg("source") Player player1, @Arg("target") Player player2) {
         player1.teleport(player2.location());
         sender.sendMessage(ChatComponent.text("Teleported " + player1.name() + " to " + player2.name()).color(ChatColor.GREEN));
     }
 
     @Execute
     @Permission("axiom.teleport.other")
+    @Usage("<location>")
     public void teleportToCoordinates(CommandSender sender, @Arg("location") Vector3 location) {
         if (location.y() < MIN_Y) {
             sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
@@ -59,7 +58,8 @@ public class TeleportCommand {
 
     @Execute
     @Permission("axiom.teleport.other")
-    public void teleportPlayerToCoordinates(CommandSender sender, @Arg("player") Player player, @Arg("location") Vector3 location) {
+    @Usage("<source> <location>")
+    public void teleportPlayerToCoordinates(CommandSender sender, @Arg("source") Player player, @Arg("location") Vector3 location) {
         if (location.y() < MIN_Y) {
             sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
             return;

@@ -29,7 +29,7 @@ public @interface Subcommand {
     /**
      * Which side(s) this subcommand is available on.
      *
-     * @return the command side (defaults to {@link CommandSide#BOTH})
+     * @return the command side (defaults to {@link CommandSide#SERVER})
      */
-    CommandSide side() default CommandSide.BOTH;
+    CommandSide side() default CommandSide.SERVER;
 }

@@ -1,5 +1,7 @@
 package com.axiommc.api.command.annotation;
 
+import com.axiommc.api.command.CommandSide;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,7 +11,7 @@ import java.lang.annotation.Target;
  * Marks a class as a command.
  *
  * <p>Applied to command classes to define the command name and aliases.
- * Use {@link Description}, {@link Permission}, and {@link Side} annotations
+ * Use {@link Description}, {@link Permission}, and {@link CommandSide} annotations
  * for additional metadata.
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -28,4 +30,11 @@ public @interface Command {
      * @return the command aliases (empty array by default)
      */
     String[] aliases() default {};
+
+    /**
+     * Which side(s) this command executes on.
+     *
+     * @return the command side (defaults to {@link CommandSide#SERVER})
+     */
+    CommandSide side() default CommandSide.SERVER;
 }
