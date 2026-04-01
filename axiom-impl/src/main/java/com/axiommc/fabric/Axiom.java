@@ -6,11 +6,9 @@ import com.axiommc.api.player.Player;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
-import com.axiommc.fabric.chat.ConsoleColorFormatter;
+import com.axiommc.fabric.console.AxiomLogger;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.util.TaskScheduler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -18,7 +16,7 @@ import java.util.Optional;
 
 public class Axiom {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("axiom");
+    private static final AxiomLogger LOGGER = new AxiomLogger("axiom");
 
     private Axiom() {}
 
@@ -26,7 +24,7 @@ public class Axiom {
     // Static Accessors
     // ============================================================
 
-    public static Logger logger() {
+    public static AxiomLogger logger() {
         return LOGGER;
     }
 
@@ -98,14 +96,14 @@ public class Axiom {
      * Sends a formatted message to the server console with ANSI color support.
      */
     public static void consoleSendMessage(ChatComponent message) {
-        LOGGER.info(ConsoleColorFormatter.format(message));
+        LOGGER.info(message);
     }
 
     /**
      * Sends a plain string message to the server console.
      */
     public static void consoleSendMessage(String message) {
-        LOGGER.info(ConsoleColorFormatter.formatWithAnsi(message));
+        LOGGER.info(message);
     }
 
     public static SidebarManager sidebarManager() {
