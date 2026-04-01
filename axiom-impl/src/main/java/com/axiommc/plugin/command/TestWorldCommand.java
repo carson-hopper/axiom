@@ -2,10 +2,12 @@ package com.axiommc.plugin.command;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.command.Command;
+
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.annotation.Arg;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.math.Vector3;
@@ -18,12 +20,10 @@ import com.axiommc.fabric.Axiom;
 import java.util.Collection;
 import java.util.Optional;
 
-@CommandMeta(
-        name = "testworld",
-        description = "Test world and block APIs",
-        permission = "axiom.test"
-)
-public class TestWorldCommand implements Command {
+@Command(name = "testworld")
+@Description("Test world and block APIs")
+@Permission("axiom.test")
+public class TestWorldCommand {
 
     @Execute
     public void execute(CommandSender sender) {

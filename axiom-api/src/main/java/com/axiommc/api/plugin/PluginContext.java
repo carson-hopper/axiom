@@ -1,6 +1,5 @@
 package com.axiommc.api.plugin;
 
-import com.axiommc.api.command.Command;
 import com.axiommc.api.config.PluginConfig;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.gui.GuiManager;
@@ -67,11 +66,11 @@ public interface PluginContext {
     /**
      * Registers a command for this plugin.
      *
-     * <p>The command class must be annotated with {@code @CommandMeta}.
+     * <p>The command class must be annotated with {@code @Command}.
      *
      * @param command the command to register (must not be null)
      */
-    void registerCommand(Command command);
+    void registerCommand(Object command);
 
     /**
      * Gets the plugin configuration.

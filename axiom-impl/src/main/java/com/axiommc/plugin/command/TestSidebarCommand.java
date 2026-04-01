@@ -2,9 +2,11 @@ package com.axiommc.plugin.command;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.command.Command;
+
 import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.player.Player;
@@ -15,12 +17,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@CommandMeta(
-        name = "testsidebar",
-        description = "Test sidebar API",
-        permission = "axiom.test"
-)
-public class TestSidebarCommand implements Command {
+@Command(name = "testsidebar")
+@Description("Test sidebar API")
+@Permission("axiom.test")
+public class TestSidebarCommand {
 
     private static final Map<String, Sidebar> sidebars = new HashMap<>();
 

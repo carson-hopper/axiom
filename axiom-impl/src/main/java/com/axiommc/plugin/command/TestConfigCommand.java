@@ -2,22 +2,22 @@ package com.axiommc.plugin.command;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.command.Command;
+
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.annotation.Arg;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Greedy;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.config.PluginConfig;
 import com.axiommc.api.plugin.PluginContext;
 
-@CommandMeta(
-        name = "testconfig",
-        description = "Test plugin config and context APIs",
-        permission = "axiom.test"
-)
-public class TestConfigCommand implements Command {
+@Command(name = "testconfig")
+@Description("Test plugin config and context APIs")
+@Permission("axiom.test")
+public class TestConfigCommand {
 
     private final PluginContext context;
 

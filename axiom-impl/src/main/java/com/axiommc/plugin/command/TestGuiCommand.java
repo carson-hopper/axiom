@@ -3,9 +3,11 @@ package com.axiommc.plugin.command;
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.chat.Item;
-import com.axiommc.api.command.Command;
+
 import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.gui.Gui;
@@ -16,12 +18,10 @@ import com.axiommc.api.sound.Sound;
 import com.axiommc.fabric.Axiom;
 import java.util.List;
 
-@CommandMeta(
-        name = "testgui",
-        description = "Test GUI API",
-        permission = "axiom.test"
-)
-public class TestGuiCommand implements Command {
+@Command(name = "testgui")
+@Description("Test GUI API")
+@Permission("axiom.test")
+public class TestGuiCommand {
 
     @Execute
     public void execute(CommandSender sender) {

@@ -1,16 +1,18 @@
 package com.axiommc.api.command.invoker;
 
-import com.axiommc.api.command.Command;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.CommandSide;
 import com.axiommc.api.command.annotation.Arg;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.annotation.Default;
+import com.axiommc.api.command.annotation.Description;
 import com.axiommc.api.command.annotation.DynamicTabComplete;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Flag;
 import com.axiommc.api.command.annotation.Greedy;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Range;
+import com.axiommc.api.command.annotation.Side;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.command.annotation.TabComplete;
 import com.axiommc.api.command.parser.ArgParseException;
@@ -48,7 +50,7 @@ public class CommandInvoker {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandInvoker.class);
     private static final String COMMAND_SENDER_CLASS_NAME = "com.axiommc.api.command.CommandSender";
 
-    private final Command command;
+    private final Object command;
     private final ArgParserRegistry parserRegistry;
     private final PluginEnvironment environment;
     private final List<Method> executeMethods = new ArrayList<>();
@@ -56,7 +58,7 @@ public class CommandInvoker {
     /** Subcommands that exist but were excluded because their side doesn't match this environment. */
     private final Set<String> excludedSubcommands = new LinkedHashSet<>();
 
-    public CommandInvoker(Command command, ArgParserRegistry parserRegistry, PluginEnvironment environment) {
+    public CommandInvoker(Object command, ArgParserRegistry parserRegistry, PluginEnvironment environment) {
         this.command = command;
         this.parserRegistry = parserRegistry;
         this.environment = environment;
@@ -140,14 +142,17 @@ public class CommandInvoker {
     }
 
     public boolean execute(CommandSender sender, String[] args) {
-        CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-        if (meta != null && !meta.permission().isEmpty() && !sender.hasPermission(meta.permission())) {
+        Class<?> commandClass = command.getClass();
+        Command cmdAnnotation = commandClass.getAnnotation(Command.class);
+        Permission permAnnotation = commandClass.getAnnotation(Permission.class);
+
+        if (permAnnotation != null && !permAnnotation.value().isEmpty() && !sender.hasPermission(permAnnotation.value())) {
             sender.sendMessage("You don't have permission to use this command.");
             return true;
         }
 
         // Log command execution
-        String commandName = meta != null ? meta.name() : command.getClass().getSimpleName();
+        String commandName = cmdAnnotation != null ? cmdAnnotation.name() : commandClass.getSimpleName();
         String senderName = sender.isPlayer() ? sender.asPlayer().map(p -> p.name()).orElse("Unknown") : "Console";
         String argsStr = args.length > 0 ? String.join(" ", args) : "";
         LOGGER.info("Command executed: /{} {} (by: {})", commandName, argsStr, senderName);
@@ -352,8 +357,9 @@ public class CommandInvoker {
     }
 
     public List<String> suggest(CommandSender sender, String[] args) {
-        CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-        if (meta != null && !meta.permission().isEmpty() && !sender.hasPermission(meta.permission())) {
+        Class<?> commandClass = command.getClass();
+        Permission permAnnotation = commandClass.getAnnotation(Permission.class);
+        if (permAnnotation != null && !permAnnotation.value().isEmpty() && !sender.hasPermission(permAnnotation.value())) {
             return Collections.emptyList();
         }
 

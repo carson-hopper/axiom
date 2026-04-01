@@ -14,14 +14,14 @@ public interface CommandRegistry {
      *
      * @param command the command to register (must not be null)
      */
-    void register(Command command);
+    void register(Object command);
 
     /**
      * Unregisters a command.
      *
      * @param command the command to unregister (must not be null)
      */
-    void unregister(Command command);
+    void unregister(Object command);
 
     /**
      * Unregisters a command by name.

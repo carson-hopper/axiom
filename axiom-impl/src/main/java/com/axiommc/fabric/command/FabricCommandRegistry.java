@@ -1,8 +1,7 @@
 package com.axiommc.fabric.command;
 
-import com.axiommc.api.command.Command;
 import com.axiommc.api.command.CommandRegistry;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.invoker.CommandInvoker;
 import com.axiommc.api.command.parser.ArgParserRegistry;
 import com.axiommc.api.plugin.PluginEnvironment;
@@ -26,29 +25,29 @@ public class FabricCommandRegistry implements CommandRegistry {
     }
 
     @Override
-    public void register(Command command) {
-        CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-        if (meta == null) {
-            LOGGER.warn("Command {} does not have @CommandMeta annotation, skipping registration",
+    public void register(Object command) {
+        Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
+        if (cmdAnnotation == null) {
+            LOGGER.warn("Command {} does not have @Command annotation, skipping registration",
                 command.getClass().getName());
             return;
         }
 
         try {
             CommandInvoker invoker = new CommandInvoker(command, parserRegistry, environment);
-            commands.put(meta.name(), invoker);
-            LOGGER.info("Registered command: {} {}", meta.name(),
-                meta.aliases().length > 0 ? "with aliases: " + String.join(", ", meta.aliases()) : "");
+            commands.put(cmdAnnotation.name(), invoker);
+            LOGGER.info("Registered command: {} {}", cmdAnnotation.name(),
+                cmdAnnotation.aliases().length > 0 ? "with aliases: " + String.join(", ", cmdAnnotation.aliases()) : "");
         } catch (Exception e) {
             LOGGER.error("Failed to register command {}", command.getClass().getName(), e);
         }
     }
 
     @Override
-    public void unregister(Command command) {
-        CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-        if (meta != null) {
-            unregister(meta.name());
+    public void unregister(Object command) {
+        Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
+        if (cmdAnnotation != null) {
+            unregister(cmdAnnotation.name());
         }
     }
 

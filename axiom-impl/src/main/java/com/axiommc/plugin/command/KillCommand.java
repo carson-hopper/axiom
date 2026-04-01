@@ -2,15 +2,16 @@ package com.axiommc.plugin.command;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.command.Command;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.annotation.Arg;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
 import com.axiommc.api.command.annotation.DynamicTabComplete;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Flag;
 import com.axiommc.api.command.annotation.Greedy;
 import com.axiommc.api.command.annotation.Optional;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
@@ -24,12 +25,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-@CommandMeta(
-        name = "kill",
-        description = "Kill a player or mob",
-        permission = "axiom.kill"
-)
-public class KillCommand implements Command {
+@Command(name = "kill")
+@Description("Kill a player or mob")
+@Permission("axiom.kill")
+public class KillCommand {
 
     private static final String[] FILTER_OPTIONS = {
         "players",

@@ -1,6 +1,6 @@
 package com.axiommc.fabric.command;
 
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.invoker.CommandInvoker;
 import com.axiommc.api.command.parser.ArgParserRegistry;
 import com.axiommc.api.command.parser.DoubleArgParser;
@@ -42,26 +42,26 @@ public class FabricCommandHandler {
         registerDefaultParsers();
     }
 
-    public void registerCommand(com.axiommc.api.command.Command command) {
-        CommandMeta meta = command.getClass().getAnnotation(CommandMeta.class);
-        if (meta == null) {
-            LOGGER.warn("Command {} has no @CommandMeta annotation, skipping", command.getClass().getSimpleName());
+    public void registerCommand(Object command) {
+        Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
+        if (cmdAnnotation == null) {
+            LOGGER.warn("Command {} has no @Command annotation, skipping", command.getClass().getSimpleName());
             return;
         }
 
         registry.register(command);
 
         try {
-            CommandInvoker invoker = registry.get(meta.name());
-            FabricCommandAdapter adapter = new FabricCommandAdapter(meta.name(), invoker);
+            CommandInvoker invoker = registry.get(cmdAnnotation.name());
+            FabricCommandAdapter adapter = new FabricCommandAdapter(cmdAnnotation.name(), invoker);
             adapters.add(adapter);
 
             if (dispatcher != null) {
                 dispatcher.register(adapter.buildNode());
-                LOGGER.info("Dynamically registered Brigadier command: {}", meta.name());
+                LOGGER.info("Dynamically registered Brigadier command: {}", cmdAnnotation.name());
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to register command: {}", meta.name(), e);
+            LOGGER.error("Failed to register command: {}", cmdAnnotation.name(), e);
         }
     }
 

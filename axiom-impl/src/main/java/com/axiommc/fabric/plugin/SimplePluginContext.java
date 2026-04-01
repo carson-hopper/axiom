@@ -1,7 +1,6 @@
 package com.axiommc.fabric.plugin;
 
 import com.axiommc.api.bossbar.BossBar;
-import com.axiommc.api.command.Command;
 import com.axiommc.api.config.PluginConfig;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.gui.GuiManager;
@@ -156,7 +155,7 @@ public class SimplePluginContext implements PluginContext {
     }
 
     @Override
-    public void registerCommand(Command command) {
+    public void registerCommand(Object command) {
         AxiomMod mod = AxiomMod.instance();
         if (mod != null && mod.commandHandler() != null) {
             mod.commandHandler().registerCommand(command);

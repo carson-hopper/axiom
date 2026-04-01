@@ -2,18 +2,17 @@ package com.axiommc.plugin.command;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.command.Command;
+
 import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
 
-@CommandMeta(
-        name = "axiom",
-        aliases = {},
-        description = "",
-        permission = "axiom"
-)
-public class AxiomCommand implements Command {
+@Command(name = "axiom")
+@Description("")
+@Permission("axiom")
+public class AxiomCommand {
 
     @Execute
     public void execute(CommandSender sender) {

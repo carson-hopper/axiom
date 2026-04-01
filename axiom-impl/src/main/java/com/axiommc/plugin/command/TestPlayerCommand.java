@@ -2,9 +2,11 @@ package com.axiommc.plugin.command;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.command.Command;
+
 import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.annotation.CommandMeta;
+import com.axiommc.api.command.annotation.Command;
+import com.axiommc.api.command.annotation.Description;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.player.Player;
@@ -12,12 +14,10 @@ import com.axiommc.api.sound.Sound;
 import com.axiommc.api.sound.SoundKey;
 import com.axiommc.fabric.Axiom;
 
-@CommandMeta(
-        name = "testplayer",
-        description = "Test player title/actionbar/sound APIs",
-        permission = "axiom.test"
-)
-public class TestPlayerCommand implements Command {
+@Command(name = "testplayer")
+@Description("Test player title/actionbar/sound APIs")
+@Permission("axiom.test")
+public class TestPlayerCommand {
 
     @Execute
     public void execute(CommandSender sender) {
