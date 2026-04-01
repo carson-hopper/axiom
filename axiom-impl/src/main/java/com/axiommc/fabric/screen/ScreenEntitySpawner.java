@@ -18,8 +18,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import java.lang.reflect.Method;
@@ -121,7 +119,8 @@ public final class ScreenEntitySpawner {
     private static int spawnPanel(ServerPlayer player, ServerLevel level,
                                   ScreenElement.Panel panel, Screen screen,
                                   Vec3 center, Vec3 right, Vec3 up, float yaw) {
-        Display.BlockDisplay entity = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, level);
+        // Use TextDisplay with solid background instead of BlockDisplay to avoid z-fighting flicker
+        Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
         int id = nextId();
         entity.setId(id);
 
@@ -131,13 +130,20 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        setBlockState(entity, panelStyleToBlock(panel.style()));
+        // Fill with spaces to create a solid rectangle, background color acts as the panel
+        int bgColor = panelStyleToColor(panel.style());
+        setText(entity, net.minecraft.network.chat.Component.literal(" "));
+        setTextBackground(entity, bgColor);
 
+        // Scale to fill the panel area
         float scaleX = panel.width() * screen.width();
         float scaleY = panel.height() * screen.height();
-        setScale(entity, scaleX, scaleY, 0.01f);
-        setTranslation(entity, -scaleX / 2f, -scaleY / 2f, 0f);
+        setScale(entity, scaleX, scaleY, 1f);
         setBillboard(entity, Display.BillboardConstraints.FIXED);
+
+        // Set line width wide enough to fill the panel
+        setEntityData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
+                Integer.class, 1);
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -269,22 +275,18 @@ public final class ScreenEntitySpawner {
         return center.add(right.scale(offsetX)).add(up.scale(offsetY));
     }
 
-    private static BlockState panelStyleToBlock(PanelStyle style) {
+    private static int panelStyleToColor(PanelStyle style) {
         return switch (style) {
-            case DARK   -> Blocks.SMOOTH_STONE.defaultBlockState();
-            case GLASS  -> Blocks.TINTED_GLASS.defaultBlockState();
-            case BORDER -> Blocks.BLACKSTONE.defaultBlockState();
-            case ACCENT -> Blocks.WARPED_PLANKS.defaultBlockState();
+            case DARK   -> 0xE0181818; // dark gray, mostly opaque
+            case GLASS  -> 0x80181818; // dark gray, semi-transparent
+            case BORDER -> 0xF0101010; // near-black, opaque
+            case ACCENT -> 0xE0165A5A; // teal accent, mostly opaque
         };
     }
 
     // ── Reflection helpers ────────────────────────────────────────────────────
     // Direct calls to private methods/fields are not possible without Loom/AccessWidener.
     // In 26.1 the names are stable and unobfuscated so these will not break on updates.
-
-    private static void setBlockState(Display.BlockDisplay entity, BlockState state) {
-        invokePrivate(entity, Display.BlockDisplay.class, "setBlockState", BlockState.class, state);
-    }
 
     private static void setText(Display.TextDisplay entity, net.minecraft.network.chat.Component text) {
         invokePrivate(entity, Display.TextDisplay.class, "setText",

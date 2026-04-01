@@ -131,7 +131,8 @@ public class FabricScreenManager implements ScreenManager {
                 close(session.sessionId());
                 continue;
             }
-            updateCursor(session);
+            // Cursor movement disabled for debugging flicker
+            // updateCursor(session);
         }
     }
 
