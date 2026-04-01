@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.axiommc</groupId>
+        <artifactId>axiom-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <artifactId>axiom</artifactId>
+    <packaging>jar</packaging>
+    <name>Axiom Implementation</name>
+    <description>Fabric-based implementation of the Axiom plugin framework</description>
+
+    <dependencies>
+        <!-- Axiom API -->
+        <dependency>
+            <groupId>com.axiommc</groupId>
+            <artifactId>axiom-api</artifactId>
+        </dependency>
+
+        <!-- Minecraft server jar (install manually, see comment) -->
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>minecraft-server</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>brigadier</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>datafixerupper</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Fabric Loader -->
+        <dependency>
+            <groupId>net.fabricmc</groupId>
+            <artifactId>fabric-loader</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Fabric API modules (declare only what you use) -->
+        <dependency>
+            <groupId>net.fabricmc.fabric-api</groupId>
+            <artifactId>fabric-api-base</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.fabricmc.fabric-api</groupId>
+            <artifactId>fabric-command-api-v2</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.fabricmc.fabric-api</groupId>
+            <artifactId>fabric-lifecycle-events-v1</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.fabricmc</groupId>
+            <artifactId>sponge-mixin</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- SLF4J - present in MC at runtime, needed for compile -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Gson - bundled in MC, available at runtime -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jackson - NOT in MC, must be shaded into the jar -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- toml4j - for TOML config file support -->
+        <dependency>
+            <groupId>com.moandjiezana.toml</groupId>
+            <artifactId>toml4j</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Netty - bundled in MC, needed to resolve annotation errors -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <failOnWarning>false</failOnWarning>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>net.fabricmc</groupId>
+                            <artifactId>sponge-mixin</artifactId>
+                            <version>0.17.0+mixin.0.8.7</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>com.axiommc:axiom-api</exclude>
+                                    <exclude>com.mojang:minecraft-server</exclude>
+                                    <exclude>net.fabricmc:*</exclude>
+                                    <exclude>net.fabricmc.fabric-api:*</exclude>
+                                    <exclude>org.slf4j:*</exclude>
+                                    <exclude>com.mojang:brigadier</exclude>
+                                    <exclude>com.mojang:datafixerupper</exclude>
+                                    <exclude>it.unimi.dsi:fastutil</exclude>
+                                    <exclude>com.google.code.gson:gson</exclude>
+                                    <exclude>org.ow2.asm:*</exclude>
+                                    <exclude>org.objectweb.asm:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
