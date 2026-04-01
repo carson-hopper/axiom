@@ -1,15 +1,91 @@
-# Build and IDE
+# Maven
 target/
-.idea/
-.vscode/
-*.class
 *.jar
-*.log
+*.war
+*.ear
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+.m2/
 
-# Dependencies
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
 .classpath
 .project
 .settings/
+.metadata/
+bin/
+tmp/
+*.tmp
 
-# Generated files
-dependency-reduced-pom.xml
+# VSCode
+.vscode/
+*.code-workspace
+launch.json
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+.vim/
+*.swp
+*.swo
+*~
+
+# System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Build artifacts
+build/
+*.class
+*.log
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# OS temporary files
+.AppleDouble
+.LSOverride
+$RECYCLE.BIN/
+*.cab
+
+# Temp files
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.~*
+
+# Local environment files
+local.properties
+gradle.properties
