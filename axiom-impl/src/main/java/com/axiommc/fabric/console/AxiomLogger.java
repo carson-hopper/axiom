@@ -14,9 +14,16 @@ import org.slf4j.LoggerFactory;
  *   <li>WARN  → Yellow</li>
  *   <li>ERROR → Red</li>
  *   <li>DEBUG → Gray</li>
+ *   <li>TRACE → Dark Gray</li>
  * </ul>
  */
 public class AxiomLogger {
+
+    private static final ChatColor INFO_COLOR = ChatColor.BLUE;
+    private static final ChatColor WARN_COLOR = ChatColor.YELLOW;
+    private static final ChatColor ERROR_COLOR = ChatColor.RED;
+    private static final ChatColor DEBUG_COLOR = ChatColor.GRAY;
+    private static final ChatColor TRACE_COLOR = ChatColor.DARK_GRAY;
 
     private final Logger delegate;
 
@@ -30,36 +37,33 @@ public class AxiomLogger {
 
     public void info(String message, Object... args) {
         String formatted = format(message, args);
-        delegate.info(ConsoleColorFormatter.formatWithAnsi("§9" + formatted));
+        delegate.info(colorize(formatted, INFO_COLOR));
     }
 
     public void warn(String message, Object... args) {
         String formatted = format(message, args);
-        delegate.warn(ConsoleColorFormatter.formatWithAnsi("§e" + formatted));
+        delegate.warn(colorize(formatted, WARN_COLOR));
     }
 
     public void error(String message, Object... args) {
         String formatted = format(message, args);
-        delegate.error(ConsoleColorFormatter.formatWithAnsi("§c" + formatted));
+        delegate.error(colorize(formatted, ERROR_COLOR));
     }
 
     public void debug(String message, Object... args) {
         if (delegate.isDebugEnabled()) {
             String formatted = format(message, args);
-            delegate.debug(ConsoleColorFormatter.formatWithAnsi("§7" + formatted));
+            delegate.debug(colorize(formatted, DEBUG_COLOR));
         }
     }
 
     public void trace(String message, Object... args) {
         if (delegate.isTraceEnabled()) {
             String formatted = format(message, args);
-            delegate.trace(ConsoleColorFormatter.formatWithAnsi("§8" + formatted));
+            delegate.trace(colorize(formatted, TRACE_COLOR));
         }
     }
 
-    /**
-     * Sends a ChatComponent message to the console with its own colors.
-     */
     public void info(ChatComponent component) {
         delegate.info(ConsoleColorFormatter.format(component));
     }
@@ -79,6 +83,11 @@ public class AxiomLogger {
         return delegate;
     }
 
+    private String colorize(String message, ChatColor color) {
+        ChatComponent component = ChatComponent.text(message).color(color);
+        return ConsoleColorFormatter.format(component);
+    }
+
     /**
      * Replaces SLF4J-style {} placeholders with arguments.
      */
@@ -90,7 +99,9 @@ public class AxiomLogger {
         int argIndex = 0;
         int i = 0;
         while (i < message.length()) {
-            if (i + 1 < message.length() && message.charAt(i) == '{' && message.charAt(i + 1) == '}') {
+            if (i + 1 < message.length()
+                    && message.charAt(i) == '{'
+                    && message.charAt(i + 1) == '}') {
                 if (argIndex < args.length) {
                     sb.append(args[argIndex++]);
                 } else {
