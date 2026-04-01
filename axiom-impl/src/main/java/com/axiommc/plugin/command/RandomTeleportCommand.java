@@ -165,7 +165,7 @@ public class RandomTeleportCommand {
     }
 
     private boolean hasNearbyMobs(World world, int x, int y, int z) {
-        int radius = 2;
+        int radius = 20;
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 for (int dy = -1; dy <= 1; dy++) {
