@@ -7,7 +7,7 @@ import com.axiommc.api.block.Block;
 
 public class BlockInteractEvent {
 
-    public class MainHand extends Event implements Cancellable {
+    public static class MainHand extends Event implements Cancellable {
 
         private final Player player;
         private final Block block;
@@ -37,7 +37,7 @@ public class BlockInteractEvent {
         }
     }
 
-    public class OffHand extends Event implements Cancellable {
+    public static class OffHand extends Event implements Cancellable {
 
         private final Player player;
         private final Block block;

@@ -123,6 +123,24 @@
             </dependency>
 
             <dependency>
+                <groupId>net.fabricmc.fabric-api</groupId>
+                <artifactId>fabric-networking-api-v1</artifactId>
+                <version>6.3.0+50a808ce47</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.fabricmc.fabric-api</groupId>
+                <artifactId>fabric-message-api-v1</artifactId>
+                <version>7.0.5+dae8ce3e47</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.fabricmc.fabric-api</groupId>
+                <artifactId>fabric-events-interaction-v0</artifactId>
+                <version>5.1.10+c82f046147</version>
+            </dependency>
+
+            <dependency>
                 <groupId>net.fabricmc</groupId>
                 <artifactId>sponge-mixin</artifactId>
                 <version>0.17.0+mixin.0.8.7</version>

@@ -2,112 +2,60 @@ package com.axiommc.fabric.event;
 
 import com.axiommc.api.event.EventListener;
 import com.axiommc.api.event.SimpleEventBus;
-import com.axiommc.api.event.player.PlayerJoinEvent;
-import com.axiommc.api.event.player.PlayerLeaveEvent;
+import com.axiommc.fabric.event.adapter.BlockInteractAdapter;
+import com.axiommc.fabric.event.adapter.CommandExecuteAdapter;
+import com.axiommc.fabric.event.adapter.FabricEventAdapter;
+import com.axiommc.fabric.event.adapter.PlayerChatAdapter;
+import com.axiommc.fabric.event.adapter.PlayerConnectionAdapter;
+import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
 import com.axiommc.fabric.player.FabricPlayerProvider;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Fabric implementation of EventBus that hooks into Fabric events.
+ * Fabric implementation of EventBus that uses adapters to bridge
+ * Fabric API callbacks to Axiom API events.
  */
 public class FabricEventBus extends SimpleEventBus {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FabricEventBus.class);
-    private boolean playerEventsSetup = false;
-    private final Set<UUID> onlinePlayers = new HashSet<>();
+    private final List<FabricEventAdapter> adapters = new ArrayList<>();
+    private boolean initialized = false;
 
     public FabricEventBus() {
-        // Events are set up later via setupPlayerEvents() call
+        adapters.add(new PlayerConnectionAdapter());
+        adapters.add(new ServerLifecycleAdapter());
+        adapters.add(new PlayerChatAdapter());
+        adapters.add(new CommandExecuteAdapter());
+        adapters.add(new BlockInteractAdapter());
     }
 
     /**
-     * Initializes player event hooks. Should be called after playerProvider is created.
+     * Initializes all event adapters. Must be called after playerProvider is ready.
+     *
+     * @param playerProvider the player provider for wrapping Minecraft players
      */
-    public void setupPlayerEvents() {
-        if (playerEventsSetup) {
+    public void initialize(FabricPlayerProvider playerProvider) {
+        if (initialized) {
             return;
         }
-        playerEventsSetup = true;
-        try {
-            // Use server tick events to detect player join/leave
-            ServerTickEvents.END_SERVER_TICK.register(this::checkPlayerChanges);
-            LOGGER.info("Player event hooks registered");
-        } catch (Exception e) {
-            LOGGER.warn("Failed to setup player events", e);
+        initialized = true;
+
+        for (FabricEventAdapter adapter : adapters) {
+            try {
+                adapter.register(this, playerProvider);
+                LOGGER.info("Registered event adapter: {}", adapter.getClass().getSimpleName());
+            } catch (Exception e) {
+                LOGGER.warn("Failed to register adapter: {}", adapter.getClass().getSimpleName(), e);
+            }
         }
     }
 
-    /**
-     * Called every server tick to check for player join/leave events.
-     */
-    private void checkPlayerChanges(MinecraftServer server) {
-        try {
-            FabricPlayerProvider provider = getFabricPlayerProvider();
-            if (provider == null) {
-                return;
-            }
-
-            Set<UUID> currentPlayers = new HashSet<>();
-            for (var serverPlayer : server.getPlayerList().getPlayers()) {
-                UUID uuid = serverPlayer.getUUID();
-                currentPlayers.add(uuid);
-
-                // Player joined
-                if (!onlinePlayers.contains(uuid)) {
-                    var axiomPlayer = provider.player(uuid);
-                    if (axiomPlayer.isPresent()) {
-                        LOGGER.debug("Firing PlayerJoinEvent for {}", serverPlayer.getName().getString());
-                        publish(new PlayerJoinEvent(axiomPlayer.get()));
-                    }
-                }
-            }
-
-            // Check for players who left
-            for (UUID uuid : onlinePlayers) {
-                if (!currentPlayers.contains(uuid)) {
-                    var axiomPlayer = provider.player(uuid);
-                    if (axiomPlayer.isPresent()) {
-                        LOGGER.debug("Firing PlayerLeaveEvent for {}", axiomPlayer.get().name());
-                        publish(new PlayerLeaveEvent(axiomPlayer.get()));
-                    }
-                }
-            }
-
-            onlinePlayers.clear();
-            onlinePlayers.addAll(currentPlayers);
-        } catch (Exception e) {
-            LOGGER.debug("Error checking player changes", e);
-        }
-    }
-
-    /**
-     * Registers all @EventHandler methods from an event listener.
-     *
-     * @param listener the event listener to register
-     */
+    @Override
     public void registerListener(EventListener listener) {
         EventHandlerScanner.registerListener(listener, this);
-    }
-
-    /**
-     * Gets the FabricPlayerProvider from AxiomMod.
-     */
-    private FabricPlayerProvider getFabricPlayerProvider() {
-        try {
-            var axiom = com.axiommc.fabric.AxiomMod.getInstance();
-            if (axiom != null) {
-                return axiom.playerProvider();
-            }
-        } catch (Exception e) {
-            // Silently fail if not available yet
-        }
-        return null;
     }
 }

@@ -3,6 +3,7 @@ package com.axiommc.fabric.command;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.invoker.CommandInvoker;
 import com.axiommc.fabric.console.ConsoleHistory;
+import com.axiommc.fabric.event.adapter.CommandExecuteAdapter;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -35,6 +36,9 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
     private int executeNoArgs(CommandContext<CommandSourceStack> ctx) {
         try {
             FabricCommandSender sender = new FabricCommandSender(ctx.getSource());
+            if (!CommandExecuteAdapter.fireEvent(sender, commandName)) {
+                return Command.SINGLE_SUCCESS;
+            }
             invoker.execute(sender, new String[0]);
             addToConsoleHistory(ctx.getSource(), "");
         } catch (Exception e) {
@@ -48,6 +52,10 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
             String rawArgs = StringArgumentType.getString(ctx, "args");
             String[] args = rawArgs.trim().isEmpty() ? new String[0] : rawArgs.trim().split("\\s+");
             FabricCommandSender sender = new FabricCommandSender(ctx.getSource());
+            String fullCommand = commandName + (rawArgs.trim().isEmpty() ? "" : " " + rawArgs);
+            if (!CommandExecuteAdapter.fireEvent(sender, fullCommand)) {
+                return Command.SINGLE_SUCCESS;
+            }
             invoker.execute(sender, args);
             addToConsoleHistory(ctx.getSource(), rawArgs);
         } catch (Exception e) {

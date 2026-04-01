@@ -53,10 +53,6 @@ public class AxiomMod implements ModInitializer {
     // Initialization
     // ============================================================
 
-    // ============================================================
-    // Initialization
-    // ============================================================
-
     @Override
     public void onInitialize() {
         instance = this;
@@ -82,9 +78,9 @@ public class AxiomMod implements ModInitializer {
             this.playerProvider = new FabricPlayerProvider();
             LOGGER.debug("Player provider created");
 
-            // Now that playerProvider exists, set up player events
+            // Now that playerProvider exists, initialize all event adapters
             if (eventBus instanceof FabricEventBus fabricEventBus) {
-                fabricEventBus.setupPlayerEvents();
+                fabricEventBus.initialize(playerProvider);
             }
         } catch (Exception e) {
             LOGGER.error("Failed to create player provider", e);
@@ -156,10 +152,6 @@ public class AxiomMod implements ModInitializer {
             LOGGER.debug("Player provider initialized");
 
             loadPluginsFromDirectory();
-
-            // Publish server start event
-            // eventBus.publish(new ServerStartEvent());
-            LOGGER.debug("ServerStartEvent published");
         });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -169,12 +161,6 @@ public class AxiomMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             LOGGER.info("Minecraft server stopping");
             pluginLoader.disableAllPlugins();
-
-            // Publish server stop event
-            // eventBus.publish(new ServerStopEvent());
-            LOGGER.debug("ServerStopEvent published");
-
-            // TODO: Cleanup socket server connections
         });
 
         LOGGER.info("Axiom Fabric mod initialized successfully");
