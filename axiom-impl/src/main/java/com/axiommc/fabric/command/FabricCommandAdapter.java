@@ -3,7 +3,6 @@ package com.axiommc.fabric.command;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.invoker.CommandInvoker;
 import com.axiommc.fabric.console.ConsoleHistory;
-import com.axiommc.fabric.console.JLineHistoryIntegration;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -61,7 +60,6 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
         if (source.getEntity() == null) {
             String fullCommand = commandName + (args.isEmpty() ? "" : " " + args);
             ConsoleHistory.addCommand(fullCommand);
-            JLineHistoryIntegration.addCommand(fullCommand);
         }
     }
 
