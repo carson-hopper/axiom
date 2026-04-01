@@ -163,9 +163,11 @@ public final class ScreenEntitySpawner {
         // Scale X and Y to stretch it to panel dimensions
         float worldWidth = panel.width() * screen.width();
         float worldHeight = panel.height() * screen.height();
-        float baseSize = 0.15f; // approximate size of a single-space text display with lineWidth=1
-        float sx = worldWidth / baseSize;
-        float sy = worldHeight / baseSize;
+        // A single space with lineWidth=1 renders roughly 0.15 wide x 0.3 tall
+        float baseWidth = 0.15f;
+        float baseHeight = 0.3f;
+        float sx = worldWidth / baseWidth;
+        float sy = worldHeight / baseHeight;
         setData(entity, Display.class, "DATA_SCALE_ID",
                 org.joml.Vector3f.class, new org.joml.Vector3f(sx, sy, 1f));
 
