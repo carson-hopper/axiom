@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -141,6 +144,10 @@ public class TomlPluginConfig implements PluginConfig {
     @Override
     public void reload() {
         try {
+            if (!configFile.exists()) {
+                createDefaultConfig();
+            }
+
             if (configFile.exists()) {
                 Toml toml = new Toml().read(configFile);
                 data = new LinkedHashMap<>(toml.toMap());
@@ -152,6 +159,24 @@ public class TomlPluginConfig implements PluginConfig {
         } catch (Exception e) {
             LOGGER.warn("Failed to load config from {}", configFile.getAbsolutePath(), e);
             data = new LinkedHashMap<>();
+        }
+    }
+
+    private void createDefaultConfig() {
+        try {
+            if (configFile.getParentFile() != null) {
+                configFile.getParentFile().mkdirs();
+            }
+
+            InputStream defaultConfig = getClass().getResourceAsStream("/default-config.toml");
+            if (defaultConfig != null) {
+                Files.copy(defaultConfig, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                LOGGER.info("Created default config at {}", configFile.getAbsolutePath());
+            } else {
+                LOGGER.warn("Default config template not found in resources");
+            }
+        } catch (IOException e) {
+            LOGGER.warn("Failed to create default config at {}", configFile.getAbsolutePath(), e);
         }
     }
 

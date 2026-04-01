@@ -1,0 +1,10 @@
+# Axiom Plugin Configuration
+
+# RTP (Random Teleport) Command Settings
+# Define radius (in blocks) for random teleports per world
+# Format: rtp.<worldname>.radius = <value>
+
+[rtp]
+overworld = { radius = 5000 }
+the_nether = { radius = 3000 }
+the_end = { radius = 2000 }
