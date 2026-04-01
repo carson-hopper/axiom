@@ -12,47 +12,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages console command history by storing commands to a file that JLine3 uses.
- * JLine3 (used by the Minecraft server console) automatically reads from .jline_history.
+ * Manages console command history by storing commands to the JLine3 history file.
+ * JLine3 (used by the Minecraft server console) reads from .jline_history automatically.
  */
 public final class ConsoleHistory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleHistory.class);
-    private static final String HISTORY_FILENAME = ".axiom_console_history";
+    private static final String HISTORY_FILENAME = ".jline_history";
     private static File historyFile;
 
     private ConsoleHistory() {}
 
     /**
-     * Initializes the console history file in the given directory.
-     * Falls back to user's home directory if the server directory is read-only.
+     * Initializes the console history file in the user's home directory.
+     * JLine3 looks for .jline_history in the home directory for console history.
      *
-     * @param workDir the server's working directory
+     * @param workDir ignored, kept for API compatibility
      */
     public static void initialize(File workDir) {
-        historyFile = tryInitializeInDirectory(workDir);
+        File homeDir = new File(System.getProperty("user.home"));
+        historyFile = new File(homeDir, HISTORY_FILENAME);
 
-        if (historyFile == null) {
-            File homeDir = new File(System.getProperty("user.home"));
-            historyFile = tryInitializeInDirectory(homeDir);
-        }
-
-        if (historyFile == null) {
-            LOGGER.warn("Failed to initialize console history in both server and home directories");
-        }
-    }
-
-    private static File tryInitializeInDirectory(File dir) {
-        File file = new File(dir, HISTORY_FILENAME);
         try {
-            if (!file.exists()) {
-                file.createNewFile();
-                LOGGER.debug("Created console history file at {}", file.getAbsolutePath());
+            if (!historyFile.exists()) {
+                historyFile.createNewFile();
+                LOGGER.debug("Created JLine3 history file at {}", historyFile.getAbsolutePath());
             }
-            return file;
         } catch (IOException e) {
-            LOGGER.debug("Failed to create history file in {}: {}", dir.getAbsolutePath(), e.getMessage());
-            return null;
+            LOGGER.warn("Failed to initialize console history in home directory", e);
         }
     }
 
