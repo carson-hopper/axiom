@@ -512,6 +512,16 @@ public class CommandInvoker {
      * For each candidate method (by param count), attempt to build args.
      * Returns the first method where all arguments parse successfully.
      */
+    private boolean hasMethodsForType(SenderType type) {
+        for (Method m : executeMethods) {
+            Execute execute = m.getAnnotation(Execute.class);
+            if (execute != null && execute.type() == type) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean senderTypeMatches(Method method, CommandSender sender) {
         Execute execute = method.getAnnotation(Execute.class);
         if (execute == null) {
@@ -553,6 +563,12 @@ public class CommandInvoker {
         List<Method> filtered = specificMatches.isEmpty() ? bothMatches : specificMatches;
 
         if (filtered.isEmpty()) {
+            // No matching methods — send a default message based on what's available
+            if (sender.isPlayer() && hasMethodsForType(SenderType.CONSOLE)) {
+                sender.sendMessage("This command can only be run from the console.");
+            } else if (!sender.isPlayer() && hasMethodsForType(SenderType.PLAYER)) {
+                sender.sendMessage("This command can only be run by a player.");
+            }
             return null;
         }
 
