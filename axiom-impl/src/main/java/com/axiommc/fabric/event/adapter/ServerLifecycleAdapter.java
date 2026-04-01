@@ -43,7 +43,7 @@ public class ServerLifecycleAdapter implements FabricEventAdapter {
     /**
      * Returns the current MinecraftServer instance, available after ServerStartEvent fires.
      */
-    public static MinecraftServer getMinecraftServer() {
+    public static MinecraftServer minecraftServer() {
         return currentServer;
     }
 }

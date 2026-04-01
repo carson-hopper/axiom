@@ -140,22 +140,21 @@ public class AxiomMod implements ModInitializer {
         });
 
         eventBus.subscribe(ServerStartEvent.class, event -> {
-            MinecraftServer mcServer = ServerLifecycleAdapter.getMinecraftServer();
             LOGGER.info("Minecraft server started");
-            this.minecraftServer = mcServer;
+            this.minecraftServer = ServerLifecycleAdapter.minecraftServer();
             this.guiManager = new FabricGuiManager();
-            this.sidebarManager = new FabricSidebarManager(mcServer);
+            this.sidebarManager = new FabricSidebarManager(minecraftServer);
 
-            ConsoleHistory.initialize(mcServer.getServerDirectory().toFile());
+            ConsoleHistory.initialize(minecraftServer.getServerDirectory().toFile());
             LOGGER.debug("Console history initialized");
 
-            for (ServerLevel level : mcServer.getAllLevels()) {
+            for (ServerLevel level : minecraftServer.getAllLevels()) {
                 World world = new FabricWorld(level);
                 worlds.put(world.name(), world);
                 LOGGER.debug("Registered world: {}", world.name());
             }
 
-            playerProvider.setServer(mcServer);
+            playerProvider.setServer(minecraftServer);
             LOGGER.debug("Player provider initialized");
 
             loadPluginsFromDirectory();
