@@ -90,19 +90,28 @@ public class RandomTeleportCommand {
     }
 
     private Location findSafeLocation(World world, int radius) {
+        int seaLevel = 64;
+
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
             int x = random.nextInt(radius * 2 + 1) - radius;
             int z = random.nextInt(radius * 2 + 1) - radius;
 
-            int y = world.highestBlockY(x, z) + 1;
-            if (y < world.minHeight() || y > world.maxHeight()) {
-                continue;
+            // Start from sea level and search upwards
+            for (int y = seaLevel; y < world.maxHeight(); y++) {
+                if (isSafeLocation(world, x, y, z)) {
+                    Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
+                    Vector2 rotation = new Vector2(0, 0);
+                    return new Location(world, position, rotation);
+                }
             }
 
-            if (isSafeLocation(world, x, y, z)) {
-                Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
-                Vector2 rotation = new Vector2(0, 0);
-                return new Location(world, position, rotation);
+            // If not found going up, try going down from sea level
+            for (int y = seaLevel - 1; y >= world.minHeight(); y--) {
+                if (isSafeLocation(world, x, y, z)) {
+                    Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
+                    Vector2 rotation = new Vector2(0, 0);
+                    return new Location(world, position, rotation);
+                }
             }
         }
         return null;
