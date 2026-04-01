@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  * Custom logger that automatically colorizes output based on log level.
  *
  * <ul>
- *   <li>INFO  → White</li>
+ *   <li>INFO  → Blue</li>
  *   <li>WARN  → Yellow</li>
  *   <li>ERROR → Red</li>
  *   <li>DEBUG → Gray</li>
@@ -30,7 +30,7 @@ public class AxiomLogger {
 
     public void info(String message, Object... args) {
         String formatted = format(message, args);
-        delegate.info(ConsoleColorFormatter.formatWithAnsi("§f" + formatted));
+        delegate.info(ConsoleColorFormatter.formatWithAnsi("§9" + formatted));
     }
 
     public void warn(String message, Object... args) {

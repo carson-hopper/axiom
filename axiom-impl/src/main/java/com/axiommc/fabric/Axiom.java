@@ -92,20 +92,6 @@ public class Axiom {
         return manager;
     }
 
-    /**
-     * Sends a formatted message to the server console with ANSI color support.
-     */
-    public static void consoleSendMessage(ChatComponent message) {
-        LOGGER.info(message);
-    }
-
-    /**
-     * Sends a plain string message to the server console.
-     */
-    public static void consoleSendMessage(String message) {
-        LOGGER.info(message);
-    }
-
     public static SidebarManager sidebarManager() {
         AxiomMod mod = AxiomMod.instance();
         if (mod == null) {

@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
 @Plugin(id = "axiom", name = "Axiom", version = "1.0.0", side = PluginSide.SERVER)
 public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
 
-    private static final Logger logger = LoggerFactory.getLogger(AxiomPlugin.class);
-
     private static AxiomPlugin instance;
 
     @Override
@@ -46,26 +44,26 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         EventBus eventBus = context.eventBus();
         eventBus.subscribe(PlayerJoinEvent.class, event -> {
             event.player().sendMessage("Yayy");
-            Axiom.consoleSendMessage(ChatComponent.text(event.player().name() + " joined!").color(ChatColor.BLUE));
+            Axiom.logger().info(ChatComponent.textf("%s joined!", event.player().name()).color(ChatColor.BLUE));
         }, EventPriority.NORMAL);
 
         eventBus.subscribe(ServerStartEvent.class, event -> {
-            logger.info("========================================");
-            logger.info("{}: Server has started!", event.server().id());
-            logger.info("The plugin event system is working correctly.");
-            logger.info("========================================");
+            Axiom.logger().info("========================================");
+            Axiom.logger().info("{}: Server has started!", event.server().id());
+            Axiom.logger().info("The plugin event system is working correctly.");
+            Axiom.logger().info("========================================");
         }, EventPriority.NORMAL);
 
-        logger.info("========================================");
-        logger.info("Test Plugin loaded successfully!");
-        logger.info("Plugin ID: test-plugin");
-        logger.info("Plugin Version: 1.0.0");
-        logger.info("========================================");
+        Axiom.logger().info("========================================");
+        Axiom.logger().info("Test Plugin loaded successfully!");
+        Axiom.logger().info("Plugin ID: test-plugin");
+        Axiom.logger().info("Plugin Version: 1.0.0");
+        Axiom.logger().info("========================================");
     }
 
     @Override
     public void onDisable() {
-        logger.info("Test Plugin disabled");
+        Axiom.logger().info("Test Plugin disabled");
     }
 
     public static AxiomPlugin instance() {
