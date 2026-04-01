@@ -81,6 +81,11 @@ public class AxiomMod implements ModInitializer {
         try {
             this.playerProvider = new FabricPlayerProvider();
             LOGGER.debug("Player provider created");
+
+            // Now that playerProvider exists, set up player events
+            if (eventBus instanceof FabricEventBus fabricEventBus) {
+                fabricEventBus.setupPlayerEvents();
+            }
         } catch (Exception e) {
             LOGGER.error("Failed to create player provider", e);
             return; // Fatal - can't continue without player provider
@@ -331,5 +336,9 @@ public class AxiomMod implements ModInitializer {
 
     public MinecraftServer minecraftServer() {
         return minecraftServer;
+    }
+
+    public static AxiomMod getInstance() {
+        return instance;
     }
 }
