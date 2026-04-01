@@ -7,6 +7,7 @@ import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.command.FabricCommandHandler;
 import com.axiommc.fabric.console.ConsoleHistory;
+import com.axiommc.fabric.console.JLineHistoryIntegration;
 import com.axiommc.fabric.event.FabricEventBus;
 import com.axiommc.fabric.gui.FabricGuiManager;
 import com.axiommc.fabric.player.FabricPlayerProvider;
@@ -140,6 +141,9 @@ public class AxiomMod implements ModInitializer {
 
             ConsoleHistory.initialize(server.getServerDirectory().toFile());
             LOGGER.debug("Console history initialized");
+
+            JLineHistoryIntegration.initialize(server);
+            LOGGER.debug("JLine3 history integration initialized");
 
             for (ServerLevel level : server.getAllLevels()) {
                 World world = new FabricWorld(level);
