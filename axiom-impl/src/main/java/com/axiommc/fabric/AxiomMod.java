@@ -5,12 +5,14 @@ import com.axiommc.api.event.server.ServerStartEvent;
 import com.axiommc.api.event.server.ServerStopEvent;
 import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
 import com.axiommc.api.gui.GuiManager;
+import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.command.FabricCommandHandler;
 import com.axiommc.fabric.event.FabricEventBus;
 import com.axiommc.fabric.gui.FabricGuiManager;
+import com.axiommc.fabric.screen.FabricScreenManager;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import com.axiommc.fabric.plugin.SimplePluginLoader;
 import com.axiommc.fabric.sidebar.FabricSidebarManager;
@@ -48,6 +50,7 @@ public class AxiomMod implements ModInitializer {
     private MinecraftServer minecraftServer;
     private GuiManager guiManager;
     private SidebarManager sidebarManager;
+    private ScreenManager screenManager;
     private final Map<String, World> worlds = new ConcurrentHashMap<>();
 
     // ============================================================
@@ -136,6 +139,7 @@ public class AxiomMod implements ModInitializer {
             this.minecraftServer = ServerLifecycleAdapter.minecraftServer();
             this.guiManager = new FabricGuiManager();
             this.sidebarManager = new FabricSidebarManager(minecraftServer);
+            this.screenManager = new FabricScreenManager();
 
             for (ServerLevel level : minecraftServer.getAllLevels()) {
                 World world = new FabricWorld(level);
@@ -305,6 +309,10 @@ public class AxiomMod implements ModInitializer {
 
     public SidebarManager sidebarManager() {
         return sidebarManager;
+    }
+
+    public ScreenManager screenManager() {
+        return screenManager;
     }
 
     public MinecraftServer minecraftServer() {

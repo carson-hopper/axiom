@@ -4,11 +4,8 @@ import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.gui.Gui;
-import com.axiommc.api.math.Vector2;
 import com.axiommc.api.sound.SoundKey;
 import com.axiommc.api.world.Server;
-
-import java.util.UUID;
 
 /**
  * Represents a player connected to the server.

@@ -3,6 +3,7 @@ package com.axiommc.fabric;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.player.Player;
+import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
@@ -98,6 +99,18 @@ public class Axiom {
             throw new IllegalStateException("Axiom is not initialized");
         }
         SidebarManager manager = mod.sidebarManager();
+        if (manager == null) {
+            throw new IllegalStateException("Server not started yet");
+        }
+        return manager;
+    }
+
+    public static ScreenManager screenManager() {
+        AxiomMod mod = AxiomMod.instance();
+        if (mod == null) {
+            throw new IllegalStateException("Axiom is not initialized");
+        }
+        ScreenManager manager = mod.screenManager();
         if (manager == null) {
             throw new IllegalStateException("Server not started yet");
         }
