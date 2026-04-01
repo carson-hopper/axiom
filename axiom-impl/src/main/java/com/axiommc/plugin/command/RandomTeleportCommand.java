@@ -12,6 +12,7 @@ import com.axiommc.api.command.annotation.Optional;
 import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Usage;
 import com.axiommc.api.config.PluginConfig;
+import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
@@ -111,7 +112,7 @@ public class RandomTeleportCommand {
             int z = random.nextInt(radius * 2 + 1) - radius;
 
             // Search from sea level upwards
-            for (int y = seaLevel; y < world.maxHeight(); y++) {
+            for (int y = seaLevel; y < (world.maxHeight() - 2); y++) {
                 if (isSafeLocation(world, x, y, z)) {
                     Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
                     Vector2 rotation = new Vector2(0, 0);
@@ -147,12 +148,39 @@ public class RandomTeleportCommand {
 
             if (!playerBlockAir || !headBlockAir || !groundSolid) {
                 LOGGER.debug("Not safe at {},{},{}: player={} head={} ground={}", x, y, z, playerBlockType, headBlockType, groundBlockType);
+                return false;
             }
 
-            return playerBlockAir && headBlockAir && groundSolid;
+            // Check for mobs in a 3-block radius
+            if (hasNearbyMobs(world, x, y, z)) {
+                LOGGER.debug("Not safe at {},{},{}: mobs nearby", x, y, z);
+                return false;
+            }
+
+            return true;
         } catch (Exception e) {
             LOGGER.warn("Error checking safe location at {},{},{}", x, y, z, e);
             return false;
         }
+    }
+
+    private boolean hasNearbyMobs(World world, int x, int y, int z) {
+        int radius = 2;
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    int checkX = x + dx;
+                    int checkY = y + dy;
+                    int checkZ = z + dz;
+
+                    Material blockType = world.blockAt(checkX, checkY, checkZ).type();
+                    // Check for spawner blocks
+                    if (blockType.id().contains("spawner")) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
