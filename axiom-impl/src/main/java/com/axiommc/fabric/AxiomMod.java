@@ -58,8 +58,6 @@ public class AxiomMod implements ModInitializer {
     public void onInitialize() {
         instance = this;
 
-        LOGGER.info("Axiom initializing!");
-
         // ────────────────────────────────────────────────────────
         // Event Bus Setup
         // ────────────────────────────────────────────────────────
@@ -67,7 +65,7 @@ public class AxiomMod implements ModInitializer {
         try {
             this.eventBus = new FabricEventBus();
         } catch (Exception e) {
-            LOGGER.error("Failed to create event bus", e);
+            Axiom.logger().error("Failed to create event bus", e);
             return;
         }
 
@@ -77,14 +75,12 @@ public class AxiomMod implements ModInitializer {
 
         try {
             this.playerProvider = new FabricPlayerProvider();
-            LOGGER.debug("Player provider created");
 
-            // Now that playerProvider exists, initialize all event adapters
             if (eventBus instanceof FabricEventBus fabricEventBus) {
                 fabricEventBus.initialize(playerProvider);
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to create player provider", e);
+            Axiom.logger().error("Failed to create player provider", e);
             return; // Fatal - can't continue without player provider
         }
 
@@ -94,27 +90,23 @@ public class AxiomMod implements ModInitializer {
 
         try {
             this.commandHandler = new FabricCommandHandler(eventBus);
-            LOGGER.debug("Command handler created");
 
             try {
                 CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
                     try {
                         unregisterAllCommands(dispatcher);
-                        LOGGER.debug("Unregistered built-in commands");
-
                         commandHandler.register(dispatcher);
-                        LOGGER.debug("Registered custom commands");
                     } catch (Throwable e) {
-                        LOGGER.warn("Failed to register commands with Brigadier - commands will not be available", e);
+                        Axiom.logger().warn("Failed to register commands with Brigadier - commands will not be available", e);
                     }
                 });
-                LOGGER.debug("Command handler registered with CommandRegistrationCallback");
+                Axiom.logger().debug("Command handler registered with CommandRegistrationCallback");
             } catch (Throwable e) {
-                LOGGER.warn("Failed to register command handler callback - commands will not be available", e);
-                LOGGER.debug("This is expected in some production environments due to class loading issues");
+                Axiom.logger().warn("Failed to register command handler callback - commands will not be available", e);
+                Axiom.logger().debug("This is expected in some production environments due to class loading issues");
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to create command handler", e);
+            Axiom.logger().error("Failed to create command handler", e);
             throw new RuntimeException("Axiom initialization failed at command handler creation", e);
         }
 
@@ -126,7 +118,7 @@ public class AxiomMod implements ModInitializer {
             this.pluginLoader = new SimplePluginLoader(eventBus, playerProvider);
             pluginLoader.loadPlugin(com.axiommc.plugin.AxiomPlugin.class);
         } catch (Exception e) {
-            LOGGER.error("Failed to create plugin loader", e);
+            Axiom.logger().error("Failed to create plugin loader", e);
             return;
         }
 
@@ -146,22 +138,17 @@ public class AxiomMod implements ModInitializer {
             for (ServerLevel level : minecraftServer.getAllLevels()) {
                 World world = new FabricWorld(level);
                 worlds.put(world.name(), world);
-                LOGGER.debug("Registered world: {}", world.name());
             }
 
             playerProvider.setServer(minecraftServer);
-            LOGGER.debug("Player provider initialized");
 
             loadPluginsFromDirectory();
             pluginLoader.printLoadSummary();
         });
 
         eventBus.subscribe(ServerStopEvent.class, event -> {
-            LOGGER.info("Minecraft server stopping");
             pluginLoader.disableAllPlugins();
         });
-
-        LOGGER.info("Axiom Fabric mod initialized successfully");
     }
 
     // ============================================================
@@ -216,7 +203,7 @@ public class AxiomMod implements ModInitializer {
         }
 
         File[] files = pluginsDir.listFiles();
-        if (files == null || files.length == 0) {
+        if (files == null) {
             return;
         }
 
@@ -230,15 +217,15 @@ public class AxiomMod implements ModInitializer {
     private boolean ensurePluginDirectory(File pluginsDir) {
         if (pluginsDir.exists()) {
             if (!pluginsDir.isDirectory()) {
-                LOGGER.warn("plugins is not a directory");
+                Axiom.logger().warn("plugins is not a directory");
                 return false;
             }
             return true;
         }
 
-        LOGGER.info("Plugins directory does not exist, creating it");
+        Axiom.logger().info("Plugins directory does not exist, creating it");
         if (!pluginsDir.mkdirs()) {
-            LOGGER.warn("Failed to create plugins directory");
+            Axiom.logger().warn("Failed to create plugins directory");
             return false;
         }
         return true;
@@ -252,13 +239,11 @@ public class AxiomMod implements ModInitializer {
         return file.isFile() && file.getName().endsWith(".jar");
     }
 
-    private int loadPluginFile(File file) {
+    private void loadPluginFile(File file) {
         try {
             pluginLoader.loadPlugin(file);
-            return 1;
         } catch (Exception e) {
             LOGGER.error("Failed to load plugin from file: {}", file.getName(), e);
-            return 0;
         }
     }
 

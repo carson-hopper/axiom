@@ -25,7 +25,7 @@ public class FabricCommandRegistry implements CommandRegistry {
     public void register(Object command) {
         Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
         if (cmdAnnotation == null) {
-            Axiom.logger().warn("Command {} does not have @Command annotation, skipping registration",
+            Axiom.logger().warn("Command %s does not have @Command annotation, skipping registration",
                 command.getClass().getName());
             return;
         }
@@ -33,10 +33,8 @@ public class FabricCommandRegistry implements CommandRegistry {
         try {
             CommandInvoker invoker = new CommandInvoker(command, parserRegistry, environment);
             commands.put(cmdAnnotation.name(), invoker);
-            Axiom.logger().info("Registered command: {} {}", cmdAnnotation.name(),
-                cmdAnnotation.aliases().length > 0 ? "with aliases: " + String.join(", ", cmdAnnotation.aliases()) : "");
         } catch (Exception e) {
-            Axiom.logger().error("Failed to register command {}", command.getClass().getName(), e);
+            Axiom.logger().error("Failed to register command %s", command.getClass().getName(), e);
         }
     }
 
@@ -51,7 +49,7 @@ public class FabricCommandRegistry implements CommandRegistry {
     @Override
     public void unregister(String name) {
         commands.remove(name);
-        Axiom.logger().info("Unregistered command: {}", name);
+        Axiom.logger().info("Unregistered command: %s", name);
     }
 
     public CommandInvoker get(String name) {

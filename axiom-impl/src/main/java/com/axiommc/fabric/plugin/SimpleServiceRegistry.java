@@ -14,7 +14,7 @@ public class SimpleServiceRegistry implements ServiceRegistry {
     @Override
     public <T> void register(Class<T> type, T implementation) {
         services.put(type, implementation);
-        Axiom.logger().debug("Registered service: {}", type.getSimpleName());
+        Axiom.logger().debug("Registered service: %s", type.getSimpleName());
     }
 
     @Override
@@ -26,7 +26,7 @@ public class SimpleServiceRegistry implements ServiceRegistry {
     @Override
     public <T> void unregister(Class<T> type) {
         services.remove(type);
-        Axiom.logger().debug("Unregistered service: {}", type.getSimpleName());
+        Axiom.logger().debug("Unregistered service: %s", type.getSimpleName());
     }
 
     @Override

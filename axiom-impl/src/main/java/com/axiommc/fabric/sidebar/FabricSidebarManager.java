@@ -5,12 +5,7 @@ import com.axiommc.api.sidebar.Sidebar;
 import com.axiommc.api.sidebar.SidebarManager;
 import net.minecraft.server.MinecraftServer;
 
-public class FabricSidebarManager implements SidebarManager {
-    private final MinecraftServer server;
-
-    public FabricSidebarManager(MinecraftServer server) {
-        this.server = server;
-    }
+public record FabricSidebarManager(MinecraftServer server) implements SidebarManager {
 
     @Override
     public Sidebar create(ChatComponent title) {

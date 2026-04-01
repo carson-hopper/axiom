@@ -55,7 +55,7 @@ public class SimplePluginLoader {
             loadResults.add(new PluginResult(annotation.name(), annotation.version(), true));
         } catch (Exception e) {
             loadResults.add(new PluginResult(annotation.name(), annotation.version(), false));
-            Axiom.logger().error("Failed to load plugin: {}", annotation.name(), e);
+            Axiom.logger().error("Failed to load plugin: %s", annotation.name(), e);
         }
     }
 
@@ -96,7 +96,7 @@ public class SimplePluginLoader {
             }
         } catch (Exception e) {
             loadResults.add(new PluginResult(pluginFile.getName(), "?", false));
-            Axiom.logger().error("Failed to load plugin JAR: {}", pluginFile.getName(), e);
+            Axiom.logger().error("Failed to load plugin JAR: %s", pluginFile.getName(), e);
             if (loader != null) {
                 classLoaders.remove(loader);
                 try {
@@ -107,7 +107,7 @@ public class SimplePluginLoader {
     }
 
     /**
-     * Prints a formatted summary of all loaded plugins.
+     * Prints a formatted summary of all loaded plugins in Maven-style output.
      */
     public void printLoadSummary() {
         if (loadResults.isEmpty()) {
@@ -115,35 +115,24 @@ public class SimplePluginLoader {
             return;
         }
 
-        int maxNameLen = 0;
-        for (PluginResult result : loadResults) {
-            String entry = result.name + " v" + result.version;
-            if (entry.length() > maxNameLen) {
-                maxNameLen = entry.length();
-            }
-        }
-
-        int tableWidth = Math.max(maxNameLen + 12, 40);
-        String separator = "=".repeat(tableWidth);
+        int lineWidth = 60;
+        String separator = "-".repeat(lineWidth);
 
         Axiom.logger().info(ChatComponent.text(separator).color(ChatColor.DARK_GRAY));
 
         for (PluginResult result : loadResults) {
-            String entry = result.name + " v" + result.version;
-            int padding = tableWidth - entry.length() - 8;
-            String pad = " ".repeat(Math.max(1, padding));
+            String name = result.name + " v" + result.version;
+            String status = result.loaded ? "LOADED" : "FAILED";
+            int dotsLen = lineWidth - name.length() - status.length() - 2;
+            String dots = " " + ".".repeat(Math.max(1, dotsLen)) + " ";
 
-            if (result.loaded) {
-                Axiom.logger().info(
-                        ChatComponent.text("  " + entry + pad).color(ChatColor.WHITE)
-                                .append(ChatComponent.text("LOADED").color(ChatColor.GREEN))
-                );
-            } else {
-                Axiom.logger().info(
-                        ChatComponent.text("  " + entry + pad).color(ChatColor.WHITE)
-                                .append(ChatComponent.text("FAILED").color(ChatColor.RED))
-                );
-            }
+            ChatColor statusColor = result.loaded ? ChatColor.GREEN : ChatColor.RED;
+
+            Axiom.logger().info(
+                    ChatComponent.text(name).color(ChatColor.WHITE)
+                            .append(ChatComponent.text(dots).color(ChatColor.DARK_GRAY))
+                            .append(ChatComponent.text(status).color(statusColor))
+            );
         }
 
         Axiom.logger().info(ChatComponent.text(separator).color(ChatColor.DARK_GRAY));

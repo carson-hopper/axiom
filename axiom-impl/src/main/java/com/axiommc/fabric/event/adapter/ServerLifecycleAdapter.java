@@ -21,7 +21,6 @@ public class ServerLifecycleAdapter implements FabricEventAdapter {
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
         ServerLifecycleEvents.SERVER_STARTED.register(mcServer -> {
             currentServer = mcServer;
-            Axiom.logger().debug("Firing ServerStartEvent");
             String host = mcServer.getLocalIp().isEmpty() ? "localhost" : mcServer.getLocalIp();
             int port = mcServer.getPort();
             Server server = new Server("axiom-server", host, port);
@@ -29,7 +28,6 @@ public class ServerLifecycleAdapter implements FabricEventAdapter {
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(mcServer -> {
-            Axiom.logger().debug("Firing ServerStopEvent");
             String host = mcServer.getLocalIp().isEmpty() ? "localhost" : mcServer.getLocalIp();
             int port = mcServer.getPort();
             Server server = new Server("axiom-server", host, port);

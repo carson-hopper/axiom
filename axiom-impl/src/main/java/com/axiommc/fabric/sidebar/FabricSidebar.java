@@ -49,7 +49,7 @@ public class FabricSidebar implements Sidebar {
 
     private Objective createObjective() {
         Scoreboard scoreboard = server.getScoreboard();
-        Objective obj = scoreboard.addObjective(
+        return scoreboard.addObjective(
             objectiveName,
             ObjectiveCriteria.DUMMY,
             title,
@@ -57,7 +57,6 @@ public class FabricSidebar implements Sidebar {
             false,
             null
         );
-        return obj;
     }
 
     @Override

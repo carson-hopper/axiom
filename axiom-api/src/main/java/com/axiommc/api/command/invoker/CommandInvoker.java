@@ -17,6 +17,7 @@ import com.axiommc.api.command.annotation.Usage;
 import com.axiommc.api.command.parser.ArgParseException;
 import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.command.parser.ArgParserRegistry;
+import com.axiommc.api.entity.Entity;
 import com.axiommc.api.plugin.PluginEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,9 +144,8 @@ public class CommandInvoker {
         Class<?> commandClass = command.getClass();
         Command cmdAnnotation = commandClass.getAnnotation(Command.class);
 
-        // Log command execution
         String commandName = cmdAnnotation != null ? cmdAnnotation.name() : commandClass.getSimpleName();
-        String senderName = sender.isPlayer() ? sender.asPlayer().map(p -> p.name()).orElse("Unknown") : "Console";
+        String senderName = sender.isPlayer() ? sender.asPlayer().map(Entity::name).orElse("Unknown") : "Console";
         String argsStr = args.length > 0 ? String.join(" ", args) : "";
         LOGGER.info("Command executed: /{} {} (by: {})", commandName, argsStr, senderName);
 

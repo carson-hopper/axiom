@@ -16,21 +16,21 @@ public class FabricParticleConverter {
             ParticleOptions particleOptions = mapParticle(key);
 
             if (particleOptions == null) {
-                Axiom.logger().warn("Unknown or unsupported particle type: {}", key);
+                Axiom.logger().warn("Unknown or unsupported particle type: %s", key);
                 return null;
             }
 
             // Check if data is required but not provided
             if (effect.data() != null && !(particleOptions instanceof SimpleParticleType)) {
                 // Complex particle types with data are not yet supported
-                Axiom.logger().warn("Particle type {} with data is not yet supported", key);
+                Axiom.logger().warn("Particle type %s with data is not yet supported", key);
                 return null;
             }
 
             return particleOptions;
 
         } catch (Exception e) {
-            Axiom.logger().error("Failed to convert particle: {}", key, e);
+            Axiom.logger().error("Failed to convert particle: %s", key, e);
             return null;
         }
     }

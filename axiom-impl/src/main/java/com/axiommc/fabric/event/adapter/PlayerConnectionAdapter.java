@@ -26,7 +26,7 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
                         .orElseGet(() -> new FabricPlayer(serverPlayer));
                 eventBus.publish(new PlayerJoinEvent(player));
             } catch (Exception e) {
-                Axiom.logger().debug("Error firing PlayerJoinEvent", e);
+
             }
         });
 
@@ -37,7 +37,7 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
                 Axiom.logger().debug("Firing PlayerLeaveEvent for {}", player.name());
                 eventBus.publish(new PlayerLeaveEvent(player));
             } catch (Exception e) {
-                Axiom.logger().debug("Error firing PlayerLeaveEvent", e);
+
             }
         });
 
@@ -45,9 +45,7 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
         ServerMessageEvents.ALLOW_GAME_MESSAGE.register((server, message, overlay) -> {
             if (message.getContents() instanceof TranslatableContents translatable) {
                 String key = translatable.getKey();
-                if (key.startsWith("multiplayer.player.joined") || key.startsWith("multiplayer.player.left")) {
-                    return false;
-                }
+                return !key.startsWith("multiplayer.player.joined") && !key.startsWith("multiplayer.player.left");
             }
             return true;
         });

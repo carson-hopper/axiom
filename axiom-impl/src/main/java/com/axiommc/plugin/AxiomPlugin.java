@@ -43,22 +43,9 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
 
         EventBus eventBus = context.eventBus();
         eventBus.subscribe(PlayerJoinEvent.class, event -> {
-            event.player().sendMessage("Yayy");
+            event.player().sendMessage(ChatComponent.textf("%s joined!", event.player().name()).color(ChatColor.BLUE));
             Axiom.logger().info(ChatComponent.textf("%s joined!", event.player().name()).color(ChatColor.BLUE));
         }, EventPriority.NORMAL);
-
-        eventBus.subscribe(ServerStartEvent.class, event -> {
-            Axiom.logger().info("========================================");
-            Axiom.logger().info("{}: Server has started!", event.server().id());
-            Axiom.logger().info("The plugin event system is working correctly.");
-            Axiom.logger().info("========================================");
-        }, EventPriority.NORMAL);
-
-        Axiom.logger().info("========================================");
-        Axiom.logger().info("Test Plugin loaded successfully!");
-        Axiom.logger().info("Plugin ID: test-plugin");
-        Axiom.logger().info("Plugin Version: 1.0.0");
-        Axiom.logger().info("========================================");
     }
 
     @Override

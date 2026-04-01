@@ -6,6 +6,7 @@ import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.player.FabricPlayer;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -16,6 +17,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemLore;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -90,7 +93,7 @@ public class FabricGuiManager implements GuiManager {
 
     private ItemStack toItemStack(com.axiommc.api.chat.Item item) {
         Item mcItem = BuiltInRegistries.ITEM.get(net.minecraft.resources.Identifier.parse(item.materialKey()))
-            .map(holder -> holder.value())
+            .map(Holder.Reference::value)
             .orElse(Items.BARRIER);
         ItemStack stack = new ItemStack(mcItem, item.count());
 
@@ -160,9 +163,7 @@ public class FabricGuiManager implements GuiManager {
 
         @Override
         public void clearContent() {
-            for (int i = 0; i < items.length; i++) {
-                items[i] = ItemStack.EMPTY;
-            }
+            Arrays.fill(items, ItemStack.EMPTY);
         }
 
         @Override

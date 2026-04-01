@@ -19,10 +19,10 @@ public class FabricBossBarManager implements BossBarManager {
         UUID id = UUID.randomUUID();
 
         Component title = Component.literal(spec.title().toString());
-        net.minecraft.world.BossEvent.BossBarColor mcColor = mapColor(spec.color());
-        net.minecraft.world.BossEvent.BossBarOverlay mcStyle = mapStyle(spec.style());
+        BossEvent.BossBarColor mcColor = mapColor(spec.color());
+        BossEvent.BossBarOverlay mcStyle = mapStyle(spec.style());
 
-        net.minecraft.server.level.ServerBossEvent serverBossEvent = new ServerBossEvent(id, title, mcColor, mcStyle);
+        ServerBossEvent serverBossEvent = new ServerBossEvent(id, title, mcColor, mcStyle);
         serverBossEvent.setProgress(Math.max(0f, Math.min(1f, spec.progress())));
         serverBossEvent.setVisible(true);
 
