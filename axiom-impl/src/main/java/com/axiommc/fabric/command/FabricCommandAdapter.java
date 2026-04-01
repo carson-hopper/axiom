@@ -1,5 +1,8 @@
 package com.axiommc.fabric.command;
 
+import com.axiommc.api.command.CommandSender;
+import com.axiommc.api.command.invoker.CommandInvoker;
+import com.axiommc.fabric.console.ConsoleHistory;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -7,8 +10,6 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import com.axiommc.api.command.CommandSender;
-import com.axiommc.api.command.invoker.CommandInvoker;
 import net.minecraft.commands.CommandSourceStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,9 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
 
     private int executeNoArgs(CommandContext<CommandSourceStack> ctx) {
         try {
-            invoker.execute(new FabricCommandSender(ctx.getSource()), new String[0]);
+            FabricCommandSender sender = new FabricCommandSender(ctx.getSource());
+            invoker.execute(sender, new String[0]);
+            addToConsoleHistory(ctx.getSource(), "");
         } catch (Exception e) {
             LOGGER.error("Error executing command: /{}", commandName, e);
         }
@@ -44,11 +47,20 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
         try {
             String rawArgs = StringArgumentType.getString(ctx, "args");
             String[] args = rawArgs.trim().isEmpty() ? new String[0] : rawArgs.trim().split("\\s+");
-            invoker.execute(new FabricCommandSender(ctx.getSource()), args);
+            FabricCommandSender sender = new FabricCommandSender(ctx.getSource());
+            invoker.execute(sender, args);
+            addToConsoleHistory(ctx.getSource(), rawArgs);
         } catch (Exception e) {
             LOGGER.error("Error executing command: /{}", commandName, e);
         }
         return Command.SINGLE_SUCCESS;
+    }
+
+    private void addToConsoleHistory(CommandSourceStack source, String args) {
+        if (source.getEntity() == null) {
+            String fullCommand = commandName + (args.isEmpty() ? "" : " " + args);
+            ConsoleHistory.addCommand(fullCommand);
+        }
     }
 
     private CompletableFuture<Suggestions> suggest(

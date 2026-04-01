@@ -6,6 +6,7 @@ import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.command.FabricCommandHandler;
+import com.axiommc.fabric.console.ConsoleHistory;
 import com.axiommc.fabric.event.FabricEventBus;
 import com.axiommc.fabric.gui.FabricGuiManager;
 import com.axiommc.fabric.player.FabricPlayerProvider;
@@ -136,6 +137,9 @@ public class AxiomMod implements ModInitializer {
             this.minecraftServer = server;
             this.guiManager = new FabricGuiManager();
             this.sidebarManager = new FabricSidebarManager(server);
+
+            ConsoleHistory.initialize(server.getServerDirectory().toFile());
+            LOGGER.debug("Console history initialized");
 
             for (ServerLevel level : server.getAllLevels()) {
                 World world = new FabricWorld(level);
