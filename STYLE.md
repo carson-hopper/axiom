@@ -35,7 +35,7 @@ Every source file appears in this order, with exactly one blank line between eac
 
 ### 1.5 Imports
 
-- **No wildcard imports** - ever.
+- **Always import each class explicitly.** Never use wildcard (`*`) imports, static or otherwise.
 - Imports are not line-wrapped (column limit does not apply).
 - Order: (1) all static imports in one block, (2) all non-static imports in one block. Separated by one blank line. Within each block, sorted in ASCII order.
 - Do not use static import for nested classes - use normal imports instead.
@@ -208,7 +208,7 @@ public String getName() { return name(); }
 
 - One variable per declaration. No `int a, b;`.
 - Declare local variables close to where they are first used.
-- Use `var` (LVTI) when the type is obvious from context and the variable is short-lived.
+- **Do not use `var`**. Always declare the explicit type. This keeps code readable and unambiguous at a glance.
 
 ### 5.2 Arrays
 
@@ -222,10 +222,10 @@ Always Java-style type brackets: `String[] args`, never `String args[]`.
 
 ```java
 return switch (state) {
-  case READY -> handleReady();
+        case READY -> handleReady();
   case RUNNING -> handleRunning();
   case STOPPED -> handleStopped();
-  default -> throw new IllegalStateException("Unexpected: " + state);
+default -> throw new IllegalStateException("Unexpected: " + state);
 };
 ```
 
@@ -257,12 +257,12 @@ Records already follow our accessor convention naturally. Prefer records for sim
 ```java
 public record Position(int x, int y, int z) {
 
-  public double distanceTo(Position other) {
-    int dx = x - other.x();
-    int dy = y - other.y();
-    int dz = z - other.z();
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  }
+    public double distanceTo(Position other) {
+        int dx = x - other.x();
+        int dy = y - other.y();
+        int dz = z - other.z();
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
 }
 ```
 
@@ -324,10 +324,10 @@ Never silently swallow exceptions. At minimum, log a warning or rethrow. If igno
 
 ```java
 try {
-  int parsed = Integer.parseInt(input);
+int parsed = Integer.parseInt(input);
 } catch (NumberFormatException ignored) {
-  // Expected for user-typed input; fallback to default.
-}
+        // Expected for user-typed input; fallback to default.
+        }
 ```
 
 ### 7.3 Static Members

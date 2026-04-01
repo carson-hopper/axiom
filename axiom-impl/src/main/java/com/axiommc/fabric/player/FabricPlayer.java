@@ -11,6 +11,7 @@ import com.axiommc.api.sound.SoundKey;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.AxiomMod;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.entity.FabricLivingEntity;
 import com.axiommc.fabric.mixin.net.minecraft.world.entity.player.PlayerAccessor;
@@ -26,6 +27,7 @@ import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import org.slf4j.Logger;
@@ -73,7 +75,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public Location location() {
-        var world = world();
+        World world = world();
         Vector3 position = new Vector3(player.getX(), player.getY(), player.getZ());
         Vector2 rotation = new Vector2(player.getYRot(), player.getXRot());
         return new Location(world, position, rotation);
@@ -105,9 +107,9 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public World world() {
-        var level = player.level();
+        ServerLevel level = player.level();
         String worldName = new FabricWorld(level).name();
-        return com.axiommc.fabric.AxiomMod.instance().world(worldName)
+        return AxiomMod.instance().world(worldName)
                 .orElseGet(() -> new FabricWorld(level));
     }
 
@@ -148,9 +150,9 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     public void teleport(Server server, Location location) {
         // For cross-server teleportation, use TransitionPacket (MC 1.20.5+)
         try {
-            var transitionPacketClass = Class.forName("net.minecraft.network.protocol.game.ClientboundTransitionPacket");
-            var constructor = transitionPacketClass.getConstructor(String.class, int.class);
-            var packet = constructor.newInstance(server.host(), server.port());
+            Class<?> transitionPacketClass = Class.forName("net.minecraft.network.protocol.game.ClientboundTransitionPacket");
+            java.lang.reflect.Constructor<?> constructor = transitionPacketClass.getConstructor(String.class, int.class);
+            Object packet = constructor.newInstance(server.host(), server.port());
             player.connection.send((net.minecraft.network.protocol.Packet<?>) packet);
         } catch (Exception e) {
             LOGGER.error("Failed to transfer player {} to server {}:{}", name(), server.host(), server.port(), e);
@@ -227,7 +229,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public void showTitle(ChatComponent title, ChatComponent subtitle, int fadeIn, int stay, int fadeOut, int ttl) {
-        var serializer = new FabricComponentSerializer();
+        FabricComponentSerializer serializer = new FabricComponentSerializer();
         net.minecraft.network.chat.Component mcTitle = serializer.serialize(title);
         net.minecraft.network.chat.Component mcSubtitle = serializer.serialize(subtitle);
         player.connection.send(new ClientboundSetTitlesAnimationPacket(fadeIn, stay, fadeOut));
@@ -261,7 +263,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
         Identifier identifier = Identifier.parse(sound.key());
         registry.get(identifier).ifPresent(soundEvent -> {
-            var packet = new ClientboundSoundPacket(
+            ClientboundSoundPacket packet = new ClientboundSoundPacket(
                 soundEvent,
                 player.getSoundSource(),
                 location().position().x(),

@@ -15,12 +15,14 @@ import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.phys.AABB;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 public class TargetFilter {
 
@@ -75,7 +77,7 @@ public class TargetFilter {
         }
 
         // Remove negative targets from positive set
-        var negativeIds = negative.stream().map(LivingEntity::id).toList();
+        List<UUID> negativeIds = negative.stream().map(LivingEntity::id).toList();
         positive.removeIf(e -> negativeIds.contains(e.id()));
 
         return new ArrayList<>(positive);
@@ -100,8 +102,9 @@ public class TargetFilter {
     }
 
     private static List<LivingEntity> parsePlayerOrMobFilter(String name, CommandSender sender) {
-        var player = Axiom.players().stream()
+        Optional<Player> player = Axiom.players().stream()
                 .filter(p -> p.name().equalsIgnoreCase(name))
+                .map(p -> (Player) p)
                 .findFirst();
 
         if (player.isPresent()) {
@@ -158,7 +161,7 @@ public class TargetFilter {
     private static List<LivingEntity> applyNegation(String filter, CommandSender sender) {
         List<LivingEntity> targets = getAllTargets(sender);
         List<LivingEntity> toRemove = parseFilterSingle(filter, sender);
-        var removeIds = toRemove.stream().map(LivingEntity::id).toList();
+        List<UUID> removeIds = toRemove.stream().map(LivingEntity::id).toList();
         targets.removeIf(e -> removeIds.contains(e.id()));
         return targets;
     }

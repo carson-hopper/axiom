@@ -10,8 +10,10 @@ import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.sidebar.Sidebar;
 import com.axiommc.fabric.Axiom;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @CommandMeta(
         name = "testsidebar",
@@ -29,13 +31,15 @@ public class TestSidebarCommand implements Command {
 
     @Subcommand
     public void create(CommandSender sender) {
-        var player = Axiom.players().stream().findFirst();
+        Optional<Player> player = Axiom.players().stream()
+                .map(p -> (Player) p)
+                .findFirst();
         if (player.isEmpty()) {
             sender.sendMessage(ChatComponent.text("No players online").color(ChatColor.RED));
             return;
         }
 
-        Player p = (Player) player.get();
+        Player p = player.get();
         Sidebar sidebar = Axiom.sidebarManager().create(ChatComponent.text("Test Board").color(ChatColor.GOLD));
 
         for (int i = 0; i < 5; i++) {
@@ -49,13 +53,15 @@ public class TestSidebarCommand implements Command {
 
     @Subcommand
     public void update(CommandSender sender) {
-        var player = Axiom.players().stream().findFirst();
+        Optional<Player> player = Axiom.players().stream()
+                .map(p -> (Player) p)
+                .findFirst();
         if (player.isEmpty()) {
             sender.sendMessage(ChatComponent.text("No players online").color(ChatColor.RED));
             return;
         }
 
-        Player p = (Player) player.get();
+        Player p = player.get();
         Sidebar sidebar = sidebars.get(p.name());
         if (sidebar == null) {
             sender.sendMessage(ChatComponent.text("No sidebar for " + p.name()).color(ChatColor.RED));
@@ -69,13 +75,15 @@ public class TestSidebarCommand implements Command {
 
     @Subcommand
     public void hide(CommandSender sender) {
-        var player = Axiom.players().stream().findFirst();
+        Optional<Player> player = Axiom.players().stream()
+                .map(p -> (Player) p)
+                .findFirst();
         if (player.isEmpty()) {
             sender.sendMessage(ChatComponent.text("No players online").color(ChatColor.RED));
             return;
         }
 
-        Player p = (Player) player.get();
+        Player p = player.get();
         Sidebar sidebar = sidebars.remove(p.name());
         if (sidebar != null) {
             sidebar.hide(p);

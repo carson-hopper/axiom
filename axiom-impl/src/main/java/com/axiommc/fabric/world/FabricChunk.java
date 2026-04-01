@@ -5,9 +5,14 @@ import com.axiommc.api.world.Biome;
 import com.axiommc.api.world.BiomeWritable;
 import com.axiommc.api.world.Chunk;
 import com.axiommc.api.world.World;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.FullChunkStatus;
+import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+
+import java.util.Optional;
 
 public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implements Chunk {
 
@@ -41,7 +46,7 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
 
     @Override
     public void load() {
-        var chunkSource = fabricWorld.level().getChunkSource();
+        ChunkSource chunkSource = fabricWorld.level().getChunkSource();
         chunkSource.getChunk(x(), z(), ChunkStatus.FULL, true);
     }
 
@@ -56,15 +61,33 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
 
     @Override
     public Biome biomeAt(int x, int y, int z) {
-        var biomeHolder = levelChunk.getNoiseBiome(x >> 2, y >> 2, z >> 2);
-        var optionalKey = biomeHolder.unwrapKey();
+        Holder<net.minecraft.world.level.biome.Biome> biomeHolder = levelChunk.getNoiseBiome(x >> 2, y >> 2, z >> 2);
 
-        if (optionalKey.isEmpty()) return Biome.UNKNOWN;
+        try {
+            // Try to get biome ID from the holder's key
+            Optional<?> optionalKey = biomeHolder.unwrapKey();
+            if (optionalKey.isPresent()) {
+                // Get the resource key
+                Object key = optionalKey.get();
+                // Try to get the location from the key using reflection
+                try {
+                    java.lang.reflect.Method locationMethod = key.getClass().getMethod("location");
+                    Identifier identifier = (Identifier) locationMethod.invoke(key);
+                    String biomeIdStr = identifier.getNamespace() + ":" + identifier.getPath();
+                    return Biome.of(biomeIdStr);
+                } catch (Exception e2) {
+                    // If reflection fails, try toString()
+                    String biomeStr = key.toString();
+                    if (biomeStr.contains(":")) {
+                        return Biome.of(biomeStr.replaceAll("[^\\w:]*", ""));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Fall through to default
+        }
 
-        var resourceKey = optionalKey.get();
-        var identifier = resourceKey.identifier();
-        var biomeId = identifier.getNamespace() + ":" + identifier.getPath();
-        return Biome.of(biomeId);
+        return Biome.UNKNOWN;
     }
 
     @Override

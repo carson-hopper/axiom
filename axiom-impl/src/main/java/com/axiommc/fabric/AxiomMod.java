@@ -14,6 +14,7 @@ import com.axiommc.fabric.sidebar.FabricSidebarManager;
 import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.tree.CommandNode;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -186,12 +188,12 @@ public class AxiomMod implements ModInitializer {
      * Brigadier does not provide a public API for removing registered commands.
      */
     private static void unregisterAllCommands(CommandDispatcher<?> dispatcher) {
-        var root = dispatcher.getRoot();
+        CommandNode<?> root = dispatcher.getRoot();
 
         try {
-            var childrenField = root.getClass().getSuperclass().getDeclaredField("children");
-            var literalsField = root.getClass().getSuperclass().getDeclaredField("literals");
-            var argumentsField = root.getClass().getSuperclass().getDeclaredField("arguments");
+            Field childrenField = root.getClass().getSuperclass().getDeclaredField("children");
+            Field literalsField = root.getClass().getSuperclass().getDeclaredField("literals");
+            Field argumentsField = root.getClass().getSuperclass().getDeclaredField("arguments");
 
             childrenField.setAccessible(true);
             literalsField.setAccessible(true);

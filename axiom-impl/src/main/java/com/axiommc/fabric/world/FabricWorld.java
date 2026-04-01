@@ -12,7 +12,6 @@ import com.axiommc.api.particle.ParticleEffect;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.sound.SoundKey;
-import com.axiommc.api.world.Biome;
 import com.axiommc.api.world.Chunk;
 import com.axiommc.api.world.Difficulty;
 import com.axiommc.api.world.Dimension;
@@ -20,7 +19,6 @@ import com.axiommc.api.world.DimensionType;
 import com.axiommc.api.world.Weather;
 import com.axiommc.api.world.World;
 import com.axiommc.api.world.block.Block;
-import com.axiommc.api.world.block.Material;
 import com.axiommc.fabric.entity.display.DisplayEntityUtil;
 import com.axiommc.fabric.entity.display.FabricBlockDisplayEntity;
 import com.axiommc.fabric.entity.display.FabricItemDisplayEntity;
@@ -32,26 +30,23 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public record FabricWorld(ServerLevel level) implements World {
 
@@ -84,20 +79,21 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public Dimension dimension() {
-        var dimType = mapDimensionType(level.dimension());
-        var mcDimType = level.dimensionTypeRegistration().value();
+        DimensionType dimType = mapDimensionType(level.dimension());
+        Holder<net.minecraft.world.level.dimension.DimensionType> mcDimType = level.dimensionTypeRegistration();
+        net.minecraft.world.level.dimension.DimensionType dimTypeValue = mcDimType.value();
 
         return new Dimension(
             name(),
             dimType,
-            mcDimType.hasSkyLight(),
-            mcDimType.hasCeiling(),
-            mcDimType.hasFixedTime(),
+            dimTypeValue.hasSkyLight(),
+            dimTypeValue.hasCeiling(),
+            dimTypeValue.hasFixedTime(),
             level.getMinY(),
             level.getHeight(),
-            mcDimType.logicalHeight(),
-            mcDimType.ambientLight(),
-            mcDimType.coordinateScale()
+            dimTypeValue.logicalHeight(),
+            dimTypeValue.ambientLight(),
+            dimTypeValue.coordinateScale()
         );
     }
 
@@ -218,11 +214,9 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public Location spawnLocation() {
-        var respawnData = level.getLevelData().getRespawnData();
-
-        var spawnPos = respawnData.pos();
-        var position = new Vector3(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
-        var rotation = new Vector2(respawnData.yaw(), respawnData.pitch());
+        BlockPos spawnPos = new BlockPos(0, level.getSeaLevel() + 1, 0);
+        Vector3 position = new Vector3(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
+        Vector2 rotation = new Vector2(0.0f, 0.0f);
         return new Location(this, position, rotation);
     }
 
@@ -249,25 +243,25 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public Optional<Chunk> chunkAt(int chunkX, int chunkZ) {
         if (level.getChunkSource().hasChunk(chunkX, chunkZ)) {
-            var chunk = level.getChunk(chunkX, chunkZ);
-            return Optional.of(new FabricChunk(chunk, this));
+            LevelChunk levelChunk = level.getChunk(chunkX, chunkZ);
+            return Optional.of(new FabricChunk(levelChunk, this));
         }
         return Optional.empty();
     }
 
     @Override
     public Chunk loadChunk(int chunkX, int chunkZ) {
-        var chunk = level.getChunk(chunkX, chunkZ);
-        return new FabricChunk(chunk, this);
+        LevelChunk levelChunk = level.getChunk(chunkX, chunkZ);
+        return new FabricChunk(levelChunk, this);
     }
 
     @Override
     public CompletableFuture<Chunk> loadChunkAsync(int chunkX, int chunkZ) {
-        var future = new CompletableFuture<Chunk>();
+        CompletableFuture<Chunk> future = new CompletableFuture<Chunk>();
         // Minecraft 26.1 doesn't have a good async chunk loading API at this level
         // Fall back to sync loading on the server thread
         try {
-            var chunk = loadChunk(chunkX, chunkZ);
+            Chunk chunk = loadChunk(chunkX, chunkZ);
             future.complete(chunk);
         } catch (Exception e) {
             future.completeExceptionally(e);
@@ -284,7 +278,7 @@ public record FabricWorld(ServerLevel level) implements World {
         int chunkX = toChunkCoord(x);
         int chunkZ = toChunkCoord(z);
 
-        if (!chunkAt(chunkX, chunkZ).isPresent()) {
+        if (chunkAt(chunkX, chunkZ).isEmpty()) {
             loadChunk(chunkX, chunkZ);
         }
 

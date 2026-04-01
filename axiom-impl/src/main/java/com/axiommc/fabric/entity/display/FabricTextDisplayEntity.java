@@ -6,6 +6,7 @@ import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Display;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -62,7 +63,7 @@ public record FabricTextDisplayEntity(Display.TextDisplay entity) implements Tex
 
     @Override
     public Vector3 velocity() {
-        var motion = entity.getDeltaMovement();
+        Vec3 motion = entity.getDeltaMovement();
         return new Vector3(motion.x, motion.y, motion.z);
     }
 

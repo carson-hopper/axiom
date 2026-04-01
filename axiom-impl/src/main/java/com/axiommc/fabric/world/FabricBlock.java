@@ -8,6 +8,7 @@ import com.axiommc.api.world.block.BlockState;
 import com.axiommc.api.world.block.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -51,18 +52,18 @@ public class FabricBlock implements Block {
 
     @Override
     public Material type() {
-        var mcBlock = serverLevel.getBlockState(blockPos).getBlock();
-        var identifier = BuiltInRegistries.BLOCK.getKey(mcBlock);
+        net.minecraft.world.level.block.Block mcBlock = serverLevel.getBlockState(blockPos).getBlock();
+        Identifier identifier = BuiltInRegistries.BLOCK.getKey(mcBlock);
         return Material.of(identifier.toString());
     }
 
     @Override
     public BlockState state() {
-        var mcBlockState = serverLevel.getBlockState(blockPos);
-        var properties = new HashMap<String, String>();
+        net.minecraft.world.level.block.state.BlockState mcBlockState = serverLevel.getBlockState(blockPos);
+        Map<String, String> properties = new HashMap<String, String>();
 
-        for (var property : mcBlockState.getProperties()) {
-            var value = mcBlockState.getValue(property);
+        for (net.minecraft.world.level.block.state.properties.Property<?> property : mcBlockState.getProperties()) {
+            Comparable<?> value = mcBlockState.getValue(property);
             properties.put(property.getName(), value.toString());
         }
 
@@ -84,7 +85,7 @@ public class FabricBlock implements Block {
 
     @Override
     public boolean solid() {
-        var blockState = serverLevel.getBlockState(blockPos);
+        net.minecraft.world.level.block.state.BlockState blockState = serverLevel.getBlockState(blockPos);
         return !blockState.isAir();
     }
 
@@ -109,7 +110,7 @@ public class FabricBlock implements Block {
 
     @Override
     public Block relative(BlockFace face) {
-        var direction = switch (face) {
+        Direction direction = switch (face) {
             case UP -> Direction.UP;
             case DOWN -> Direction.DOWN;
             case NORTH -> Direction.NORTH;
@@ -117,15 +118,15 @@ public class FabricBlock implements Block {
             case EAST -> Direction.EAST;
             case WEST -> Direction.WEST;
         };
-        var newPos = blockPos.relative(direction);
+        BlockPos newPos = blockPos.relative(direction);
         return new FabricBlock(serverLevel, newPos.getX(), newPos.getY(), newPos.getZ(), world);
     }
 
     @Override
     public Block relative(Vector3 delta) {
-        var newX = (int) (blockPos.getX() + delta.x());
-        var newY = (int) (blockPos.getY() + delta.y());
-        var newZ = (int) (blockPos.getZ() + delta.z());
+        int newX = (int) (blockPos.getX() + delta.x());
+        int newY = (int) (blockPos.getY() + delta.y());
+        int newZ = (int) (blockPos.getZ() + delta.z());
         return new FabricBlock(serverLevel, newX, newY, newZ, world);
     }
 
@@ -136,7 +137,7 @@ public class FabricBlock implements Block {
     @Override
     public void type(Material type) {
         try {
-            var newBlockState = parseBlockState(type);
+            net.minecraft.world.level.block.state.BlockState newBlockState = parseBlockState(type);
             if (newBlockState != null) {
                 serverLevel.setBlock(blockPos, newBlockState, 3);
             }
@@ -146,13 +147,14 @@ public class FabricBlock implements Block {
     }
 
     private net.minecraft.world.level.block.state.BlockState parseBlockState(Material type) {
-        var identifier = Identifier.tryParse(type.id());
+        Identifier identifier = Identifier.tryParse(type.id());
         if (identifier == null) return null;
 
-        var blockHolder = BuiltInRegistries.BLOCK.get(identifier);
-        if (blockHolder.isEmpty()) return null;
+        java.util.Optional<? extends Holder<net.minecraft.world.level.block.Block>> blockHolderOptional = BuiltInRegistries.BLOCK.get(identifier);
+        if (blockHolderOptional.isEmpty()) return null;
 
-        var mcBlock = blockHolder.get().value();
+        Holder<net.minecraft.world.level.block.Block> blockHolder = blockHolderOptional.get();
+        net.minecraft.world.level.block.Block mcBlock = blockHolder.value();
         return mcBlock.defaultBlockState();
     }
 

@@ -8,6 +8,7 @@ import com.axiommc.api.world.World;
 import com.axiommc.fabric.world.FabricWorld;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.UUID;
 
@@ -61,10 +62,10 @@ public class FabricLivingEntity implements LivingEntity {
 
     @Override
     public Location location() {
-        var level = (ServerLevel) entity.level();
-        var world = new FabricWorld(level);
-        var position = new Vector3(entity.getX(), entity.getY(), entity.getZ());
-        var rotation = new Vector2(entity.getYRot(), entity.getXRot());
+        ServerLevel level = (ServerLevel) entity.level();
+        World world = new FabricWorld(level);
+        Vector3 position = new Vector3(entity.getX(), entity.getY(), entity.getZ());
+        Vector2 rotation = new Vector2(entity.getYRot(), entity.getXRot());
         return new Location(world, position, rotation);
     }
 
@@ -75,7 +76,7 @@ public class FabricLivingEntity implements LivingEntity {
 
     @Override
     public Vector3 velocity() {
-        var motion = entity.getDeltaMovement();
+        Vec3 motion = entity.getDeltaMovement();
         return new Vector3(motion.x, motion.y, motion.z);
     }
 
@@ -97,7 +98,7 @@ public class FabricLivingEntity implements LivingEntity {
 
     @Override
     public World world() {
-        var level = (ServerLevel) entity.level();
+        ServerLevel level = (ServerLevel) entity.level();
         return new FabricWorld(level);
     }
 
