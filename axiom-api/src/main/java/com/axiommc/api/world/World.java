@@ -11,8 +11,7 @@ import com.axiommc.api.particle.ParticleEffect;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.sound.SoundKey;
-import com.axiommc.api.world.block.Block;
-import com.axiommc.api.world.block.Material;
+import com.axiommc.api.block.Block;
 
 import java.util.Collection;
 import java.util.Objects;

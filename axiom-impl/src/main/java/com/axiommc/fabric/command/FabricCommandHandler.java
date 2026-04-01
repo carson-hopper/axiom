@@ -12,7 +12,9 @@ import com.axiommc.api.command.parser.StringArgParser;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.plugin.PluginEnvironment;
+import com.axiommc.api.world.World;
 import com.axiommc.fabric.command.parser.FabricPlayerArgParser;
+import com.axiommc.fabric.command.parser.FabricWorldArgParser;
 import com.axiommc.fabric.command.parser.Vector3ArgParser;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.fabric.player.FabricPlayer;
@@ -98,6 +100,7 @@ public class FabricCommandHandler {
         parserRegistry.register(Double.class, new DoubleArgParser());
         parserRegistry.register(String.class, new StringArgParser());
         parserRegistry.register(Player.class, new FabricPlayerArgParser());
+        parserRegistry.register(World.class, new FabricWorldArgParser());
         parserRegistry.register(Vector3.class, new Vector3ArgParser());
     }
 }

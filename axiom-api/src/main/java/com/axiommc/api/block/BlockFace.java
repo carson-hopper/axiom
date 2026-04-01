@@ -1,4 +1,4 @@
-package com.axiommc.api.world.block;
+package com.axiommc.api.block;
 
 import com.axiommc.api.math.Vector3;
 

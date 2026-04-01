@@ -15,7 +15,7 @@ public class FabricWorldArgParser implements ArgParser<World> {
         String lowerArg = arg.toLowerCase();
 
         for (World world : Axiom.worlds()) {
-            if (world.name().toLowerCase().equals(lowerArg)) {
+            if (world.name().replace("minecraft:", "").toLowerCase().equals(lowerArg)) {
                 return world;
             }
         }
@@ -27,7 +27,7 @@ public class FabricWorldArgParser implements ArgParser<World> {
     public List<String> suggest(String partial) {
         String lowerPartial = partial.toLowerCase();
         return Axiom.worlds().stream()
-                .map(World::name)
+                .map(world -> world.name().replace("minecraft:", ""))
                 .filter(name -> name.toLowerCase().startsWith(lowerPartial))
                 .collect(Collectors.toList());
     }

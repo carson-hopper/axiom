@@ -10,11 +10,10 @@ import com.axiommc.api.command.annotation.Description;
 import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
 import com.axiommc.api.command.annotation.Subcommand;
-import com.axiommc.api.math.Vector3;
 import com.axiommc.api.world.Dimension;
 import com.axiommc.api.world.World;
-import com.axiommc.api.world.block.Block;
-import com.axiommc.api.world.block.Material;
+import com.axiommc.api.block.Block;
+import com.axiommc.api.block.Material;
 import com.axiommc.fabric.Axiom;
 
 import java.util.Collection;

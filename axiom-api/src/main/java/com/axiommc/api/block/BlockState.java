@@ -1,4 +1,4 @@
-package com.axiommc.api.world.block;
+package com.axiommc.api.block;
 
 import java.util.Map;
 

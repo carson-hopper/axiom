@@ -1,11 +1,12 @@
-package com.axiommc.fabric.world;
+package com.axiommc.fabric.block;
 
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.world.World;
-import com.axiommc.api.world.block.Block;
-import com.axiommc.api.world.block.BlockFace;
-import com.axiommc.api.world.block.BlockState;
-import com.axiommc.api.world.block.Material;
+import com.axiommc.api.block.Block;
+import com.axiommc.api.block.BlockFace;
+import com.axiommc.api.block.BlockState;
+import com.axiommc.api.block.Material;
+import com.axiommc.fabric.world.FabricWorld;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
