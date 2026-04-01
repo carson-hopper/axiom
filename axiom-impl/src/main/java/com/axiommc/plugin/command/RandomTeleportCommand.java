@@ -104,39 +104,27 @@ public class RandomTeleportCommand {
     }
 
     private Location findSafeLocation(World world, int radius) {
-        boolean isNether = world.name().toLowerCase().contains("nether");
+        int seaLevel = 64;
 
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
             int x = random.nextInt(radius * 2 + 1) - radius;
             int z = random.nextInt(radius * 2 + 1) - radius;
 
-            if (isNether) {
-                // For the Nether, search from roof downwards
-                for (int y = world.maxHeight() - 1; y >= world.minHeight(); y--) {
-                    if (isSafeLocation(world, x, y, z)) {
-                        Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
-                        Vector2 rotation = new Vector2(0, 0);
-                        return new Location(world, position, rotation);
-                    }
+            // Search from sea level upwards
+            for (int y = seaLevel; y < world.maxHeight(); y++) {
+                if (isSafeLocation(world, x, y, z)) {
+                    Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
+                    Vector2 rotation = new Vector2(0, 0);
+                    return new Location(world, position, rotation);
                 }
-            } else {
-                // For other worlds, search from sea level upwards
-                int seaLevel = 64;
-                for (int y = seaLevel; y < world.maxHeight(); y++) {
-                    if (isSafeLocation(world, x, y, z)) {
-                        Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
-                        Vector2 rotation = new Vector2(0, 0);
-                        return new Location(world, position, rotation);
-                    }
-                }
+            }
 
-                // If not found going up, try going down from sea level
-                for (int y = seaLevel - 1; y >= world.minHeight(); y--) {
-                    if (isSafeLocation(world, x, y, z)) {
-                        Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
-                        Vector2 rotation = new Vector2(0, 0);
-                        return new Location(world, position, rotation);
-                    }
+            // If not found going up, try going down from sea level
+            for (int y = seaLevel - 1; y >= world.minHeight(); y--) {
+                if (isSafeLocation(world, x, y, z)) {
+                    Vector3 position = new Vector3(x + 0.5, y, z + 0.5);
+                    Vector2 rotation = new Vector2(0, 0);
+                    return new Location(world, position, rotation);
                 }
             }
         }
