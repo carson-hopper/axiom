@@ -51,7 +51,7 @@ public final class ScreenEntitySpawner {
         float playerYaw = player.getYRot();
 
         // Text/button/item entities sit slightly in front of panels
-        Vec3 frontOffset = forward.scale(-0.05);
+        Vec3 frontOffset = forward.scale(-0.15);
 
         for (ScreenElement element : screen.elements()) {
             switch (element) {
@@ -118,8 +118,8 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        invokePrivate(entity, "setText", net.minecraft.network.chat.Component.class, SERIALIZER.serialize(label.text()));
-        invokePrivate(entity, "setBackgroundColor", int.class, 0);
+        setTextDisplayText(entity, SERIALIZER.serialize(label.text()));
+        setTextDisplayBackground(entity, 0);
         setBillboard(entity, (byte) 0); // FIXED
 
         sendSpawnPackets(player, entity, id);
@@ -138,8 +138,8 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        invokePrivate(entity, "setText", net.minecraft.network.chat.Component.class, SERIALIZER.serialize(button.label()));
-        invokePrivate(entity, "setBackgroundColor", int.class, 0x40000000);
+        setTextDisplayText(entity, SERIALIZER.serialize(button.label()));
+        setTextDisplayBackground(entity, 0x40000000);
         setBillboard(entity, (byte) 0); // FIXED
 
         sendSpawnPackets(player, entity, id);
@@ -181,6 +181,30 @@ public final class ScreenEntitySpawner {
             case BORDER -> Blocks.BLACKSTONE.defaultBlockState();
             case ACCENT -> Blocks.WARPED_PLANKS.defaultBlockState();
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setTextDisplayText(Display.TextDisplay entity, net.minecraft.network.chat.Component text) {
+        try {
+            var field = Display.TextDisplay.class.getDeclaredField("DATA_TEXT_ID");
+            field.setAccessible(true);
+            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<net.minecraft.network.chat.Component>) field.get(null);
+            entity.getEntityData().set(accessor, text);
+        } catch (Exception e) {
+            Axiom.logger().debug("Failed to set text display text", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setTextDisplayBackground(Display.TextDisplay entity, int color) {
+        try {
+            var field = Display.TextDisplay.class.getDeclaredField("DATA_BACKGROUND_COLOR_ID");
+            field.setAccessible(true);
+            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<Integer>) field.get(null);
+            entity.getEntityData().set(accessor, color);
+        } catch (Exception e) {
+            Axiom.logger().debug("Failed to set text display background", e);
+        }
     }
 
     @SuppressWarnings("unchecked")
