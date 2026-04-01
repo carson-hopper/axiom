@@ -25,18 +25,34 @@ public final class ConsoleHistory {
 
     /**
      * Initializes the console history file in the given directory.
+     * Falls back to user's home directory if the server directory is read-only.
      *
      * @param workDir the server's working directory
      */
     public static void initialize(File workDir) {
-        historyFile = new File(workDir, HISTORY_FILENAME);
+        historyFile = tryInitializeInDirectory(workDir);
+
+        if (historyFile == null) {
+            File homeDir = new File(System.getProperty("user.home"));
+            historyFile = tryInitializeInDirectory(homeDir);
+        }
+
+        if (historyFile == null) {
+            LOGGER.warn("Failed to initialize console history in both server and home directories");
+        }
+    }
+
+    private static File tryInitializeInDirectory(File dir) {
+        File file = new File(dir, HISTORY_FILENAME);
         try {
-            if (!historyFile.exists()) {
-                historyFile.createNewFile();
-                LOGGER.debug("Created console history file at {}", historyFile.getAbsolutePath());
+            if (!file.exists()) {
+                file.createNewFile();
+                LOGGER.debug("Created console history file at {}", file.getAbsolutePath());
             }
+            return file;
         } catch (IOException e) {
-            LOGGER.warn("Failed to create console history file", e);
+            LOGGER.debug("Failed to create history file in {}: {}", dir.getAbsolutePath(), e.getMessage());
+            return null;
         }
     }
 
