@@ -46,7 +46,7 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         EventBus eventBus = context.eventBus();
         eventBus.subscribe(PlayerJoinEvent.class, event -> {
             event.player().sendMessage("Yayy");
-            Axiom.consoleSendMessage(ChatComponent.text(event.player().name() + " joined!").color(ChatColor.GREEN));
+            Axiom.consoleSendMessage(ChatComponent.text(event.player().name() + " joined!").color(ChatColor.BLUE));
         }, EventPriority.NORMAL);
 
         eventBus.subscribe(ServerStartEvent.class, event -> {

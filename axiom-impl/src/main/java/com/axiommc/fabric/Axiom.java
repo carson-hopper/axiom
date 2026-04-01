@@ -18,13 +18,17 @@ import java.util.Optional;
 
 public class Axiom {
 
-    private Axiom() {
-        // Prevent instantiation
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger("axiom");
+
+    private Axiom() {}
 
     // ============================================================
     // Static Accessors
     // ============================================================
+
+    public static Logger logger() {
+        return LOGGER;
+    }
 
     public static TaskScheduler scheduler() {
         return TaskScheduler.global();
@@ -94,16 +98,14 @@ public class Axiom {
      * Sends a formatted message to the server console with ANSI color support.
      */
     public static void consoleSendMessage(ChatComponent message) {
-        Logger logger = LoggerFactory.getLogger("axiom");
-        logger.info(ConsoleColorFormatter.format(message));
+        LOGGER.info(ConsoleColorFormatter.format(message));
     }
 
     /**
      * Sends a plain string message to the server console.
      */
     public static void consoleSendMessage(String message) {
-        Logger logger = LoggerFactory.getLogger("axiom");
-        logger.info(ConsoleColorFormatter.formatWithAnsi(message));
+        LOGGER.info(ConsoleColorFormatter.formatWithAnsi(message));
     }
 
     public static SidebarManager sidebarManager() {
