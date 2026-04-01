@@ -39,12 +39,16 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -173,13 +177,16 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public void difficulty(Difficulty difficulty) {
-        // Cannot directly set difficulty in Minecraft 26.1
-        LOGGER.warn("Setting difficulty is not directly supported in Minecraft 26.1");
+        level().getServer().setDifficulty(
+                Objects.requireNonNull(net.minecraft.world.Difficulty.byName(difficulty.key())),
+                false
+        );
+
     }
 
     @Override
     public boolean pvpEnabled() {
-        return true; // Default to true; actual value not easily accessible in 26.1
+        return level().getGameRules().get(GameRules.PVP);
     }
 
     // ────────────────────────────────────────────────────────
@@ -257,16 +264,15 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public CompletableFuture<Chunk> loadChunkAsync(int chunkX, int chunkZ) {
-        CompletableFuture<Chunk> future = new CompletableFuture<Chunk>();
-        // Minecraft 26.1 doesn't have a good async chunk loading API at this level
-        // Fall back to sync loading on the server thread
-        try {
-            Chunk chunk = loadChunk(chunkX, chunkZ);
-            future.complete(chunk);
-        } catch (Exception e) {
-            future.completeExceptionally(e);
-        }
-        return future;
+        return level().getChunkSource()
+                .getChunkFuture(chunkX, chunkZ, ChunkStatus.FULL, true)
+                .thenApply(result -> {
+                    ChunkAccess access = result.orElse(null);
+                    if (access instanceof LevelChunk levelChunk) {
+                        return new FabricChunk(levelChunk, this);
+                    }
+                    throw new IllegalStateException("Failed to load chunk [" + chunkX + ", " + chunkZ + "]");
+                });
     }
 
     // ────────────────────────────────────────────────────────

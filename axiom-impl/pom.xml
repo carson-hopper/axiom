@@ -12,7 +12,7 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <artifactId>axiom</artifactId>
+    <artifactId>axiom-impl</artifactId>
     <packaging>jar</packaging>
     <name>Axiom Implementation</name>
     <description>Fabric-based implementation of the Axiom plugin framework</description>
