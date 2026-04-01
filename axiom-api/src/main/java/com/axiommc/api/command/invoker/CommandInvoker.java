@@ -371,10 +371,10 @@ public class CommandInvoker {
                 }
             }
 
-            // Add class-level usage if present
-            Usage classUsage = command.getClass().getAnnotation(Usage.class);
-            if (classUsage != null && !classUsage.value().isEmpty()) {
-                seen.add(classUsage.value());
+            // Only add class-level usage if exactly one total usage exists
+            List<String> allUsages = collectAllUsages();
+            if (allUsages.size() == 1) {
+                seen.add(allUsages.get(0));
             }
 
             return new ArrayList<>(seen);
@@ -389,21 +389,13 @@ public class CommandInvoker {
                 List<Method> methods = getMatchingExecuteMethods(args.length);
                 for (Method method : methods) {
                     seen.addAll(getParamSuggestions(method, 0, last));
-                    // Add usage for this @Execute method if present
-                    Usage methodUsage = method.getAnnotation(Usage.class);
-                    if (methodUsage != null && !methodUsage.value().isEmpty()) {
-                        seen.add(methodUsage.value());
-                    }
                 }
             }
 
-            // Add subcommand usages
-            for (String subName : subcommandMethods.keySet()) {
-                Method subMethod = subcommandMethods.get(subName);
-                Usage subUsage = subMethod.getAnnotation(Usage.class);
-                if (subUsage != null && !subUsage.value().isEmpty()) {
-                    seen.add(subUsage.value());
-                }
+            // Only add usages if exactly one total usage exists
+            List<String> allUsages = collectAllUsages();
+            if (allUsages.size() == 1) {
+                seen.add(allUsages.get(0));
             }
 
             return filterPrefix(new ArrayList<>(seen), last);
@@ -628,6 +620,37 @@ public class CommandInvoker {
         }
 
         return null;
+    }
+
+    /**
+     * Collects all unique usage strings from class-level and method-level @Usage annotations.
+     */
+    private List<String> collectAllUsages() {
+        List<String> usages = new ArrayList<>();
+
+        // Collect from class-level
+        Usage classUsage = command.getClass().getAnnotation(Usage.class);
+        if (classUsage != null && !classUsage.value().isEmpty()) {
+            usages.add(classUsage.value());
+        }
+
+        // Collect from @Execute methods
+        for (Method method : executeMethods) {
+            Usage methodUsage = method.getAnnotation(Usage.class);
+            if (methodUsage != null && !methodUsage.value().isEmpty()) {
+                usages.add(methodUsage.value());
+            }
+        }
+
+        // Collect from @Subcommand methods
+        for (Method method : subcommandMethods.values()) {
+            Usage methodUsage = method.getAnnotation(Usage.class);
+            if (methodUsage != null && !methodUsage.value().isEmpty()) {
+                usages.add(methodUsage.value());
+            }
+        }
+
+        return usages;
     }
 
     /**
