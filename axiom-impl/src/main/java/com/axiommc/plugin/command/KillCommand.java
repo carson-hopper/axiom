@@ -27,7 +27,6 @@ import java.util.Set;
 
 @Command(name = "kill")
 @Description("Kill a player or mob")
-@Permission("axiom.kill")
 public class KillCommand {
 
     private static final String[] FILTER_OPTIONS = {
@@ -50,6 +49,7 @@ public class KillCommand {
     };
 
     @Execute
+    @Permission("axiom.kill")
     public void execute(CommandSender sender) {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
@@ -61,6 +61,7 @@ public class KillCommand {
     }
 
     @Execute
+    @Permission("axiom.kill.others")
     public void execute(
             CommandSender sender,
             @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target,

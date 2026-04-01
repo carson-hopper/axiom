@@ -15,12 +15,12 @@ import com.axiommc.api.math.Vector3;
 
 @Command(name = "teleport")
 @Description("Teleport to a player or location")
-@Permission("axiom.teleport")
 public class TeleportCommand {
 
     private static final int MIN_Y = -64;
 
     @Execute
+    @Permission("axiom.teleport")
     public void teleportToPlayer(CommandSender sender, @Arg("player") Player target) {
         sender.asPlayer().ifPresentOrElse(
                 player -> {
@@ -32,12 +32,14 @@ public class TeleportCommand {
     }
 
     @Execute
+    @Permission("axiom.teleport.other")
     public void teleportPlayerToPlayer(CommandSender sender, @Arg("player1") Player player1, @Arg("player2") Player player2) {
         player1.teleport(player2.location());
         sender.sendMessage(ChatComponent.text("Teleported " + player1.name() + " to " + player2.name()).color(ChatColor.GREEN));
     }
 
     @Execute
+    @Permission("axiom.teleport.other")
     public void teleportToCoordinates(CommandSender sender, @Arg("location") Vector3 location) {
         if (location.y() < MIN_Y) {
             sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));
@@ -56,6 +58,7 @@ public class TeleportCommand {
     }
 
     @Execute
+    @Permission("axiom.teleport.other")
     public void teleportPlayerToCoordinates(CommandSender sender, @Arg("player") Player player, @Arg("location") Vector3 location) {
         if (location.y() < MIN_Y) {
             sender.sendMessage(ChatComponent.text("Y coordinate cannot be below " + MIN_Y).color(ChatColor.RED));

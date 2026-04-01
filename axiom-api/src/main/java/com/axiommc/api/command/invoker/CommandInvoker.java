@@ -144,12 +144,6 @@ public class CommandInvoker {
     public boolean execute(CommandSender sender, String[] args) {
         Class<?> commandClass = command.getClass();
         Command cmdAnnotation = commandClass.getAnnotation(Command.class);
-        Permission permAnnotation = commandClass.getAnnotation(Permission.class);
-
-        if (permAnnotation != null && !permAnnotation.value().isEmpty() && !sender.hasPermission(permAnnotation.value())) {
-            sender.sendMessage("You don't have permission to use this command.");
-            return true;
-        }
 
         // Log command execution
         String commandName = cmdAnnotation != null ? cmdAnnotation.name() : commandClass.getSimpleName();
@@ -178,6 +172,13 @@ public class CommandInvoker {
             methodArgs = args;
         } else {
             sender.sendMessage("Unknown command.");
+            return true;
+        }
+
+        // Check permission on the selected method (method-level overrides class-level)
+        String requiredPermission = getRequiredPermission(method);
+        if (requiredPermission != null && !requiredPermission.isEmpty() && !sender.hasPermission(requiredPermission)) {
+            sender.sendMessage("You don't have permission to use this command.");
             return true;
         }
 
@@ -357,11 +358,6 @@ public class CommandInvoker {
     }
 
     public List<String> suggest(CommandSender sender, String[] args) {
-        Class<?> commandClass = command.getClass();
-        Permission permAnnotation = commandClass.getAnnotation(Permission.class);
-        if (permAnnotation != null && !permAnnotation.value().isEmpty() && !sender.hasPermission(permAnnotation.value())) {
-            return Collections.emptyList();
-        }
 
         if (args.length == 0) {
             // When no args, suggest subcommands or first parameter of @Execute methods
@@ -586,6 +582,29 @@ public class CommandInvoker {
             commandParamIndex++;
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Gets the required permission for a method.
+     *
+     * <p>Checks method-level @Permission first (overrides class-level),
+     * then falls back to class-level @Permission, then returns null if neither exists.
+     */
+    private String getRequiredPermission(Method method) {
+        // Check method-level permission first (overrides)
+        Permission methodPermission = method.getAnnotation(Permission.class);
+        if (methodPermission != null) {
+            return methodPermission.value();
+        }
+
+        // Fall back to class-level permission
+        Class<?> commandClass = command.getClass();
+        Permission classPermission = commandClass.getAnnotation(Permission.class);
+        if (classPermission != null) {
+            return classPermission.value();
+        }
+
+        return null;
     }
 
     /**
