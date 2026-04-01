@@ -13,6 +13,7 @@ import com.axiommc.api.command.annotation.Greedy;
 import com.axiommc.api.command.annotation.Optional;
 import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Subcommand;
+import com.axiommc.api.command.annotation.Usage;
 import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
@@ -62,6 +63,7 @@ public class KillCommand {
 
     @Execute
     @Permission("axiom.kill.others")
+    @Usage("<filter> [--radius <value>]")
     public void execute(
             CommandSender sender,
             @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target,
