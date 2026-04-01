@@ -9,10 +9,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Interaction;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,146 +24,233 @@ import net.minecraft.world.phys.Vec3;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Spawns display entities for a Screen using packets (client-side only).
+ * Spawns display and interaction entities for a Screen using packets (client-side only).
  * Entities are never added to the server world — only visible to the target player.
  */
 public final class ScreenEntitySpawner {
 
-    private static final AtomicInteger NEXT_ID = new AtomicInteger(Integer.MAX_VALUE / 2);
+    private static final AtomicInteger NEXT_ID = new AtomicInteger(Integer.MAX_VALUE);
     private static final FabricComponentSerializer SERIALIZER = new FabricComponentSerializer();
 
     private ScreenEntitySpawner() {}
 
-    /**
-     * Spawns all display entities for a screen in front of the player.
-     *
-     * @return list of spawned entity IDs (for later despawning)
-     */
-    public static List<Integer> spawnScreen(ServerPlayer player, Screen screen) {
+    // ── Spawn result ──────────────────────────────────────────────────────────
+
+    public record SpawnResult(
+            List<Integer> entityIds,
+            Map<Integer, ScreenElement> interactionMap,
+            int cursorEntityId
+    ) {}
+
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    public static SpawnResult spawnScreen(ServerPlayer player, Screen screen) {
         List<Integer> entityIds = new ArrayList<>();
+        Map<Integer, ScreenElement> interactionMap = new HashMap<>();
 
-        Vec3 eyePos = player.getEyePosition();
+        Vec3 eyePos  = player.getEyePosition();
         Vec3 forward = player.getLookAngle().normalize();
-        Vec3 right = forward.cross(new Vec3(0, 1, 0)).normalize();
-        Vec3 up = right.cross(forward).normalize();
-        Vec3 center = eyePos.add(forward.scale(screen.distance()));
+        Vec3 right   = forward.cross(new Vec3(0, 1, 0)).normalize();
+        Vec3 up      = right.cross(forward).normalize();
+        Vec3 center  = eyePos.add(forward.scale(screen.distance()));
 
-        float playerYaw = player.getYRot();
+        float yaw = player.getYRot();
+        // Push text/buttons in front of panels toward the player
+        Vec3 frontOffset = forward.scale(-0.3);
 
-        // Text/button/item entities sit slightly in front of panels
-        Vec3 frontOffset = forward.scale(-0.15);
+        ServerLevel level = (ServerLevel) player.level();
 
         for (ScreenElement element : screen.elements()) {
             switch (element) {
-                case ScreenElement.Panel panel ->
-                    entityIds.add(spawnPanel(player, panel, screen, center, right, up, playerYaw));
-                case ScreenElement.Label label ->
-                    entityIds.add(spawnLabel(player, label, screen, center.add(frontOffset), right, up, playerYaw));
-                case ScreenElement.Button button ->
-                    entityIds.add(spawnButton(player, button, screen, center.add(frontOffset), right, up, playerYaw));
-                case ScreenElement.ItemSlot itemSlot ->
-                    entityIds.add(spawnItemSlot(player, itemSlot, screen, center.add(frontOffset), right, up, playerYaw));
+                case ScreenElement.Panel panel -> {
+                    entityIds.add(spawnPanel(player, level, panel, screen, center, right, up, yaw));
+                }
+                case ScreenElement.Label label -> {
+                    entityIds.add(spawnLabel(player, level, label, screen, center.add(frontOffset), right, up, yaw));
+                }
+                case ScreenElement.Button button -> {
+                    Vec3 bc = center.add(frontOffset);
+                    entityIds.add(spawnButton(player, level, button, screen, bc, right, up, yaw));
+                    int interactionId = spawnInteraction(player, level, button, screen, bc, right, up);
+                    entityIds.add(interactionId);
+                    interactionMap.put(interactionId, button);
+                }
+                case ScreenElement.ItemSlot slot -> {
+                    Vec3 sc = center.add(frontOffset);
+                    entityIds.add(spawnItemSlot(player, level, slot, screen, sc, right, up, yaw));
+                    if (slot.onClick() != null) {
+                        int interactionId = spawnInteractionForItem(player, level, slot, screen, sc, right, up);
+                        entityIds.add(interactionId);
+                        interactionMap.put(interactionId, slot);
+                    }
+                }
             }
         }
 
-        return entityIds;
+        int cursorId = spawnCursor(player, level, center.add(frontOffset));
+        entityIds.add(cursorId);
+
+        return new SpawnResult(entityIds, interactionMap, cursorId);
     }
 
-    /**
-     * Removes all display entities by sending a remove packet to the player.
-     */
+    public static void moveCursor(ServerPlayer player, int cursorEntityId, Vec3 pos) {
+        player.connection.send(ClientboundTeleportEntityPacket.teleport(
+                cursorEntityId,
+                new PositionMoveRotation(pos, Vec3.ZERO, 0f, 0f),
+                Set.of(),
+                false
+        ));
+    }
+
     public static void despawnEntities(ServerPlayer player, List<Integer> entityIds) {
-        if (entityIds.isEmpty()) {
-            return;
-        }
-        player.connection.send(new ClientboundRemoveEntitiesPacket(entityIds.stream().mapToInt(i -> i).toArray()));
+        if (entityIds.isEmpty()) return;
+        player.connection.send(
+                new ClientboundRemoveEntitiesPacket(entityIds.stream().mapToInt(i -> i).toArray())
+        );
     }
 
-    // ── Element Spawners ─────────────────────────────────────────────────────
+    // ── Element spawners ──────────────────────────────────────────────────────
 
-    private static int spawnPanel(ServerPlayer player, ScreenElement.Panel panel,
-                                  Screen screen, Vec3 center, Vec3 right, Vec3 up, float yaw) {
-        Display.BlockDisplay entity = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, (net.minecraft.server.level.ServerLevel) player.level());
-        int id = NEXT_ID.getAndDecrement();
+    private static int spawnPanel(ServerPlayer player, ServerLevel level,
+                                  ScreenElement.Panel panel, Screen screen,
+                                  Vec3 center, Vec3 right, Vec3 up, float yaw) {
+        Display.BlockDisplay entity = new Display.BlockDisplay(EntityType.BLOCK_DISPLAY, level);
+        int id = nextId();
         entity.setId(id);
 
-        float centerX = panel.x() + panel.width() / 2f;
-        float centerY = panel.y() + panel.height() / 2f;
-        Vec3 pos = elementPosition(center, right, up, centerX, centerY, screen);
+        float cx = panel.x() + panel.width() / 2f;
+        float cy = panel.y() + panel.height() / 2f;
+        Vec3 pos = elementPosition(center, right, up, cx, cy, screen);
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        // Set block state via reflection (private method)
-        invokePrivate(entity, "setBlockState", BlockState.class, panelStyleToBlock(panel.style()));
+        setBlockState(entity, panelStyleToBlock(panel.style()));
 
-        // Scale to flat panel: width/height in world units, paper-thin Z
         float scaleX = panel.width() * screen.width();
         float scaleY = panel.height() * screen.height();
         setScale(entity, scaleX, scaleY, 0.01f);
-        // Center the panel on its position (default origin is corner)
         setTranslation(entity, -scaleX / 2f, -scaleY / 2f, 0f);
-        setBillboard(entity, (byte) 0); // FIXED
+        setBillboard(entity, Display.BillboardConstraints.FIXED);
 
         sendSpawnPackets(player, entity, id);
         return id;
     }
 
-    private static int spawnLabel(ServerPlayer player, ScreenElement.Label label,
-                                  Screen screen, Vec3 center, Vec3 right, Vec3 up, float yaw) {
-        Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, (net.minecraft.server.level.ServerLevel) player.level());
-        int id = NEXT_ID.getAndDecrement();
+    private static int spawnLabel(ServerPlayer player, ServerLevel level,
+                                  ScreenElement.Label label, Screen screen,
+                                  Vec3 center, Vec3 right, Vec3 up, float yaw) {
+        Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
+        int id = nextId();
         entity.setId(id);
 
         Vec3 pos = elementPosition(center, right, up, label.x(), label.y(), screen);
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        setTextDisplayText(entity, SERIALIZER.serialize(label.text()));
-        setTextDisplayBackground(entity, 0);
-        setBillboard(entity, (byte) 0); // FIXED
+        setText(entity, SERIALIZER.serialize(label.text()));
+        setTextBackground(entity, 0x00000000);
+        setBillboard(entity, Display.BillboardConstraints.FIXED);
 
         sendSpawnPackets(player, entity, id);
         return id;
     }
 
-    private static int spawnButton(ServerPlayer player, ScreenElement.Button button,
-                                   Screen screen, Vec3 center, Vec3 right, Vec3 up, float yaw) {
-        Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, (net.minecraft.server.level.ServerLevel) player.level());
-        int id = NEXT_ID.getAndDecrement();
+    private static int spawnButton(ServerPlayer player, ServerLevel level,
+                                   ScreenElement.Button button, Screen screen,
+                                   Vec3 center, Vec3 right, Vec3 up, float yaw) {
+        Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
+        int id = nextId();
         entity.setId(id);
 
-        float centerX = button.x() + button.width() / 2f;
-        float centerY = button.y() + button.height() / 2f;
-        Vec3 pos = elementPosition(center, right, up, centerX, centerY, screen);
+        float cx = button.x() + button.width() / 2f;
+        float cy = button.y() + button.height() / 2f;
+        Vec3 pos = elementPosition(center, right, up, cx, cy, screen);
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        setTextDisplayText(entity, SERIALIZER.serialize(button.label()));
-        setTextDisplayBackground(entity, 0x40000000);
-        setBillboard(entity, (byte) 0); // FIXED
+        setText(entity, SERIALIZER.serialize(button.label()));
+        setTextBackground(entity, 0x40000000);
+        setBillboard(entity, Display.BillboardConstraints.FIXED);
 
         sendSpawnPackets(player, entity, id);
         return id;
     }
 
-    private static int spawnItemSlot(ServerPlayer player, ScreenElement.ItemSlot itemSlot,
-                                     Screen screen, Vec3 center, Vec3 right, Vec3 up, float yaw) {
-        Display.ItemDisplay entity = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, (net.minecraft.server.level.ServerLevel) player.level());
-        int id = NEXT_ID.getAndDecrement();
+    private static int spawnInteraction(ServerPlayer player, ServerLevel level,
+                                        ScreenElement.Button button, Screen screen,
+                                        Vec3 center, Vec3 right, Vec3 up) {
+        Interaction entity = new Interaction(EntityType.INTERACTION, level);
+        int id = nextId();
         entity.setId(id);
 
-        Vec3 pos = elementPosition(center, right, up, itemSlot.x(), itemSlot.y(), screen);
+        float cx = button.x() + button.width() / 2f;
+        float cy = button.y() + button.height() / 2f;
+        Vec3 pos = elementPosition(center, right, up, cx, cy, screen);
+        entity.setPos(pos.x, pos.y, pos.z);
+
+        float w = button.width() * screen.width();
+        float h = button.height() * screen.height();
+        setInteractionSize(entity, w, h);
+
+        sendSpawnPackets(player, entity, id);
+        return id;
+    }
+
+    private static int spawnInteractionForItem(ServerPlayer player, ServerLevel level,
+                                               ScreenElement.ItemSlot slot, Screen screen,
+                                               Vec3 center, Vec3 right, Vec3 up) {
+        Interaction entity = new Interaction(EntityType.INTERACTION, level);
+        int id = nextId();
+        entity.setId(id);
+
+        Vec3 pos = elementPosition(center, right, up, slot.x(), slot.y(), screen);
+        entity.setPos(pos.x, pos.y, pos.z);
+
+        float size = slot.size() * Math.min(screen.width(), screen.height());
+        setInteractionSize(entity, size, size);
+
+        sendSpawnPackets(player, entity, id);
+        return id;
+    }
+
+    private static int spawnItemSlot(ServerPlayer player, ServerLevel level,
+                                     ScreenElement.ItemSlot slot, Screen screen,
+                                     Vec3 center, Vec3 right, Vec3 up, float yaw) {
+        Display.ItemDisplay entity = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
+        int id = nextId();
+        entity.setId(id);
+
+        Vec3 pos = elementPosition(center, right, up, slot.x(), slot.y(), screen);
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(itemSlot.item()));
-        invokePrivate(entity, "setItemStack", ItemStack.class, new ItemStack(item));
-        setScale(entity, itemSlot.size(), itemSlot.size(), itemSlot.size());
-        setBillboard(entity, (byte) 0); // FIXED
+        var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(slot.item()));
+        setItemStack(entity, new ItemStack(item));
+        float size = slot.size() * Math.min(screen.width(), screen.height());
+        setScale(entity, size, size, size);
+        setBillboard(entity, Display.BillboardConstraints.FIXED);
+
+        sendSpawnPackets(player, entity, id);
+        return id;
+    }
+
+    private static int spawnCursor(ServerPlayer player, ServerLevel level, Vec3 pos) {
+        Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
+        int id = nextId();
+        entity.setId(id);
+
+        entity.setPos(pos.x, pos.y, pos.z);
+        setText(entity, net.minecraft.network.chat.Component.literal("⬤").withColor(0xFFFFFF));
+        setTextBackground(entity, 0x00000000);
+        setScale(entity, 0.3f, 0.3f, 0.3f);
+        setBillboard(entity, Display.BillboardConstraints.FIXED);
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -176,104 +267,91 @@ public final class ScreenEntitySpawner {
 
     private static BlockState panelStyleToBlock(PanelStyle style) {
         return switch (style) {
-            case DARK -> Blocks.SMOOTH_STONE.defaultBlockState();
-            case GLASS -> Blocks.TINTED_GLASS.defaultBlockState();
+            case DARK   -> Blocks.SMOOTH_STONE.defaultBlockState();
+            case GLASS  -> Blocks.TINTED_GLASS.defaultBlockState();
             case BORDER -> Blocks.BLACKSTONE.defaultBlockState();
             case ACCENT -> Blocks.WARPED_PLANKS.defaultBlockState();
         };
     }
 
-    @SuppressWarnings("unchecked")
-    private static void setTextDisplayText(Display.TextDisplay entity, net.minecraft.network.chat.Component text) {
-        try {
-            var field = Display.TextDisplay.class.getDeclaredField("DATA_TEXT_ID");
-            field.setAccessible(true);
-            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<net.minecraft.network.chat.Component>) field.get(null);
-            entity.getEntityData().set(accessor, text);
-        } catch (Exception e) {
-            Axiom.logger().debug("Failed to set text display text", e);
-        }
+    // ── Reflection helpers ────────────────────────────────────────────────────
+    // Direct calls to private methods/fields are not possible without Loom/AccessWidener.
+    // In 26.1 the names are stable and unobfuscated so these will not break on updates.
+
+    private static void setBlockState(Display.BlockDisplay entity, BlockState state) {
+        invokePrivate(entity, Display.BlockDisplay.class, "setBlockState", BlockState.class, state);
     }
 
-    @SuppressWarnings("unchecked")
-    private static void setTextDisplayBackground(Display.TextDisplay entity, int color) {
-        try {
-            var field = Display.TextDisplay.class.getDeclaredField("DATA_BACKGROUND_COLOR_ID");
-            field.setAccessible(true);
-            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<Integer>) field.get(null);
-            entity.getEntityData().set(accessor, color);
-        } catch (Exception e) {
-            Axiom.logger().debug("Failed to set text display background", e);
-        }
+    private static void setText(Display.TextDisplay entity, net.minecraft.network.chat.Component text) {
+        invokePrivate(entity, Display.TextDisplay.class, "setText",
+                net.minecraft.network.chat.Component.class, text);
     }
 
-    @SuppressWarnings("unchecked")
+    private static void setItemStack(Display.ItemDisplay entity, ItemStack stack) {
+        invokePrivate(entity, Display.ItemDisplay.class, "setItemStack", ItemStack.class, stack);
+    }
+
+    private static void setInteractionSize(Interaction entity, float width, float height) {
+        invokePrivate(entity, Interaction.class, "setWidth",    float.class, width);
+        invokePrivate(entity, Interaction.class, "setHeight",   float.class, height);
+        invokePrivate(entity, Interaction.class, "setResponse", boolean.class, true);
+    }
+
+    private static void setTextBackground(Display.TextDisplay entity, int argb) {
+        setEntityData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID", Integer.class, argb);
+    }
+
     private static void setScale(Display entity, float x, float y, float z) {
-        try {
-            var field = Display.class.getDeclaredField("DATA_SCALE_ID");
-            field.setAccessible(true);
-            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<org.joml.Vector3fc>) field.get(null);
-            entity.getEntityData().set(accessor, new org.joml.Vector3f(x, y, z));
-        } catch (Exception e) {
-            Axiom.logger().debug("Failed to set scale", e);
-        }
+        setEntityData(entity, Display.class, "DATA_SCALE_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(x, y, z));
     }
 
-    @SuppressWarnings("unchecked")
     private static void setTranslation(Display entity, float x, float y, float z) {
+        setEntityData(entity, Display.class, "DATA_TRANSLATION_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(x, y, z));
+    }
+
+    private static void setBillboard(Display entity, Display.BillboardConstraints mode) {
+        setEntityData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+                Byte.class, (byte) mode.ordinal());
+    }
+
+    /** Sets a synced entity data field via its static EntityDataAccessor. */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static <T> void setEntityData(net.minecraft.world.entity.Entity entity,
+                                          Class<?> holderClass, String fieldName,
+                                          Class<T> type, T value) {
         try {
-            var field = Display.class.getDeclaredField("DATA_TRANSLATION_ID");
+            var field = holderClass.getDeclaredField(fieldName);
             field.setAccessible(true);
-            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<org.joml.Vector3fc>) field.get(null);
-            entity.getEntityData().set(accessor, new org.joml.Vector3f(x, y, z));
+            var accessor = (net.minecraft.network.syncher.EntityDataAccessor) field.get(null);
+            entity.getEntityData().set(accessor, value);
         } catch (Exception e) {
-            Axiom.logger().debug("Failed to set translation", e);
+            Axiom.logger().debug("Failed to set entity data field {}: {}", fieldName, e.getMessage());
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static void setBillboard(Display entity, byte mode) {
+    /** Invokes a private instance method via reflection. */
+    private static void invokePrivate(Object target, Class<?> declaringClass,
+                                      String methodName, Class<?> paramType, Object value) {
         try {
-            var field = Display.class.getDeclaredField("DATA_BILLBOARD_RENDER_CONSTRAINTS_ID");
-            field.setAccessible(true);
-            var accessor = (net.minecraft.network.syncher.EntityDataAccessor<Byte>) field.get(null);
-            entity.getEntityData().set(accessor, mode);
+            Method method = declaringClass.getDeclaredMethod(methodName, paramType);
+            method.setAccessible(true);
+            method.invoke(target, value);
         } catch (Exception e) {
-            Axiom.logger().debug("Failed to set billboard", e);
+            Axiom.logger().debug("Failed to invoke {}.{}: {}", declaringClass.getSimpleName(), methodName, e.getMessage());
         }
     }
 
-    private static void sendSpawnPackets(ServerPlayer player, Display entity, int entityId) {
+    private static void sendSpawnPackets(ServerPlayer player, net.minecraft.world.entity.Entity entity, int id) {
         player.connection.send(new ClientboundAddEntityPacket(entity, 0, entity.blockPosition()));
         var packedData = entity.getEntityData().getNonDefaultValues();
         if (packedData != null) {
-            player.connection.send(new ClientboundSetEntityDataPacket(entityId, packedData));
+            player.connection.send(new ClientboundSetEntityDataPacket(id, packedData));
         }
     }
 
-    /**
-     * Invokes a private method on an entity via reflection.
-     */
-    private static void invokePrivate(Object target, String methodName, Class<?> paramType, Object value) {
-        try {
-            Method method = findMethod(target.getClass(), methodName, paramType);
-            if (method != null) {
-                method.setAccessible(true);
-                method.invoke(target, value);
-            }
-        } catch (Exception e) {
-            Axiom.logger().debug("Failed to invoke {}.{}", target.getClass().getSimpleName(), methodName, e);
-        }
-    }
-
-    private static Method findMethod(Class<?> clazz, String name, Class<?> paramType) {
-        while (clazz != null) {
-            try {
-                return clazz.getDeclaredMethod(name, paramType);
-            } catch (NoSuchMethodException e) {
-                clazz = clazz.getSuperclass();
-            }
-        }
-        return null;
+    private static int nextId() {
+        return NEXT_ID.getAndDecrement();
     }
 }

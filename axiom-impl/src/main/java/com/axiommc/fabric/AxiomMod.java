@@ -139,7 +139,7 @@ public class AxiomMod implements ModInitializer {
             this.minecraftServer = ServerLifecycleAdapter.minecraftServer();
             this.guiManager = new FabricGuiManager();
             this.sidebarManager = new FabricSidebarManager(minecraftServer);
-            this.screenManager = new FabricScreenManager();
+            this.screenManager = new FabricScreenManager(eventBus);
 
             for (ServerLevel level : minecraftServer.getAllLevels()) {
                 World world = new FabricWorld(level);
