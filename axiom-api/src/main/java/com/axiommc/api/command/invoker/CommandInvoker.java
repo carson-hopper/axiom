@@ -412,8 +412,19 @@ public class CommandInvoker {
             List<Method> methods = getMatchingExecuteMethods(args.length);
             Set<String> seen = new LinkedHashSet<>();
             for (Method method : methods) {
-                int argPos = args.length - 1;  // Position of the last argument (0-indexed)
-                seen.addAll(getParamSuggestions(method, argPos, last));
+                // For methods with @Greedy, pass all remaining args as one partial string
+                if (hasGreedyParameter(method)) {
+                    // Find the greedy parameter position
+                    int greedyParamPos = findGreedyParameterIndex(method);
+                    if (greedyParamPos >= 0) {
+                        // Reconstruct the entire greedy input by joining all args from that position
+                        String greedyInput = String.join(" ", Arrays.copyOfRange(args, greedyParamPos, args.length));
+                        seen.addAll(getParamSuggestions(method, greedyParamPos, greedyInput));
+                    }
+                } else {
+                    int argPos = args.length - 1;  // Position of the last argument (0-indexed)
+                    seen.addAll(getParamSuggestions(method, argPos, last));
+                }
             }
             return filterPrefix(new ArrayList<>(seen), last);
         }
@@ -424,6 +435,7 @@ public class CommandInvoker {
     /**
      * Get all @Execute methods that can handle the given argument count.
      * Returns exact matches first, then methods with optional parameters.
+     * Methods with @Greedy parameters can accept unlimited arguments.
      */
     private List<Method> getMatchingExecuteMethods(int argCount) {
         List<Method> matching = new ArrayList<>();
@@ -445,6 +457,12 @@ public class CommandInvoker {
         for (Method m : executeMethods) {
             int minRequired = countRequiredParams(m);
             int maxAccepted = countNonSenderParams(m);
+
+            // If method has @Greedy parameter, it can accept unlimited arguments
+            if (hasGreedyParameter(m)) {
+                maxAccepted = Integer.MAX_VALUE;
+            }
+
             if (argCount >= minRequired && argCount <= maxAccepted) {
                 matching.add(m);
                 LOGGER.debug("Optional match:  {}({}-{})", m.getName(), minRequired, maxAccepted);
@@ -458,6 +476,34 @@ public class CommandInvoker {
         }
 
         return matching;
+    }
+
+    /** Check if method has a @Greedy parameter */
+    private boolean hasGreedyParameter(Method method) {
+        for (Parameter param : method.getParameters()) {
+            if (param.isAnnotationPresent(Greedy.class)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Find the positional index of the @Greedy parameter, or -1 if none exists */
+    private int findGreedyParameterIndex(Method method) {
+        int paramIndex = 0;
+        for (Parameter param : method.getParameters()) {
+            // Skip CommandSender and @Flag parameters
+            String className = param.getType().getName();
+            boolean isSender = className.equals("com.axiommc.api.command.CommandSender");
+            boolean isFlag = param.isAnnotationPresent(Flag.class);
+            if (isSender || isFlag) continue;
+
+            if (param.isAnnotationPresent(Greedy.class)) {
+                return paramIndex;
+            }
+            paramIndex++;
+        }
+        return -1;
     }
 
     /**
