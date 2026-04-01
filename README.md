@@ -156,7 +156,3 @@ This means:
 - You **must include the original license** and copyright notice in any distribution.
 
 ---
-
-<p align="center">
-  <sub>Built with care by the Axiom community.</sub>
-</p>
