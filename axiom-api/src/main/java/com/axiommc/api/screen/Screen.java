@@ -29,12 +29,12 @@ import java.util.function.Consumer;
  * @param closeHandler callback invoked when the player closes the screen, or null
  */
 public record Screen(
-        ChatComponent title,
-        List<ScreenElement> elements,
-        float width,
-        float height,
-        float distance,
-        Consumer<Player> closeHandler
+    ChatComponent title,
+    List<ScreenElement> elements,
+    float width,
+    float height,
+    float distance,
+    Consumer<Player> closeHandler
 ) {
 
     public Screen(ChatComponent title, List<ScreenElement> elements,

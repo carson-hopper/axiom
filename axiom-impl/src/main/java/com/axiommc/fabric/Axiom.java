@@ -1,8 +1,6 @@
 package com.axiommc.fabric;
 
-import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.gui.GuiManager;
-import com.axiommc.api.player.Player;
 import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;

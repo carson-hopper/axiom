@@ -74,9 +74,9 @@ public class CommandInvoker {
 
     private void scan() {
         for (Method method : command.getClass().getMethods()) {
-            if (method.isAnnotationPresent(Execute.class)) {
-                executeMethods.add(method);
-            } else if (method.isAnnotationPresent(Subcommand.class)) {
+            // Check @Subcommand first — a method with both @Subcommand and @Execute
+            // registers as a subcommand (the @Execute is used for sender type only)
+            if (method.isAnnotationPresent(Subcommand.class)) {
                 Subcommand sub = method.getAnnotation(Subcommand.class);
                 String name = sub.value().isEmpty() ? method.getName() : sub.value();
                 name = name.toLowerCase();
@@ -85,6 +85,8 @@ public class CommandInvoker {
                     continue;
                 }
                 subcommandMethods.put(name, method);
+            } else if (method.isAnnotationPresent(Execute.class)) {
+                executeMethods.add(method);
             }
         }
 
@@ -155,6 +157,14 @@ public class CommandInvoker {
 
         if (args.length > 0 && subcommandMethods.containsKey(args[0].toLowerCase())) {
             method = subcommandMethods.get(args[0].toLowerCase());
+            if (!senderTypeMatches(method, sender)) {
+                if (sender.isPlayer()) {
+                    sender.sendMessage("This subcommand can only be run from the console.");
+                } else {
+                    sender.sendMessage("This subcommand can only be run by a player.");
+                }
+                return true;
+            }
             methodArgs = Arrays.copyOfRange(args, 1, args.length);
         } else if (args.length > 0 && excludedSubcommands.contains(args[0].toLowerCase())) {
             String target = environment == PluginEnvironment.PROXY ? "the game server" : "the proxy";

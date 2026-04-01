@@ -3,7 +3,6 @@ package com.axiommc.fabric.screen;
 import com.axiommc.api.screen.Screen;
 import com.axiommc.api.screen.ScreenElement;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.GameType;
 
 import java.util.List;
 import java.util.Map;
@@ -18,9 +17,6 @@ import java.util.UUID;
  * @param entityIds      IDs of all packet-spawned display entities (for despawning)
  * @param interactionMap maps interaction entity ID → the ScreenElement it represents
  * @param cursorEntityId entity ID of the cursor dot text_display
- * @param originalMode   the player's game mode before the screen was opened
- * @param baseYaw        the player's yaw when the screen was opened (screen center)
- * @param basePitch      the player's pitch when the screen was opened (screen center)
  */
 public record ScreenSession(
         UUID sessionId,
@@ -28,8 +24,5 @@ public record ScreenSession(
         Screen screen,
         List<Integer> entityIds,
         Map<Integer, ScreenElement> interactionMap,
-        int cursorEntityId,
-        GameType originalMode,
-        float baseYaw,
-        float basePitch
+        int cursorEntityId
 ) {}

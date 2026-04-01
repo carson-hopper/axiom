@@ -9,15 +9,8 @@ import com.axiommc.api.plugin.Plugin;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.PluginSide;
 import com.axiommc.fabric.Axiom;
-import com.axiommc.plugin.command.AxiomCommand;
+import com.axiommc.plugin.command.*;
 import com.axiommc.plugin.command.player.KillCommand;
-import com.axiommc.plugin.command.RandomTeleportCommand;
-import com.axiommc.plugin.command.TeleportCommand;
-import com.axiommc.plugin.command.TestConfigCommand;
-import com.axiommc.plugin.command.TestGuiCommand;
-import com.axiommc.plugin.command.TestPlayerCommand;
-import com.axiommc.plugin.command.TestSidebarCommand;
-import com.axiommc.plugin.command.TestWorldCommand;
 
 @Plugin(id = "axiom", name = "Axiom", version = "1.0.0", side = PluginSide.SERVER)
 public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
@@ -32,6 +25,8 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         context.registerCommand(new KillCommand());
         context.registerCommand(new RandomTeleportCommand(context));
         context.registerCommand(new TeleportCommand());
+        context.registerCommand(new ScreenCommand());
+
         context.registerCommand(new TestConfigCommand(context));
         context.registerCommand(new TestGuiCommand());
         context.registerCommand(new TestPlayerCommand());

@@ -31,11 +31,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Spawns display and interaction entities for a Screen using packets (client-side only).
  * Entities are never added to the server world — only visible to the target player.
+ *
+ * <p>Panels use TextDisplay with a solid backgroundColor — no block textures.
+ * Full brightness (15, 15) applied to all entities so world lighting has no effect.
+ *
+ * <p>Field/method names verified against 26.1 unobfuscated Mojang mappings and
+ * cross-referenced with CursorCS decompiled source.
  */
 public final class ScreenEntitySpawner {
 
+    // Entity IDs count down from MAX_VALUE to stay far from real server IDs (which grow up from 1)
     private static final AtomicInteger NEXT_ID = new AtomicInteger(Integer.MAX_VALUE);
     private static final FabricComponentSerializer SERIALIZER = new FabricComponentSerializer();
+
+    // Billboard mode — matches Display.BillboardConstraints ordinal in 26.1
+    private static final byte BILLBOARD_FIXED = 0;
 
     private ScreenEntitySpawner() {}
 
@@ -60,8 +70,8 @@ public final class ScreenEntitySpawner {
         Vec3 center  = eyePos.add(forward.scale(screen.distance()));
 
         float yaw = player.getYRot();
-        // Push text/buttons in front of panels toward the player
-        Vec3 frontOffset = forward.scale(-0.3);
+        // Labels/buttons/items sit slightly in front of panels to avoid z-fighting
+        Vec3 frontOffset = forward.scale(-0.05);
 
         ServerLevel level = (ServerLevel) player.level();
 
@@ -71,7 +81,8 @@ public final class ScreenEntitySpawner {
                     entityIds.add(spawnPanel(player, level, panel, screen, center, right, up, yaw));
                 }
                 case ScreenElement.Label label -> {
-                    entityIds.add(spawnLabel(player, level, label, screen, center.add(frontOffset), right, up, yaw));
+                    entityIds.add(spawnLabel(player, level, label, screen,
+                            center.add(frontOffset), right, up, yaw));
                 }
                 case ScreenElement.Button button -> {
                     Vec3 bc = center.add(frontOffset);
@@ -92,7 +103,8 @@ public final class ScreenEntitySpawner {
             }
         }
 
-        int cursorId = spawnCursor(player, level, center.add(frontOffset));
+        // Cursor spawned last — renders on top of everything
+        int cursorId = spawnCursor(player, level, center.add(frontOffset.scale(2)));
         entityIds.add(cursorId);
 
         return new SpawnResult(entityIds, interactionMap, cursorId);
@@ -110,16 +122,18 @@ public final class ScreenEntitySpawner {
     public static void despawnEntities(ServerPlayer player, List<Integer> entityIds) {
         if (entityIds.isEmpty()) return;
         player.connection.send(
-                new ClientboundRemoveEntitiesPacket(entityIds.stream().mapToInt(i -> i).toArray())
-        );
+                new ClientboundRemoveEntitiesPacket(entityIds.stream().mapToInt(i -> i).toArray()));
     }
 
     // ── Element spawners ──────────────────────────────────────────────────────
 
+    /**
+     * Panel = TextDisplay with solid backgroundColor, empty text, full brightness.
+     * Renders as a clean flat colored rectangle — no block textures.
+     */
     private static int spawnPanel(ServerPlayer player, ServerLevel level,
                                   ScreenElement.Panel panel, Screen screen,
                                   Vec3 center, Vec3 right, Vec3 up, float yaw) {
-        // Use TextDisplay with solid background instead of BlockDisplay to avoid z-fighting flicker
         Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
         int id = nextId();
         entity.setId(id);
@@ -130,20 +144,28 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        // Fill with spaces to create a solid rectangle, background color acts as the panel
-        int bgColor = panelStyleToColor(panel.style());
-        setText(entity, net.minecraft.network.chat.Component.literal(" "));
-        setTextBackground(entity, bgColor);
+        // Empty text — the background color IS the visual element
+        invokeMethod(entity, Display.TextDisplay.class, "setText",
+                net.minecraft.network.chat.Component.class,
+                net.minecraft.network.chat.Component.empty());
 
-        // Scale to fill the panel area
+        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
+                Integer.class, panelStyleToArgb(panel.style()));
+        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
+                Integer.class, 10000);
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
+                Byte.class, (byte) -1);  // -1 = 255 unsigned = fully opaque
+
         float scaleX = panel.width() * screen.width();
         float scaleY = panel.height() * screen.height();
-        setScale(entity, scaleX, scaleY, 1f);
-        setBillboard(entity, Display.BillboardConstraints.FIXED);
-
-        // Set line width wide enough to fill the panel
-        setEntityData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, 1);
+        setData(entity, Display.class, "DATA_SCALE_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(scaleX, scaleY, 0.001f));
+        setData(entity, Display.class, "DATA_TRANSLATION_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(-scaleX / 2f, -scaleY / 2f, 0f));
+        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+                Byte.class, BILLBOARD_FIXED);
+        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
+                Integer.class, packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -160,9 +182,22 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        setText(entity, SERIALIZER.serialize(label.text()));
-        setTextBackground(entity, 0x00000000);
-        setBillboard(entity, Display.BillboardConstraints.FIXED);
+        invokeMethod(entity, Display.TextDisplay.class, "setText",
+                net.minecraft.network.chat.Component.class,
+                SERIALIZER.serialize(label.text()));
+
+        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
+                Integer.class, 0x00000000); // fully transparent background
+        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
+                Integer.class, 10000);
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
+                Byte.class, (byte) -1);
+        setData(entity, Display.class, "DATA_SCALE_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
+        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+                Byte.class, BILLBOARD_FIXED);
+        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
+                Integer.class, packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -181,9 +216,22 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
-        setText(entity, SERIALIZER.serialize(button.label()));
-        setTextBackground(entity, 0x40000000);
-        setBillboard(entity, Display.BillboardConstraints.FIXED);
+        invokeMethod(entity, Display.TextDisplay.class, "setText",
+                net.minecraft.network.chat.Component.class,
+                SERIALIZER.serialize(button.label()));
+
+        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
+                Integer.class, 0xCC1E293B); // dark button background
+        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
+                Integer.class, 10000);
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
+                Byte.class, (byte) -1);
+        setData(entity, Display.class, "DATA_SCALE_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
+        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+                Byte.class, BILLBOARD_FIXED);
+        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
+                Integer.class, packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -203,7 +251,9 @@ public final class ScreenEntitySpawner {
 
         float w = button.width() * screen.width();
         float h = button.height() * screen.height();
-        setInteractionSize(entity, w, h);
+        setData(entity, Interaction.class, "DATA_WIDTH_ID",  Float.class, w);
+        setData(entity, Interaction.class, "DATA_HEIGHT_ID", Float.class, h);
+        setData(entity, Interaction.class, "DATA_RESPONSE_ID", Boolean.class, true);
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -220,7 +270,9 @@ public final class ScreenEntitySpawner {
         entity.setPos(pos.x, pos.y, pos.z);
 
         float size = slot.size() * Math.min(screen.width(), screen.height());
-        setInteractionSize(entity, size, size);
+        setData(entity, Interaction.class, "DATA_WIDTH_ID",  Float.class, size);
+        setData(entity, Interaction.class, "DATA_HEIGHT_ID", Float.class, size);
+        setData(entity, Interaction.class, "DATA_RESPONSE_ID", Boolean.class, true);
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -238,10 +290,16 @@ public final class ScreenEntitySpawner {
         entity.setYRot(yaw + 180f);
 
         var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(slot.item()));
-        setItemStack(entity, new ItemStack(item));
+        invokeMethod(entity, Display.ItemDisplay.class, "setItemStack",
+                ItemStack.class, new ItemStack(item));
+
         float size = slot.size() * Math.min(screen.width(), screen.height());
-        setScale(entity, size, size, size);
-        setBillboard(entity, Display.BillboardConstraints.FIXED);
+        setData(entity, Display.class, "DATA_SCALE_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(size, size, size));
+        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+                Byte.class, BILLBOARD_FIXED);
+        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
+                Integer.class, packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -253,14 +311,23 @@ public final class ScreenEntitySpawner {
         entity.setId(id);
 
         entity.setPos(pos.x, pos.y, pos.z);
-        setText(entity, net.minecraft.network.chat.Component.literal("•").withColor(0xFFFFFF));
-        setTextBackground(entity, 0x00000000);
-        setScale(entity, 0.5f, 0.5f, 0.5f);
-        setBillboard(entity, Display.BillboardConstraints.CENTER);
 
-        // Smooth movement interpolation (2 ticks)
-        setEntityData(entity, Display.class, "DATA_POS_ROT_INTERPOLATION_DURATION_ID",
-                Integer.class, 2);
+        invokeMethod(entity, Display.TextDisplay.class, "setText",
+                net.minecraft.network.chat.Component.class,
+                net.minecraft.network.chat.Component.literal("⬤").withColor(0xFFFFFF));
+
+        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
+                Integer.class, 0x00000000);
+        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
+                Integer.class, 10000);
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
+                Byte.class, (byte) -1);
+        setData(entity, Display.class, "DATA_SCALE_ID",
+                org.joml.Vector3f.class, new org.joml.Vector3f(0.15f, 0.15f, 0.15f));
+        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+                Byte.class, BILLBOARD_FIXED);
+        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
+                Integer.class, packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -275,85 +342,86 @@ public final class ScreenEntitySpawner {
         return center.add(right.scale(offsetX)).add(up.scale(offsetY));
     }
 
-    private static int panelStyleToColor(PanelStyle style) {
+    private static int panelStyleToArgb(PanelStyle style) {
         return switch (style) {
-            case DARK   -> 0xE0181818; // dark gray, mostly opaque
-            case GLASS  -> 0x80181818; // dark gray, semi-transparent
-            case BORDER -> 0xF0101010; // near-black, opaque
-            case ACCENT -> 0xE0165A5A; // teal accent, mostly opaque
+            case DARK   -> 0xEE0F172A; // near-black navy, mostly opaque
+            case GLASS  -> 0x991E293B; // semi-transparent slate
+            case BORDER -> 0xFF000000; // solid black
+            case ACCENT -> 0xFF0E7490; // teal
         };
     }
 
-    // ── Reflection helpers ────────────────────────────────────────────────────
-    // Direct calls to private methods/fields are not possible without Loom/AccessWidener.
-    // In 26.1 the names are stable and unobfuscated so these will not break on updates.
-
-    private static void setText(Display.TextDisplay entity, net.minecraft.network.chat.Component text) {
-        invokePrivate(entity, Display.TextDisplay.class, "setText",
-                net.minecraft.network.chat.Component.class, text);
+    /**
+     * Packs block and sky brightness into the format expected by DATA_BRIGHTNESS_OVERRIDE_ID.
+     * Matches vanilla light level packing: (sky << 20) | (block << 4).
+     * Values 0-15. Use packBrightness(15, 15) for maximum brightness.
+     */
+    private static int packBrightness(int block, int sky) {
+        return (sky << 20) | (block << 4);
     }
 
-    private static void setItemStack(Display.ItemDisplay entity, ItemStack stack) {
-        invokePrivate(entity, Display.ItemDisplay.class, "setItemStack", ItemStack.class, stack);
-    }
+    // ── Reflection ────────────────────────────────────────────────────────────
+    // Cannot call private methods/access private fields directly without AccessWidener.
+    // Field names are stable in 26.1 (fully unobfuscated Mojang mappings).
 
-    private static void setInteractionSize(Interaction entity, float width, float height) {
-        invokePrivate(entity, Interaction.class, "setWidth",    float.class, width);
-        invokePrivate(entity, Interaction.class, "setHeight",   float.class, height);
-        invokePrivate(entity, Interaction.class, "setResponse", boolean.class, true);
-    }
-
-    private static void setTextBackground(Display.TextDisplay entity, int argb) {
-        setEntityData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID", Integer.class, argb);
-    }
-
-    private static void setScale(Display entity, float x, float y, float z) {
-        setEntityData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(x, y, z));
-    }
-
-    private static void setTranslation(Display entity, float x, float y, float z) {
-        setEntityData(entity, Display.class, "DATA_TRANSLATION_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(x, y, z));
-    }
-
-    private static void setBillboard(Display entity, Display.BillboardConstraints mode) {
-        setEntityData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
-                Byte.class, (byte) mode.ordinal());
-    }
-
-    /** Sets a synced entity data field via its static EntityDataAccessor. */
+    /**
+     * Sets a value on an EntityDataAccessor field via reflection.
+     * Used for: DATA_BACKGROUND_COLOR_ID, DATA_LINE_WIDTH_ID, DATA_TEXT_OPACITY_ID,
+     *           DATA_SCALE_ID, DATA_TRANSLATION_ID, DATA_BILLBOARD_RENDER_CONSTRAINTS_ID,
+     *           DATA_BRIGHTNESS_OVERRIDE_ID, DATA_WIDTH_ID, DATA_HEIGHT_ID, DATA_RESPONSE_ID.
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> void setEntityData(net.minecraft.world.entity.Entity entity,
-                                          Class<?> holderClass, String fieldName,
-                                          Class<T> type, T value) {
+    private static <T> void setData(net.minecraft.world.entity.Entity entity,
+                                    Class<?> holderClass, String fieldName,
+                                    Class<T> type, T value) {
         try {
             var field = holderClass.getDeclaredField(fieldName);
             field.setAccessible(true);
             var accessor = (net.minecraft.network.syncher.EntityDataAccessor) field.get(null);
             entity.getEntityData().set(accessor, value);
         } catch (Exception e) {
-            Axiom.logger().debug("Failed to set entity data field {}: {}", fieldName, e.getMessage());
+            Axiom.logger().debug("setData({}.{}) failed: {}", holderClass.getSimpleName(), fieldName, e.getMessage());
         }
     }
 
-    /** Invokes a private instance method via reflection. */
-    private static void invokePrivate(Object target, Class<?> declaringClass,
-                                      String methodName, Class<?> paramType, Object value) {
+    /**
+     * Invokes a private method via reflection.
+     * Used for: setText, setItemStack (private in 26.1 without AccessWidener).
+     */
+    private static void invokeMethod(Object target, Class<?> declaringClass,
+                                     String methodName, Class<?> paramType, Object value) {
         try {
             Method method = declaringClass.getDeclaredMethod(methodName, paramType);
             method.setAccessible(true);
             method.invoke(target, value);
         } catch (Exception e) {
-            Axiom.logger().debug("Failed to invoke {}.{}: {}", declaringClass.getSimpleName(), methodName, e.getMessage());
+            Axiom.logger().debug("invokeMethod({}.{}) failed: {}",
+                    declaringClass.getSimpleName(), methodName, e.getMessage());
         }
     }
 
-    private static void sendSpawnPackets(ServerPlayer player, net.minecraft.world.entity.Entity entity, int id) {
+    /**
+     * Sends spawn + entity data packets to the player.
+     * Uses packAll() (not getNonDefaultValues()) to ensure all configured
+     * data fields are included — matches CursorCS approach.
+     */
+    private static void sendSpawnPackets(ServerPlayer player,
+                                         net.minecraft.world.entity.Entity entity, int id) {
         player.connection.send(new ClientboundAddEntityPacket(entity, 0, entity.blockPosition()));
-        var packedData = entity.getEntityData().getNonDefaultValues();
-        if (packedData != null) {
-            player.connection.send(new ClientboundSetEntityDataPacket(id, packedData));
+        try {
+            // packAll() returns all synced data, not just dirty values — safer for initial spawn
+            Method packAll = entity.getEntityData().getClass().getMethod("packAll");
+            @SuppressWarnings("unchecked")
+            List<?> packed = (List<?>) packAll.invoke(entity.getEntityData());
+            if (packed != null && !packed.isEmpty()) {
+                player.connection.send(new ClientboundSetEntityDataPacket(id, (List) packed));
+            }
+        } catch (Exception e) {
+            // Fallback to getNonDefaultValues if packAll is renamed/unavailable
+            var packed = entity.getEntityData().getNonDefaultValues();
+            if (packed != null) {
+                player.connection.send(new ClientboundSetEntityDataPacket(id, packed));
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 package com.axiommc.api.screen;
 
 import com.axiommc.api.chat.ChatComponent;
-import com.axiommc.api.event.screen.ScreenClickEvent;
 
 /**
  * A single element within a {@link Screen}.
@@ -18,10 +17,10 @@ import com.axiommc.api.event.screen.ScreenClickEvent;
  * </ul>
  */
 public sealed interface ScreenElement
-        permits ScreenElement.Panel,
-        ScreenElement.Label,
-        ScreenElement.Button,
-        ScreenElement.ItemSlot {
+    permits ScreenElement.Panel,
+            ScreenElement.Label,
+            ScreenElement.Button,
+            ScreenElement.ItemSlot {
 
     // ── Panel ─────────────────────────────────────────────────────────────────
 
@@ -36,7 +35,7 @@ public sealed interface ScreenElement
      * @param style visual style of the panel
      */
     record Panel(float x, float y, float width, float height, PanelStyle style)
-            implements ScreenElement {
+        implements ScreenElement {
 
         public static Panel of(float x, float y, float width, float height) {
             return new Panel(x, y, width, height, PanelStyle.DARK);
@@ -87,7 +86,7 @@ public sealed interface ScreenElement
     record Button(float x, float y, float width, float height,
                   ChatComponent label,
                   ScreenClickHandler onClick)
-            implements ScreenElement {
+        implements ScreenElement {
 
         public static Button of(float x, float y, float width, float height,
                                 ChatComponent label, ScreenClickHandler onClick) {
@@ -116,7 +115,7 @@ public sealed interface ScreenElement
      */
     record ItemSlot(float x, float y, float size, String item,
                     ScreenClickHandler onClick)
-            implements ScreenElement {
+        implements ScreenElement {
 
         public static ItemSlot display(float x, float y, float size, String item) {
             return new ItemSlot(x, y, size, item, null);

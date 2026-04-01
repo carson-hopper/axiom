@@ -38,6 +38,10 @@ public interface ScreenManager {
      */
     void close(UUID sessionId);
 
+    void close(Player player);
+
+    boolean isOpen(Player player);
+
     /**
      * Returns whether the given session is currently open.
      */
