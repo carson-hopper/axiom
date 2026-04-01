@@ -18,11 +18,9 @@ import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.world.World;
-import com.axiommc.fabric.Axiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Random;
 
 @Command(name = "rtp")
@@ -42,45 +40,23 @@ public class RandomTeleportCommand {
     @Execute
     @Permission("axiom.rtp")
     @Usage("[world]")
-    public void execute(CommandSender sender, @Arg("world") @Optional String worldName) {
+    public void execute(CommandSender sender, @Arg("world") @Optional World world) {
         sender.asPlayer().ifPresentOrElse(
-                player -> teleportPlayer(player, worldName),
+                player -> {
+                    World targetWorld = world != null ? world : player.world();
+                    int radius = getRadiusForWorld(targetWorld.name());
+                    Location safeLocation = findSafeLocation(targetWorld, radius);
+                    if (safeLocation == null) {
+                        player.sendMessage(ChatComponent.text("Could not find a safe location").color(ChatColor.RED));
+                        return;
+                    }
+
+                    player.teleport(safeLocation);
+                    player.sendMessage(ChatComponent.text("Teleported to random location in " + targetWorld.name())
+                            .color(ChatColor.GREEN));
+                },
                 () -> sender.sendMessage(ChatComponent.text("Only players can use /rtp").color(ChatColor.RED))
         );
-    }
-
-    private void teleportPlayer(Player player, String worldName) {
-        World world = getTargetWorld(worldName, player);
-        if (world == null) {
-            player.sendMessage(ChatComponent.text("World not found").color(ChatColor.RED));
-            return;
-        }
-
-        int radius = getRadiusForWorld(world.name());
-
-        Location safeLocation = findSafeLocation(world, radius);
-        if (safeLocation == null) {
-            player.sendMessage(ChatComponent.text("Could not find a safe location").color(ChatColor.RED));
-            return;
-        }
-
-        player.teleport(safeLocation);
-        player.sendMessage(ChatComponent.text("Teleported to random location in " + world.name())
-                .color(ChatColor.GREEN));
-    }
-
-    private World getTargetWorld(String worldName, Player player) {
-        if (worldName == null || worldName.isEmpty()) {
-            return player.location().world();
-        }
-
-        Collection<? extends World> worlds = Axiom.worlds();
-        for (World world : worlds) {
-            if (world.name().equalsIgnoreCase(worldName)) {
-                return world;
-            }
-        }
-        return null;
     }
 
     private int getRadiusForWorld(String worldName) {
@@ -90,7 +66,7 @@ public class RandomTeleportCommand {
     }
 
     private Location findSafeLocation(World world, int radius) {
-        int seaLevel = 64;
+        int seaLevel =  64;
 
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
             int x = random.nextInt(radius * 2 + 1) - radius;
