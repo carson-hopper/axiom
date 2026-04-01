@@ -1,5 +1,7 @@
 package com.axiommc.plugin;
 
+import com.axiommc.api.chat.ChatColor;
+import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.event.EventPriority;
 import com.axiommc.api.event.player.PlayerJoinEvent;
@@ -7,6 +9,7 @@ import com.axiommc.api.event.server.ServerStartEvent;
 import com.axiommc.api.plugin.Plugin;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.PluginSide;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.plugin.command.AxiomCommand;
 import com.axiommc.plugin.command.KillCommand;
 import com.axiommc.plugin.command.RandomTeleportCommand;
@@ -42,7 +45,8 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
 
         EventBus eventBus = context.eventBus();
         eventBus.subscribe(PlayerJoinEvent.class, event -> {
-            logger.info("{} joined", event.player().name());
+            event.player().sendMessage("Yayy");
+            Axiom.consoleSendMessage(ChatComponent.text(event.player().name() + " joined!").color(ChatColor.GREEN));
         }, EventPriority.NORMAL);
 
         eventBus.subscribe(ServerStartEvent.class, event -> {

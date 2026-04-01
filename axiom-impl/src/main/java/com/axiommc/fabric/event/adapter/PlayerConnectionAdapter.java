@@ -24,10 +24,10 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             try {
-                playerProvider.player(handler.getPlayer().getUUID()).ifPresent(player -> {
-                    LOGGER.debug("Firing PlayerJoinEvent for {}", player.name());
-                    eventBus.publish(new PlayerJoinEvent(player));
-                });
+                var serverPlayer = handler.getPlayer();
+                var player = playerProvider.player(serverPlayer.getUUID())
+                        .orElseGet(() -> new FabricPlayer(serverPlayer));
+                eventBus.publish(new PlayerJoinEvent(player));
             } catch (Exception e) {
                 LOGGER.debug("Error firing PlayerJoinEvent", e);
             }
