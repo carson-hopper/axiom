@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  */
 public class SimpleEventBus implements EventBus {
 
-    private record PrioritizedHandler<T>(Consumer<T> handler, EventPriority priority) {}
+    private record PrioritizedHandler<T extends Event>(Consumer<T> handler, EventPriority priority) {}
 
     private final ConcurrentHashMap<Class<?>, List<PrioritizedHandler<?>>> handlers =
             new ConcurrentHashMap<>();
