@@ -2,6 +2,7 @@ package com.axiommc.api.command.invoker;
 
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.CommandSide;
+import com.axiommc.api.command.SenderType;
 import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.annotation.Default;
@@ -511,38 +512,67 @@ public class CommandInvoker {
      * For each candidate method (by param count), attempt to build args.
      * Returns the first method where all arguments parse successfully.
      */
+    private boolean senderTypeMatches(Method method, CommandSender sender) {
+        Execute execute = method.getAnnotation(Execute.class);
+        if (execute == null) {
+            return true;
+        }
+        SenderType type = execute.type();
+        if (type == SenderType.BOTH) {
+            return true;
+        }
+        if (type == SenderType.PLAYER) {
+            return sender.isPlayer();
+        }
+        if (type == SenderType.CONSOLE) {
+            return !sender.isPlayer();
+        }
+        return true;
+    }
+
     private Method selectExecuteMethodWithParsing(CommandSender sender, String[] args) {
         List<Method> candidates = getMatchingExecuteMethods(args.length);
 
-        if (candidates.isEmpty()) {
+        // Filter by sender type — prefer specific matches over BOTH
+        List<Method> specificMatches = new ArrayList<>();
+        List<Method> bothMatches = new ArrayList<>();
+        for (Method m : candidates) {
+            if (!senderTypeMatches(m, sender)) {
+                continue;
+            }
+            Execute execute = m.getAnnotation(Execute.class);
+            SenderType type = execute != null ? execute.type() : SenderType.BOTH;
+            if (type == SenderType.BOTH) {
+                bothMatches.add(m);
+            } else {
+                specificMatches.add(m);
+            }
+        }
+
+        // Use specific matches first, fall back to BOTH
+        List<Method> filtered = specificMatches.isEmpty() ? bothMatches : specificMatches;
+
+        if (filtered.isEmpty()) {
             return null;
         }
 
-        // If only one candidate, use it directly
-        if (candidates.size() == 1) {
-            return candidates.getFirst();
+        if (filtered.size() == 1) {
+            return filtered.getFirst();
         }
 
         // Multiple candidates: try parsing with each and use first that succeeds
-        LOGGER.debug("Trying {} candidate methods for {} args", candidates.size(), args.length);
-        for (Method candidate : candidates) {
+        for (Method candidate : filtered) {
             try {
-                // Try building args without actually invoking
                 Object[] invokeArgs = buildArgs(sender, candidate, args);
                 if (invokeArgs != null) {
-                    LOGGER.debug("Selected method: {}", candidate.getName());
-                    return candidate; // This method's args parsed successfully
+                    return candidate;
                 }
             } catch (Exception e) {
-                // This method failed (any exception = parse failure), try next
-                LOGGER.debug("Method failed to parse args: {}", candidate.getName(), e.getMessage());
                 continue;
             }
         }
 
-        // If none succeeded, return first candidate (will fail with proper error)
-        LOGGER.debug("No method succeeded parsing, returning first candidate: {}", candidates.getFirst().getName());
-        return candidates.getFirst();
+        return filtered.getFirst();
     }
 
     /** Count parameters that are not CommandSender and not @Flag */
