@@ -138,9 +138,8 @@ public final class ScreenEntitySpawner {
         int id = nextId();
         entity.setId(id);
 
-        float cx = panel.x() + panel.width() / 2f;
-        float cy = panel.y() + panel.height() / 2f;
-        Vec3 pos = elementPosition(center, right, up, cx, cy, screen);
+        // Position panel at its top-left corner since TextDisplay renders downward-right
+        Vec3 pos = elementPosition(center, right, up, panel.x(), panel.y(), screen);
         entity.setPos(pos.x, pos.y, pos.z);
         entity.setYRot(yaw + 180f);
 
