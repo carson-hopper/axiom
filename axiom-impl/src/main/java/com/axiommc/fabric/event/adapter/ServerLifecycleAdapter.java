@@ -3,7 +3,7 @@ package com.axiommc.fabric.event.adapter;
 import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.server.ServerStartEvent;
 import com.axiommc.api.event.server.ServerStopEvent;
-import com.axiommc.fabric.AxiomMod;
+import com.axiommc.api.world.Server;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
@@ -18,14 +18,20 @@ public class ServerLifecycleAdapter implements FabricEventAdapter {
 
     @Override
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+        ServerLifecycleEvents.SERVER_STARTED.register(mcServer -> {
             LOGGER.debug("Firing ServerStartEvent");
-            eventBus.publish(new ServerStartEvent(AxiomMod.getInstance().server()));
+            String host = mcServer.getLocalIp().isEmpty() ? "localhost" : mcServer.getLocalIp();
+            int port = mcServer.getPort();
+            Server server = new Server("axiom-server", host, port);
+            eventBus.publish(new ServerStartEvent(server));
         });
 
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+        ServerLifecycleEvents.SERVER_STOPPING.register(mcServer -> {
             LOGGER.debug("Firing ServerStopEvent");
-            eventBus.publish(new ServerStopEvent(AxiomMod.getInstance().server()));
+            String host = mcServer.getLocalIp().isEmpty() ? "localhost" : mcServer.getLocalIp();
+            int port = mcServer.getPort();
+            Server server = new Server("axiom-server", host, port);
+            eventBus.publish(new ServerStopEvent(server));
         });
     }
 }
