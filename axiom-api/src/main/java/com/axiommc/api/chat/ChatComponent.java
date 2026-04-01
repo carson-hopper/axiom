@@ -98,6 +98,17 @@ public record ChatComponent(String type, String content, String translatableKey,
     }
 
     /**
+     * Creates a plain-text component using String.format.
+     *
+     * @param format the format string
+     * @param args the format arguments
+     * @return a new text component with the formatted string
+     */
+    public static ChatComponent textf(String format, Object... args) {
+        return text(String.format(format, args));
+    }
+
+    /**
      * Creates a colored plain-text component.
      *
      * @param content the text content
