@@ -2,7 +2,6 @@ package com.axiommc.fabric.command;
 
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.invoker.CommandInvoker;
-import com.axiommc.fabric.console.ConsoleHistory;
 import com.axiommc.fabric.event.adapter.CommandExecuteAdapter;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -37,7 +36,6 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
                 return Command.SINGLE_SUCCESS;
             }
             invoker.execute(sender, new String[0]);
-            addToConsoleHistory(ctx.getSource(), "");
         } catch (Exception e) {
             Axiom.logger().error("Error executing command: /{}", commandName, e);
         }
@@ -54,19 +52,12 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
                 return Command.SINGLE_SUCCESS;
             }
             invoker.execute(sender, args);
-            addToConsoleHistory(ctx.getSource(), rawArgs);
         } catch (Exception e) {
             Axiom.logger().error("Error executing command: /{}", commandName, e);
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private void addToConsoleHistory(CommandSourceStack source, String args) {
-        if (source.getEntity() == null) {
-            String fullCommand = commandName + (args.isEmpty() ? "" : " " + args);
-            ConsoleHistory.addCommand(fullCommand);
-        }
-    }
 
     private CompletableFuture<Suggestions> suggest(
             CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
