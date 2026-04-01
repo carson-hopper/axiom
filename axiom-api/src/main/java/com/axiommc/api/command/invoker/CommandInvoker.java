@@ -166,7 +166,6 @@ public class CommandInvoker {
             // For ambiguous cases (multiple methods with same param count), try parsing with each
             method = selectExecuteMethodWithParsing(sender, args);
             if (method == null) {
-                sender.sendMessage("Unknown command.");
                 return true;
             }
             methodArgs = args;
@@ -240,7 +239,11 @@ public class CommandInvoker {
 
             // Check by class name to handle classloader differences
             if (isCommandSenderParameter(param)) {
-                result[i] = sender;
+                if (param.getType().getName().equals(PLAYER_CLASS_NAME) && sender.isPlayer()) {
+                    result[i] = sender.asPlayer().orElse(null);
+                } else {
+                    result[i] = sender;
+                }
                 continue;
             }
 
