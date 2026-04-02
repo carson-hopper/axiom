@@ -1,9 +1,8 @@
 package com.axiommc.api.plugin;
 
 import com.axiommc.api.config.PluginConfig;
-import org.slf4j.Logger;
-
 import java.io.File;
+import org.slf4j.Logger;
 
 /**
  * AxiomPlugin base class that all Axiom plugins must extend.

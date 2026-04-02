@@ -1,13 +1,13 @@
 package com.axiommc.fabric.gui;
 
+import com.axiommc.api.gui.ClickType;
 import com.axiommc.api.gui.GuiClickEvent;
 import com.axiommc.api.gui.GuiItem;
-import com.axiommc.api.gui.ClickType;
 import com.axiommc.fabric.player.FabricPlayer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.server.level.ServerPlayer;
 
 public class GuiSlot extends Slot {
 
@@ -15,7 +15,8 @@ public class GuiSlot extends Slot {
     private final ServerPlayer player;
     private final int slotIndex;
 
-    public GuiSlot(Container container, int slotIndex, int x, int y, GuiItem guiItem, ServerPlayer player) {
+    public GuiSlot(
+        Container container, int slotIndex, int x, int y, GuiItem guiItem, ServerPlayer player) {
         super(container, slotIndex, x, y);
         this.guiItem = guiItem;
         this.player = player;

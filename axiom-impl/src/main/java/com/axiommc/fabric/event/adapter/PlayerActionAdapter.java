@@ -4,14 +4,14 @@ import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerDamageEvent;
 import com.axiommc.api.event.player.PlayerDeathEvent;
 import com.axiommc.api.event.player.PlayerGameModeChangeEvent;
-import com.axiommc.api.player.GameMode;
 import com.axiommc.api.event.player.PlayerItemEvent;
+import com.axiommc.api.event.player.PlayerPositionEvent;
 import com.axiommc.api.event.player.PlayerRideEvent;
 import com.axiommc.api.item.Item;
 import com.axiommc.api.item.ItemStack;
-import com.axiommc.api.event.player.PlayerPositionEvent;
 import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
+import com.axiommc.api.player.GameMode;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
@@ -83,8 +83,8 @@ public class PlayerActionAdapter implements FabricEventAdapter {
      * @param droppedStack   the Minecraft item stack being dropped
      * @return true if the event was cancelled
      */
-    public static boolean onDropItem(ServerPlayer serverPlayer,
-                                     net.minecraft.world.item.ItemStack droppedStack) {
+    public static boolean onDropItem(
+        ServerPlayer serverPlayer, net.minecraft.world.item.ItemStack droppedStack) {
         if (eventBus == null) {
             return false;
         }
@@ -106,8 +106,8 @@ public class PlayerActionAdapter implements FabricEventAdapter {
      * @param serverPlayer the player picking up the item
      * @param pickedStack  the Minecraft item stack being picked up
      */
-    public static void onPickupItem(ServerPlayer serverPlayer,
-                                    net.minecraft.world.item.ItemStack pickedStack) {
+    public static void onPickupItem(
+        ServerPlayer serverPlayer, net.minecraft.world.item.ItemStack pickedStack) {
         if (eventBus == null) {
             return;
         }
@@ -158,9 +158,7 @@ public class PlayerActionAdapter implements FabricEventAdapter {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             Location from = player.location();
             Vector3 destination = new Vector3(
-                    transition.position().x,
-                    transition.position().y,
-                    transition.position().z);
+                transition.position().x, transition.position().y, transition.position().z);
             String worldName = transition.newLevel().dimension().identifier().toString();
             World toWorld = Axiom.world(worldName).orElse(null);
             Location to = new Location(toWorld, destination, new Vector2(0, 0));
@@ -180,8 +178,8 @@ public class PlayerActionAdapter implements FabricEventAdapter {
      * @param mountEntity  the entity being mounted
      * @return true if the event was cancelled
      */
-    public static boolean onMount(ServerPlayer serverPlayer,
-                                  net.minecraft.world.entity.Entity mountEntity) {
+    public static boolean onMount(
+        ServerPlayer serverPlayer, net.minecraft.world.entity.Entity mountEntity) {
         if (eventBus == null) {
             return false;
         }
@@ -203,8 +201,8 @@ public class PlayerActionAdapter implements FabricEventAdapter {
      * @param serverPlayer  the player dismounting
      * @param vehicleEntity the entity being dismounted
      */
-    public static void onDismount(ServerPlayer serverPlayer,
-                                  net.minecraft.world.entity.Entity vehicleEntity) {
+    public static void onDismount(
+        ServerPlayer serverPlayer, net.minecraft.world.entity.Entity vehicleEntity) {
         if (eventBus == null) {
             return;
         }
@@ -218,7 +216,8 @@ public class PlayerActionAdapter implements FabricEventAdapter {
     }
 
     private static ItemStack toItemStack(net.minecraft.world.item.ItemStack mcStack) {
-        String key = mcStack.getItem().builtInRegistryHolder().key().identifier().toString();
+        String key =
+            mcStack.getItem().builtInRegistryHolder().key().identifier().toString();
         return ItemStack.of(Item.of(key), mcStack.getCount());
     }
 }

@@ -18,6 +18,8 @@ import com.axiommc.fabric.entity.FabricLivingEntity;
 import com.axiommc.fabric.mixin.net.minecraft.world.entity.player.PlayerAccessor;
 import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
+import java.util.Optional;
+import java.util.Set;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -31,11 +33,8 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.GameType;
 import net.minecraft.sounds.SoundEvent;
-
-import java.util.Optional;
-import java.util.Set;
+import net.minecraft.world.level.GameType;
 
 public class FabricPlayer extends FabricLivingEntity implements Player {
 
@@ -99,18 +98,26 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     }
 
     private void teleportDifferentWorld(Location location, Vector3 position, Vector2 rotation) {
-        if (!(location.world() instanceof FabricWorld(net.minecraft.server.level.ServerLevel level))) {
+        if (!(location.world()
+            instanceof FabricWorld(net.minecraft.server.level.ServerLevel level))) {
             return;
         }
-        player.teleportTo(level, position.x(), position.y(), position.z(), Set.of(), rotation.yaw(), rotation.pitch(), false);
+        player.teleportTo(
+            level,
+            position.x(),
+            position.y(),
+            position.z(),
+            Set.of(),
+            rotation.yaw(),
+            rotation.pitch(),
+            false);
     }
 
     @Override
     public World world() {
         ServerLevel level = player.level();
         String worldName = new FabricWorld(level).name();
-        return AxiomMod.instance().world(worldName)
-                .orElseGet(() -> new FabricWorld(level));
+        return AxiomMod.instance().world(worldName).orElseGet(() -> new FabricWorld(level));
     }
 
     // ============================================================
@@ -150,12 +157,20 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     public void teleport(Server server, Location location) {
         // For cross-server teleportation, use TransitionPacket (MC 1.20.5+)
         try {
-            Class<?> transitionPacketClass = Class.forName("net.minecraft.network.protocol.game.ClientboundTransitionPacket");
-            java.lang.reflect.Constructor<?> constructor = transitionPacketClass.getConstructor(String.class, int.class);
+            Class<?> transitionPacketClass =
+                Class.forName("net.minecraft.network.protocol.game.ClientboundTransitionPacket");
+            java.lang.reflect.Constructor<?> constructor =
+                transitionPacketClass.getConstructor(String.class, int.class);
             Object packet = constructor.newInstance(server.host(), server.port());
             player.connection.send((net.minecraft.network.protocol.Packet<?>) packet);
         } catch (Exception e) {
-            Axiom.logger().error("Failed to transfer player {} to server {}:{}", name(), server.host(), server.port(), e);
+            Axiom.logger()
+                .error(
+                    "Failed to transfer player {} to server {}:{}",
+                    name(),
+                    server.host(),
+                    server.port(),
+                    e);
         }
     }
 
@@ -189,7 +204,8 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
             return;
         }
         playSound(Sound.PLAYER_DEATH, 1, 1);
-        ((PlayerAccessor) player).invokeActuallyHurt(level, level.damageSources().generic(), (float) amount);
+        ((PlayerAccessor) player)
+            .invokeActuallyHurt(level, level.damageSources().generic(), (float) amount);
     }
 
     // ============================================================
@@ -218,7 +234,8 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     // ============================================================
 
     @Override
-    public void showTitle(ChatComponent title, ChatComponent subtitle, int fadeIn, int stay, int fadeOut, int ttl) {
+    public void showTitle(
+        ChatComponent title, ChatComponent subtitle, int fadeIn, int stay, int fadeOut, int ttl) {
         FabricComponentSerializer serializer = new FabricComponentSerializer();
         net.minecraft.network.chat.Component mcTitle = serializer.serialize(title);
         net.minecraft.network.chat.Component mcSubtitle = serializer.serialize(subtitle);
@@ -226,9 +243,9 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         player.connection.send(new ClientboundSetTitleTextPacket(mcTitle));
         player.connection.send(new ClientboundSetSubtitleTextPacket(mcSubtitle));
         if (ttl > 0) {
-            TaskScheduler.global().scheduleTask(ttl, () ->
-                player.connection.send(new ClientboundClearTitlesPacket(false))
-            );
+            TaskScheduler.global()
+                .scheduleTask(
+                    ttl, () -> player.connection.send(new ClientboundClearTitlesPacket(false)));
         }
     }
 
@@ -243,13 +260,15 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public void sendActionBar(ChatComponent component) {
-        net.minecraft.network.chat.Component mc = new FabricComponentSerializer().serialize(component);
+        net.minecraft.network.chat.Component mc =
+            new FabricComponentSerializer().serialize(component);
         player.connection.send(new ClientboundSetActionBarTextPacket(mc));
     }
 
     @Override
     public void playSound(SoundKey sound, float volume, float pitch) {
-        Registry<SoundEvent> registry = player.level().registryAccess().lookupOrThrow(Registries.SOUND_EVENT);
+        Registry<SoundEvent> registry =
+            player.level().registryAccess().lookupOrThrow(Registries.SOUND_EVENT);
 
         Identifier identifier = Identifier.parse(sound.key());
         registry.get(identifier).ifPresent(soundEvent -> {
@@ -261,8 +280,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
                 location().position().z(),
                 volume,
                 pitch,
-                player.level().getRandom().nextLong()
-            );
+                player.level().getRandom().nextLong());
             player.connection.send(packet);
         });
     }
@@ -287,12 +305,13 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public void gameMode(GameMode gameMode) {
-        GameType gameType = switch (gameMode) {
-            case SURVIVAL -> GameType.SURVIVAL;
-            case CREATIVE -> GameType.CREATIVE;
-            case ADVENTURE -> GameType.ADVENTURE;
-            case SPECTATOR -> GameType.SPECTATOR;
-        };
+        GameType gameType =
+            switch (gameMode) {
+                case SURVIVAL -> GameType.SURVIVAL;
+                case CREATIVE -> GameType.CREATIVE;
+                case ADVENTURE -> GameType.ADVENTURE;
+                case SPECTATOR -> GameType.SPECTATOR;
+            };
         player.setGameMode(gameType);
     }
 }

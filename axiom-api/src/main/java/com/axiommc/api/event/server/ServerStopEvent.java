@@ -17,5 +17,4 @@ public class ServerStopEvent extends Event {
     public Server server() {
         return server;
     }
-
 }

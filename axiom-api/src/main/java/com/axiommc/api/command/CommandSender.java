@@ -2,7 +2,6 @@ package com.axiommc.api.command;
 
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.player.Player;
-
 import java.util.Optional;
 
 /**
@@ -60,5 +59,4 @@ public interface CommandSender {
      *         otherwise an empty Optional
      */
     Optional<Player> asPlayer();
-
 }

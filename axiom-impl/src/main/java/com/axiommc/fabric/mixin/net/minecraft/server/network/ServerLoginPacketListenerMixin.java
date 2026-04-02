@@ -16,7 +16,6 @@ public abstract class ServerLoginPacketListenerMixin {
 
     @Inject(method = "handleHello", at = @At("HEAD"))
     private void onHello(ServerboundHelloPacket packet, CallbackInfo callbackInfo) {
-        GameProfileAdapter.onGameProfileRequest(
-                packet.name(), packet.profileId());
+        GameProfileAdapter.onGameProfileRequest(packet.name(), packet.profileId());
     }
 }

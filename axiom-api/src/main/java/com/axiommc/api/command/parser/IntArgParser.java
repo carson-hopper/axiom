@@ -10,5 +10,4 @@ public class IntArgParser implements ArgParser<Integer> {
             throw new ArgParseException("Expected an integer, got: " + input, e);
         }
     }
-
 }

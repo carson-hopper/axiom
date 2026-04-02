@@ -10,5 +10,4 @@ public class DoubleArgParser implements ArgParser<Double> {
             throw new ArgParseException("Expected a double, got: " + input, e);
         }
     }
-
 }

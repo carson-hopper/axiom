@@ -34,9 +34,10 @@ public record Item(String materialKey, int count, String displayName, List<Strin
      */
     public static Item of(String materialKey) {
         return new Item(
-                Objects.requireNonNull(materialKey, "materialKey must not be null"),
-                1, "", Collections.emptyList()
-        );
+            Objects.requireNonNull(materialKey, "materialKey must not be null"),
+            1,
+            "",
+            Collections.emptyList());
     }
 
     /**
@@ -50,11 +51,10 @@ public record Item(String materialKey, int count, String displayName, List<Strin
      */
     public static Item of(String materialKey, String displayName) {
         return new Item(
-                Objects.requireNonNull(materialKey, "materialKey must not be null"),
-                1,
-                Objects.requireNonNull(displayName, "displayName must not be null"),
-                Collections.emptyList()
-        );
+            Objects.requireNonNull(materialKey, "materialKey must not be null"),
+            1,
+            Objects.requireNonNull(displayName, "displayName must not be null"),
+            Collections.emptyList());
     }
 
     /**
@@ -68,10 +68,9 @@ public record Item(String materialKey, int count, String displayName, List<Strin
      */
     public static Item of(String materialKey, int count, String displayName, List<String> lore) {
         return new Item(
-                Objects.requireNonNull(materialKey, "materialKey must not be null"),
-                count,
-                Objects.requireNonNull(displayName, "displayName must not be null"),
-                Objects.requireNonNull(lore, "lore must not be null")
-        );
+            Objects.requireNonNull(materialKey, "materialKey must not be null"),
+            count,
+            Objects.requireNonNull(displayName, "displayName must not be null"),
+            Objects.requireNonNull(lore, "lore must not be null"));
     }
 }

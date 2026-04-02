@@ -12,5 +12,4 @@ public class UUIDArgParser implements ArgParser<UUID> {
             throw new ArgParseException("Expected a UUID, got: " + input, e);
         }
     }
-
 }

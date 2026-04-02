@@ -10,16 +10,16 @@ import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.PluginSide;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.plugin.command.AxiomCommand;
-import com.axiommc.plugin.command.player.GameModeCommand;
 import com.axiommc.plugin.command.RandomTeleportCommand;
 import com.axiommc.plugin.command.ScreenCommand;
-import com.axiommc.plugin.command.player.TeleportCommand;
 import com.axiommc.plugin.command.TestConfigCommand;
 import com.axiommc.plugin.command.TestGuiCommand;
 import com.axiommc.plugin.command.TestPlayerCommand;
 import com.axiommc.plugin.command.TestSidebarCommand;
 import com.axiommc.plugin.command.TestWorldCommand;
+import com.axiommc.plugin.command.player.GameModeCommand;
 import com.axiommc.plugin.command.player.KillCommand;
+import com.axiommc.plugin.command.player.TeleportCommand;
 
 @Plugin(id = "axiom", name = "Axiom", version = "1.0.0", side = PluginSide.SERVER)
 public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
@@ -45,20 +45,47 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
 
         EventBus eventBus = context.eventBus();
 
-        eventBus.subscribe(PlayerJoinEvent.Init.class, event -> {
-            Axiom.logger().info(ChatComponent.textf("{} <{}> init!", event.username(), event.uuid()).color(ChatColor.BLUE));
-        }, EventPriority.NORMAL);
-        eventBus.subscribe(PlayerJoinEvent.Pre.class, event -> {
-            Axiom.logger().info(ChatComponent.textf("{} pre connecting!", event.player().name()).color(ChatColor.BLUE));
-        }, EventPriority.NORMAL);
-        eventBus.subscribe(PlayerJoinEvent.Connecting.class, event -> {
-            event.player().sendMessage(ChatComponent.textf("{} connecting!", event.player().name()).color(ChatColor.BLUE));
-            Axiom.logger().info(ChatComponent.textf("{} connecting!", event.player().name()).color(ChatColor.BLUE));
-        }, EventPriority.NORMAL);
-        eventBus.subscribe(PlayerJoinEvent.Post.class, event -> {
-            event.player().sendMessage(ChatComponent.textf("{} joined!", event.player().name()).color(ChatColor.BLUE));
-            Axiom.logger().info(ChatComponent.textf("{} joined!", event.player().name()).color(ChatColor.BLUE));
-        }, EventPriority.NORMAL);
+        eventBus.subscribe(
+            PlayerJoinEvent.Init.class,
+            event -> {
+                Axiom.logger()
+                    .info(ChatComponent.textf("{} <{}> init!", event.username(), event.uuid())
+                        .color(ChatColor.BLUE));
+            },
+            EventPriority.NORMAL);
+        eventBus.subscribe(
+            PlayerJoinEvent.Pre.class,
+            event -> {
+                Axiom.logger()
+                    .info(
+                        ChatComponent.textf("{} pre connecting!", event.player().name())
+                            .color(ChatColor.BLUE));
+            },
+            EventPriority.NORMAL);
+        eventBus.subscribe(
+            PlayerJoinEvent.Connecting.class,
+            event -> {
+                event.player()
+                    .sendMessage(
+                        ChatComponent.textf("{} connecting!", event.player().name())
+                            .color(ChatColor.BLUE));
+                Axiom.logger()
+                    .info(ChatComponent.textf("{} connecting!", event.player().name())
+                        .color(ChatColor.BLUE));
+            },
+            EventPriority.NORMAL);
+        eventBus.subscribe(
+            PlayerJoinEvent.Post.class,
+            event -> {
+                event.player()
+                    .sendMessage(
+                        ChatComponent.textf("{} joined!", event.player().name())
+                            .color(ChatColor.BLUE));
+                Axiom.logger()
+                    .info(ChatComponent.textf("{} joined!", event.player().name())
+                        .color(ChatColor.BLUE));
+            },
+            EventPriority.NORMAL);
     }
 
     @Override
@@ -73,5 +100,4 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
     public PluginContext context() {
         return context;
     }
-
 }

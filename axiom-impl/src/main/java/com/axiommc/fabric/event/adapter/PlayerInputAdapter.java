@@ -3,11 +3,11 @@ package com.axiommc.fabric.event.adapter;
 import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerInteractEntityEvent;
 import com.axiommc.api.event.player.PlayerPositionEvent;
-import com.axiommc.fabric.entity.FabricEntity;
 import com.axiommc.api.event.player.PlayerSwapHandItemsEvent;
 import com.axiommc.api.event.player.PlayerToggleEvent;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.entity.FabricEntity;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,9 +33,14 @@ public class PlayerInputAdapter implements FabricEventAdapter {
      *
      * @return true if the event was cancelled
      */
-    public static boolean onMove(ServerPlayer serverPlayer,
-                                 double fromX, double fromY, double fromZ,
-                                 double toX, double toY, double toZ) {
+    public static boolean onMove(
+        ServerPlayer serverPlayer,
+        double fromX,
+        double fromY,
+        double fromZ,
+        double toX,
+        double toY,
+        double toZ) {
         if (eventBus == null) {
             return false;
         }
@@ -68,7 +73,8 @@ public class PlayerInputAdapter implements FabricEventAdapter {
      *
      * @return true if the event was cancelled
      */
-    public static boolean onInteractEntity(ServerPlayer serverPlayer, int entityId, boolean mainHand) {
+    public static boolean onInteractEntity(
+        ServerPlayer serverPlayer, int entityId, boolean mainHand) {
         if (eventBus == null) {
             return false;
         }
@@ -79,13 +85,12 @@ public class PlayerInputAdapter implements FabricEventAdapter {
             }
             FabricPlayer player = new FabricPlayer(serverPlayer);
             FabricEntity entity = new FabricEntity(target);
-            PlayerInteractEntityEvent event = new PlayerInteractEntityEvent(
-                    player, entity, mainHand);
+            PlayerInteractEntityEvent event =
+                new PlayerInteractEntityEvent(player, entity, mainHand);
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {
-            Axiom.logger().debug(
-                    "Error firing PlayerInteractEntityEvent", exception);
+            Axiom.logger().debug("Error firing PlayerInteractEntityEvent", exception);
             return false;
         }
     }
@@ -135,8 +140,7 @@ public class PlayerInputAdapter implements FabricEventAdapter {
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {
-            Axiom.logger().debug(
-                    "Error firing PlayerSwapHandItemsEvent", exception);
+            Axiom.logger().debug("Error firing PlayerSwapHandItemsEvent", exception);
             return false;
         }
     }

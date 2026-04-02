@@ -38,19 +38,18 @@ public final class VanillaLogFilter extends AbstractFilter {
         String message = event.getMessage().getFormattedMessage();
 
         // Suppress vanilla join messages
-        if (message.contains("UUID of player")
-                || message.contains("logged in with entity id")) {
+        if (message.contains("UUID of player") || message.contains("logged in with entity id")) {
             return Result.DENY;
         }
 
         // Rewrite thread name for Axiom loggers
         String loggerName = event.getLoggerName();
         if (loggerName != null
-                && loggerName.startsWith(AXIOM_LOGGER_PREFIX)
-                && !AXIOM_THREAD_NAME.equals(event.getThreadName())) {
+            && loggerName.startsWith(AXIOM_LOGGER_PREFIX)
+            && !AXIOM_THREAD_NAME.equals(event.getThreadName())) {
             LogEvent rewritten = new Log4jLogEvent.Builder(event)
-                    .setThreadName(AXIOM_THREAD_NAME)
-                    .build();
+                .setThreadName(AXIOM_THREAD_NAME)
+                .build();
             rewriting = true;
             try {
                 Logger rootLogger = (Logger) LogManager.getRootLogger();

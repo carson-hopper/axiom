@@ -15,34 +15,43 @@ import com.axiommc.api.screen.ScreenElement;
 import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.fabric.Axiom;
 
-@Command(name = "screen", aliases = {"sc"})
+@Command(
+    name = "screen",
+    aliases = {"sc"})
 @Permission("axiom.screen")
 public class ScreenCommand {
 
     @Execute(type = SenderType.PLAYER)
     public void onDefault(Player sender) {
-        sender.sendMessage(ChatComponent.text("Usage: /screen test | /screen close", ChatColor.YELLOW));
+        sender.sendMessage(
+            ChatComponent.text("Usage: /screen test | /screen close", ChatColor.YELLOW));
     }
 
     @Subcommand("test")
     @Execute(type = SenderType.PLAYER)
     public void onTest(Player sender) {
         Screen screen = Screen.builder()
-                .title("Test Screen")
-                .width(2.5f)
-                .height(1.8f)
-                .distance(2.0f)
-                .element(ScreenElement.Panel.of(0f, 0f, 1f, 1f, PanelStyle.DARK))
-                .element(ScreenElement.Panel.of(0.04f, 0.08f, 0.92f, 0.84f, PanelStyle.GLASS))
-                .element(ScreenElement.Label.of(0.5f, 0.18f,
-                        ChatComponent.text("⬡ Axiom", ChatColor.AQUA)
-                                .decoration(ChatDecoration.BOLD, true)))
-                .element(ScreenElement.Label.of(0.5f, 0.32f,
-                        ChatComponent.text("Screen System", ChatColor.GRAY)))
-                .element(ScreenElement.Button.of(0.25f, 0.55f, 0.5f, 0.18f,
-                        ChatComponent.text("✕ Close", ChatColor.WHITE),
-                        e -> Axiom.screenManager().close(e.player())))
-                .build();
+            .title("Test Screen")
+            .width(2.5f)
+            .height(1.8f)
+            .distance(2.0f)
+            .element(ScreenElement.Panel.of(0f, 0f, 1f, 1f, PanelStyle.DARK))
+            .element(ScreenElement.Panel.of(0.04f, 0.08f, 0.92f, 0.84f, PanelStyle.GLASS))
+            .element(ScreenElement.Label.of(
+                0.5f,
+                0.18f,
+                ChatComponent.text("⬡ Axiom", ChatColor.AQUA)
+                    .decoration(ChatDecoration.BOLD, true)))
+            .element(ScreenElement.Label.of(
+                0.5f, 0.32f, ChatComponent.text("Screen System", ChatColor.GRAY)))
+            .element(ScreenElement.Button.of(
+                0.25f,
+                0.55f,
+                0.5f,
+                0.18f,
+                ChatComponent.text("✕ Close", ChatColor.WHITE),
+                e -> Axiom.screenManager().close(e.player())))
+            .build();
 
         Axiom.screenManager().open(sender, screen);
         sender.sendMessage(ChatComponent.text("Screen opened.", ChatColor.GREEN));

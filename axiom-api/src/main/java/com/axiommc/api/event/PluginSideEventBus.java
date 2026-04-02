@@ -2,10 +2,9 @@ package com.axiommc.api.event;
 
 import com.axiommc.api.messaging.Channels;
 import com.axiommc.api.messaging.MessageBus;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.function.Consumer;
 
 /**
  * An {@link EventBus} that transparently forwards {@link CrossSide}-annotated events
@@ -18,7 +17,8 @@ import java.util.function.Consumer;
  * <p>Loop prevention: inbound events are published via {@code delegate.publish()},
  * not {@code this.publish()}, so they are never re-forwarded.
  */
-public record PluginSideEventBus(EventBus delegate, MessageBus messageBus, ClassLoader classLoader) implements EventBus {
+public record PluginSideEventBus(EventBus delegate, MessageBus messageBus, ClassLoader classLoader)
+    implements EventBus {
 
     private static final Logger logger = LoggerFactory.getLogger(PluginSideEventBus.class);
 
@@ -42,7 +42,8 @@ public record PluginSideEventBus(EventBus delegate, MessageBus messageBus, Class
     }
 
     @Override
-    public <T extends Event> void subscribe(Class<T> eventType, Consumer<T> handler, EventPriority priority) {
+    public <T extends Event> void subscribe(
+        Class<T> eventType, Consumer<T> handler, EventPriority priority) {
         delegate.subscribe(eventType, handler, priority);
     }
 
@@ -79,8 +80,10 @@ public record PluginSideEventBus(EventBus delegate, MessageBus messageBus, Class
             Event event = EventSerializer.deserialize(data, classLoader);
             delegate.publish(event);
         } catch (ClassNotFoundException e) {
-            logger.warn("Cross-side event class not found on this side: {}. " +
-                    "Ensure the module JAR is deployed on both sides.", e.getMessage());
+            logger.warn(
+                "Cross-side event class not found on this side: {}. "
+                    + "Ensure the module JAR is deployed on both sides.",
+                e.getMessage());
         } catch (Exception e) {
             logger.warn("Failed to deserialize cross-side event: {}", e.getMessage());
         }

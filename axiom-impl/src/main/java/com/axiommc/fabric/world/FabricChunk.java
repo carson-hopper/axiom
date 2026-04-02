@@ -5,14 +5,13 @@ import com.axiommc.api.world.Biome;
 import com.axiommc.api.world.BiomeWritable;
 import com.axiommc.api.world.Chunk;
 import com.axiommc.api.world.World;
+import java.util.Optional;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
-
-import java.util.Optional;
 
 public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implements Chunk {
 
@@ -61,7 +60,8 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
 
     @Override
     public Biome biomeAt(int x, int y, int z) {
-        Holder<net.minecraft.world.level.biome.Biome> biomeHolder = levelChunk.getNoiseBiome(x >> 2, y >> 2, z >> 2);
+        Holder<net.minecraft.world.level.biome.Biome> biomeHolder =
+            levelChunk.getNoiseBiome(x >> 2, y >> 2, z >> 2);
 
         try {
             // Try to get biome ID from the holder's key
@@ -96,8 +96,8 @@ public record FabricChunk(LevelChunk levelChunk, FabricWorld fabricWorld) implem
         int y = (int) position.y();
         int z = (int) position.z();
 
-        ((BiomeWritable) levelChunk).setBiome(x >> 2, y >> 2, z >> 2, biome,
-                fabricWorld.level().registryAccess());
+        ((BiomeWritable) levelChunk)
+            .setBiome(x >> 2, y >> 2, z >> 2, biome, fabricWorld.level().registryAccess());
 
         levelChunk.markUnsaved();
     }

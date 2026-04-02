@@ -1,17 +1,16 @@
 package com.axiommc.api.world;
 
 public record Dimension(
-        String id,
-        DimensionType type,
-        boolean hasSkyLight,
-        boolean hasCeiling,
-        boolean hasFixedTime,
-        int minY,
-        int height,
-        int logicalHeight,
-        float ambientLight,
-        double coordinateScale
-) {
+    String id,
+    DimensionType type,
+    boolean hasSkyLight,
+    boolean hasCeiling,
+    boolean hasFixedTime,
+    int minY,
+    int height,
+    int logicalHeight,
+    float ambientLight,
+    double coordinateScale) {
     public int maxY() {
         return minY + height;
     }
@@ -31,5 +30,4 @@ public record Dimension(
     public boolean isCustom() {
         return type == DimensionType.CUSTOM;
     }
-
 }

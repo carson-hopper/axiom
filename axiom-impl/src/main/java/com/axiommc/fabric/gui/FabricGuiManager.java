@@ -9,6 +9,11 @@ import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.player.FabricPlayer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -21,12 +26,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemLore;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class FabricGuiManager implements GuiManager {
 
     private final Map<UUID, GuiSession> sessions = new ConcurrentHashMap<>();
@@ -37,7 +36,8 @@ public class FabricGuiManager implements GuiManager {
         ServerPlayer sp = ((FabricPlayer) player).player();
 
         UUID sessionId = UUID.randomUUID();
-        SimpleInventoryContainer container = new SimpleInventoryContainer(gui.size().slots());
+        SimpleInventoryContainer container =
+            new SimpleInventoryContainer(gui.size().slots());
 
         fillContainer(container, gui);
 
@@ -45,8 +45,7 @@ public class FabricGuiManager implements GuiManager {
 
         sp.openMenu(new SimpleMenuProvider(
             (id, inventory, p) -> new AxiomChestMenu(id, container, gui, sessionId, this, sp),
-            title
-        ));
+            title));
 
         // Get the menu from the player's current container
         AxiomChestMenu menu = (AxiomChestMenu) sp.containerMenu;
@@ -102,14 +101,15 @@ public class FabricGuiManager implements GuiManager {
     }
 
     private ItemStack toItemStack(com.axiommc.api.chat.Item item) {
-        Item mcItem = BuiltInRegistries.ITEM.get(net.minecraft.resources.Identifier.parse(item.materialKey()))
+        Item mcItem = BuiltInRegistries.ITEM
+            .get(net.minecraft.resources.Identifier.parse(item.materialKey()))
             .map(Holder.Reference::value)
             .orElse(Items.BARRIER);
         ItemStack stack = new ItemStack(mcItem, item.count());
 
         if (!item.displayName().isEmpty()) {
-            Component displayName = Component.literal(item.displayName())
-                .withStyle(s -> s.withItalic(false));
+            Component displayName =
+                Component.literal(item.displayName()).withStyle(s -> s.withItalic(false));
             stack.set(DataComponents.CUSTOM_NAME, displayName);
         }
 
@@ -162,8 +162,7 @@ public class FabricGuiManager implements GuiManager {
         }
 
         @Override
-        public void setChanged() {
-        }
+        public void setChanged() {}
 
         @Override
         public boolean stillValid(net.minecraft.world.entity.player.Player player) {
@@ -185,5 +184,4 @@ public class FabricGuiManager implements GuiManager {
             return true;
         }
     }
-
 }

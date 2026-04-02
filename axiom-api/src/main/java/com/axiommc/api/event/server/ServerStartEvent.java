@@ -17,5 +17,4 @@ public class ServerStartEvent extends Event {
     public Server server() {
         return server;
     }
-
 }

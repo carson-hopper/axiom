@@ -11,9 +11,7 @@ public interface PlayerManager {
 
     Collection<? extends Player> onlinePlayers();
 
-
     Optional<? extends Player> player(UUID uuid);
-
 
     Optional<? extends Player> player(String name);
 }

@@ -1,15 +1,13 @@
 package com.axiommc.fabric.player;
 
-import com.axiommc.api.player.Player;
 import com.axiommc.api.player.PlayerManager;
-import net.minecraft.server.MinecraftServer;
 import com.axiommc.fabric.Axiom;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import net.minecraft.server.MinecraftServer;
 
 public class FabricPlayerProvider implements PlayerManager {
 
@@ -26,9 +24,9 @@ public class FabricPlayerProvider implements PlayerManager {
             return Optional.empty();
         }
         return server.getPlayerList().getPlayers().stream()
-                .filter(p -> p.getName().getString().equalsIgnoreCase(name))
-                .findFirst()
-                .map(FabricPlayer::new);
+            .filter(p -> p.getName().getString().equalsIgnoreCase(name))
+            .findFirst()
+            .map(FabricPlayer::new);
     }
 
     @Override
@@ -36,8 +34,7 @@ public class FabricPlayerProvider implements PlayerManager {
         if (server == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(server.getPlayerList().getPlayer(uuid))
-                .map(FabricPlayer::new);
+        return Optional.ofNullable(server.getPlayerList().getPlayer(uuid)).map(FabricPlayer::new);
     }
 
     @Override
@@ -46,8 +43,8 @@ public class FabricPlayerProvider implements PlayerManager {
             return Collections.emptyList();
         }
         return server.getPlayerList().getPlayers().stream()
-                .map(FabricPlayer::new)
-                .collect(Collectors.toList());
+            .map(FabricPlayer::new)
+            .collect(Collectors.toList());
     }
 
     public int count() {

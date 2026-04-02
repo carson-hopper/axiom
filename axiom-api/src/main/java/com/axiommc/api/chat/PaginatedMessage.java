@@ -1,9 +1,7 @@
 package com.axiommc.api.chat;
 
 import com.axiommc.api.command.CommandSender;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,8 +25,8 @@ public final class PaginatedMessage {
     private final int entriesPerPage;
     private final String command;
 
-    private PaginatedMessage(ChatComponent title, List<ChatComponent> entries,
-                             int entriesPerPage, String command) {
+    private PaginatedMessage(
+        ChatComponent title, List<ChatComponent> entries, int entriesPerPage, String command) {
         this.title = title;
         this.entries = List.copyOf(entries);
         this.entriesPerPage = entriesPerPage;
@@ -65,10 +63,10 @@ public final class PaginatedMessage {
 
     private ChatComponent buildHeader(int page, int total) {
         ChatComponent divider = ChatComponent.text("───────── ", ChatColor.DARK_GRAY);
-        ChatComponent titlePart = title != null
-            ? title
-            : ChatComponent.text("Page", ChatColor.WHITE);
-        ChatComponent pageLabel = ChatComponent.text(" (" + page + "/" + total + ")", ChatColor.GRAY);
+        ChatComponent titlePart =
+            title != null ? title : ChatComponent.text("Page", ChatColor.WHITE);
+        ChatComponent pageLabel =
+            ChatComponent.text(" (" + page + "/" + total + ")", ChatColor.GRAY);
         ChatComponent dividerEnd = ChatComponent.text(" ─────────", ChatColor.DARK_GRAY);
         return divider.append(titlePart).append(pageLabel).append(dividerEnd);
     }
@@ -77,11 +75,9 @@ public final class PaginatedMessage {
         ChatComponent nav = ChatComponent.empty();
 
         if (page > 1) {
-            nav = nav.append(
-                ChatComponent.text("« Prev", ChatColor.AQUA)
-                    .clickRunCommand(command + " " + (page - 1))
-                    .hoverText(ChatComponent.text("Go to page " + (page - 1)))
-            );
+            nav = nav.append(ChatComponent.text("« Prev", ChatColor.AQUA)
+                .clickRunCommand(command + " " + (page - 1))
+                .hoverText(ChatComponent.text("Go to page " + (page - 1))));
         } else {
             nav = nav.append(ChatComponent.text("« Prev", ChatColor.DARK_GRAY));
         }
@@ -89,11 +85,9 @@ public final class PaginatedMessage {
         nav = nav.append(ChatComponent.text("  |  ", ChatColor.DARK_GRAY));
 
         if (page < total) {
-            nav = nav.append(
-                ChatComponent.text("Next »", ChatColor.AQUA)
-                    .clickRunCommand(command + " " + (page + 1))
-                    .hoverText(ChatComponent.text("Go to page " + (page + 1)))
-            );
+            nav = nav.append(ChatComponent.text("Next »", ChatColor.AQUA)
+                .clickRunCommand(command + " " + (page + 1))
+                .hoverText(ChatComponent.text("Go to page " + (page + 1))));
         } else {
             nav = nav.append(ChatComponent.text("Next »", ChatColor.DARK_GRAY));
         }
@@ -128,7 +122,8 @@ public final class PaginatedMessage {
 
         public Builder entries(List<ChatComponent> entries) {
             Objects.requireNonNull(entries, "entries must not be null");
-            entries.forEach(e -> this.entries.add(Objects.requireNonNull(e, "entry must not be null")));
+            entries.forEach(
+                e -> this.entries.add(Objects.requireNonNull(e, "entry must not be null")));
             return this;
         }
 

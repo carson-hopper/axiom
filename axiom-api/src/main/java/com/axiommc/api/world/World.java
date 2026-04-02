@@ -1,5 +1,6 @@
 package com.axiommc.api.world;
 
+import com.axiommc.api.block.Block;
 import com.axiommc.api.entity.display.BlockDisplayEntity;
 import com.axiommc.api.entity.display.BlockDisplaySpec;
 import com.axiommc.api.entity.display.ItemDisplayEntity;
@@ -11,8 +12,6 @@ import com.axiommc.api.particle.ParticleEffect;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.sound.SoundKey;
-import com.axiommc.api.block.Block;
-
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -248,10 +247,8 @@ public interface World {
      */
     default Block blockAt(Vector3 position) {
         Objects.requireNonNull(position, "position");
-        return blockAt(
-                (int) Math.floor(position.x()),
-                (int) Math.floor(position.y()),
-                (int) Math.floor(position.z()));
+        return blockAt((int) Math.floor(position.x()), (int) Math.floor(position.y()), (int)
+            Math.floor(position.z()));
     }
 
     /**

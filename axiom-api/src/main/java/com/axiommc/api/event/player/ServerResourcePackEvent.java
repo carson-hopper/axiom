@@ -2,7 +2,6 @@ package com.axiommc.api.event.player;
 
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
-
 import java.net.URI;
 
 /**

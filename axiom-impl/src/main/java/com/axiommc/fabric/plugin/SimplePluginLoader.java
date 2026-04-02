@@ -8,7 +8,6 @@ import com.axiommc.api.plugin.AxiomPlugin;
 import com.axiommc.api.plugin.Plugin;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayerProvider;
-
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -57,8 +56,10 @@ public class SimplePluginLoader {
         entries.add(entry);
 
         try {
-            AxiomPlugin plugin = (AxiomPlugin) pluginClass.getDeclaredConstructor().newInstance();
-            plugin.enable(new SimplePluginContext(annotation.id(), annotation.name(), eventBus, playerProvider));
+            AxiomPlugin plugin =
+                (AxiomPlugin) pluginClass.getDeclaredConstructor().newInstance();
+            plugin.enable(new SimplePluginContext(
+                annotation.id(), annotation.name(), eventBus, playerProvider));
             plugins.put(annotation.id(), plugin);
             enabledStatus.put(plugin, true);
 
@@ -66,7 +67,8 @@ public class SimplePluginLoader {
             eventBus.publish(new PluginStateEvent(annotation.id(), PluginStateEvent.State.ENABLED));
         } catch (Exception e) {
             updateStatus(displayName, PluginState.FAILED);
-            eventBus.publish(new PluginStateEvent(annotation.id(), PluginStateEvent.State.DISABLED, e.getMessage()));
+            eventBus.publish(new PluginStateEvent(
+                annotation.id(), PluginStateEvent.State.DISABLED, e.getMessage()));
             Axiom.logger().error("Failed to load plugin: {}", displayName, e);
         }
     }
@@ -81,28 +83,32 @@ public class SimplePluginLoader {
         // Detect Bukkit/Spigot/Paper plugins
         try (ZipFile check = new ZipFile(pluginFile)) {
             if (check.getEntry("plugin.yml") != null
-                    || check.getEntry("paper-plugin.yml") != null) {
-                Axiom.logger().warn("{} is a Bukkit/Paper plugin and cannot be loaded by Axiom",
+                || check.getEntry("paper-plugin.yml") != null) {
+                Axiom.logger()
+                    .warn(
+                        "{} is a Bukkit/Paper plugin and cannot be loaded by Axiom",
                         pluginFile.getName());
                 return;
             }
             for (ZipEntry entry : Collections.list(check.entries())) {
                 String name = entry.getName();
                 if (name.equals("org/bukkit/plugin/java/JavaPlugin.class")
-                        || name.equals("io/papermc/paper/plugin/bootstrap/PluginBootstrap.class")) {
-                    Axiom.logger().warn("{} is a Bukkit/Paper plugin and cannot be loaded by Axiom",
+                    || name.equals("io/papermc/paper/plugin/bootstrap/PluginBootstrap.class")) {
+                    Axiom.logger()
+                        .warn(
+                            "{} is a Bukkit/Paper plugin and cannot be loaded by Axiom",
                             pluginFile.getName());
                     return;
                 }
             }
-        } catch (Exception _) {}
+        } catch (Exception _) {
+        }
 
         URLClassLoader loader = null;
         try {
             loader = new URLClassLoader(
-                    new URL[]{pluginFile.toURI().toURL()},
-                    Thread.currentThread().getContextClassLoader()
-            );
+                new URL[] {pluginFile.toURI().toURL()},
+                Thread.currentThread().getContextClassLoader());
             classLoaders.add(loader);
 
             try (ZipFile zipFile = new ZipFile(pluginFile)) {
@@ -111,13 +117,11 @@ public class SimplePluginLoader {
                         continue;
                     }
 
-                    String className = zipEntry.getName()
-                            .replace("/", ".")
-                            .replace(".class", "");
+                    String className = zipEntry.getName().replace("/", ".").replace(".class", "");
 
                     Class<?> clazz = loader.loadClass(className);
                     if (clazz.getAnnotation(Plugin.class) != null
-                            && AxiomPlugin.class.isAssignableFrom(clazz)) {
+                        && AxiomPlugin.class.isAssignableFrom(clazz)) {
                         loadPlugin(clazz);
                     }
                 }
@@ -130,7 +134,8 @@ public class SimplePluginLoader {
                 classLoaders.remove(loader);
                 try {
                     loader.close();
-                } catch (Exception _) {}
+                } catch (Exception _) {
+                }
             }
         }
     }
@@ -159,11 +164,11 @@ public class SimplePluginLoader {
         int dotsLen = LINE_WIDTH - name.length() - status.length() - 2;
         String dots = " " + ".".repeat(Math.max(1, dotsLen)) + " ";
 
-        Axiom.logger().info(
-                ChatComponent.text(name).color(ChatColor.WHITE)
-                        .append(ChatComponent.text(dots).color(ChatColor.DARK_GRAY))
-                        .append(ChatComponent.text(status).color(entry.state.color))
-        );
+        Axiom.logger()
+            .info(ChatComponent.text(name)
+                .color(ChatColor.WHITE)
+                .append(ChatComponent.text(dots).color(ChatColor.DARK_GRAY))
+                .append(ChatComponent.text(status).color(entry.state.color)));
     }
 
     private void updateStatus(String name, PluginState state) {
@@ -191,10 +196,10 @@ public class SimplePluginLoader {
             return;
         }
         String pluginId = plugins.entrySet().stream()
-                .filter(entry -> entry.getValue() == plugin)
-                .map(Map.Entry::getKey)
-                .findFirst()
-                .orElse("unknown");
+            .filter(entry -> entry.getValue() == plugin)
+            .map(Map.Entry::getKey)
+            .findFirst()
+            .orElse("unknown");
         try {
             plugin.onDisable();
             enabledStatus.put(plugin, false);

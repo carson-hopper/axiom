@@ -1,11 +1,10 @@
 package com.axiommc.fabric.event.adapter;
 
-import net.minecraft.network.Connection;
-import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import com.axiommc.fabric.mixin.net.minecraft.server.network.ServerCommonPacketListenerAccessor;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.network.Connection;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 
 /**
  * Tracks client brand strings received during the configuration phase

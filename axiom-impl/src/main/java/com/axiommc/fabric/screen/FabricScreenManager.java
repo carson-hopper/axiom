@@ -1,23 +1,22 @@
 package com.axiommc.fabric.screen;
 
 import com.axiommc.api.event.EventBus;
+import com.axiommc.api.event.screen.ScreenClickEvent;
 import com.axiommc.api.event.screen.ScreenCloseEvent;
 import com.axiommc.api.event.screen.ScreenOpenEvent;
 import com.axiommc.api.gui.ClickType;
 import com.axiommc.api.math.Vector2;
 import com.axiommc.api.player.Player;
-import com.axiommc.api.event.screen.ScreenClickEvent;
 import com.axiommc.api.screen.Screen;
 import com.axiommc.api.screen.ScreenElement;
 import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.phys.Vec3;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Manages virtual screen sessions backed by packet-spawned display entities.
@@ -48,12 +47,16 @@ public class FabricScreenManager implements ScreenManager {
         if (existing != null) close(existing);
 
         UUID sessionId = UUID.randomUUID();
-        ScreenEntitySpawner.SpawnResult result = ScreenEntitySpawner.spawnScreen(serverPlayer, screen);
+        ScreenEntitySpawner.SpawnResult result =
+            ScreenEntitySpawner.spawnScreen(serverPlayer, screen);
 
         ScreenSession session = new ScreenSession(
-                sessionId, serverPlayer, screen,
-                result.entityIds(), result.interactionMap(), result.cursorEntityId()
-        );
+            sessionId,
+            serverPlayer,
+            screen,
+            result.entityIds(),
+            result.interactionMap(),
+            result.cursorEntityId());
         sessions.put(sessionId, session);
         playerSessions.put(serverPlayer.getUUID(), sessionId);
 
@@ -69,11 +72,17 @@ public class FabricScreenManager implements ScreenManager {
 
         ScreenEntitySpawner.despawnEntities(session.player(), session.entityIds());
 
-        ScreenEntitySpawner.SpawnResult result = ScreenEntitySpawner.spawnScreen(session.player(), screen);
-        sessions.put(sessionId, new ScreenSession(
-                sessionId, session.player(), screen,
-                result.entityIds(), result.interactionMap(), result.cursorEntityId()
-        ));
+        ScreenEntitySpawner.SpawnResult result =
+            ScreenEntitySpawner.spawnScreen(session.player(), screen);
+        sessions.put(
+            sessionId,
+            new ScreenSession(
+                sessionId,
+                session.player(),
+                screen,
+                result.entityIds(),
+                result.interactionMap(),
+                result.cursorEntityId()));
     }
 
     @Override
@@ -128,10 +137,10 @@ public class FabricScreenManager implements ScreenManager {
         ServerPlayer player = session.player();
         Screen screen = session.screen();
 
-        Vec3 eyePos  = player.getEyePosition();
+        Vec3 eyePos = player.getEyePosition();
         Vec3 forward = player.getLookAngle().normalize();
-        Vec3 right   = forward.cross(new Vec3(0, 1, 0)).normalize();
-        Vec3 up      = right.cross(forward).normalize();
+        Vec3 right = forward.cross(new Vec3(0, 1, 0)).normalize();
+        Vec3 up = right.cross(forward).normalize();
 
         // Project look direction onto the screen plane to get cursor world pos
         Vec3 center = eyePos.add(forward.scale(screen.distance()));
@@ -144,10 +153,9 @@ public class FabricScreenManager implements ScreenManager {
 
         double offsetX = (u - 0.5) * screen.width();
         double offsetY = (0.5 - v) * screen.height();
-        Vec3 cursorPos = center
-                .add(right.scale(offsetX))
-                .add(up.scale(offsetY))
-                .add(forward.scale(-0.1)); // slightly in front
+        Vec3 cursorPos = center.add(right.scale(offsetX))
+            .add(up.scale(offsetY))
+            .add(forward.scale(-0.1)); // slightly in front
 
         ScreenEntitySpawner.moveCursor(player, session.cursorEntityId(), cursorPos);
     }
@@ -182,8 +190,10 @@ public class FabricScreenManager implements ScreenManager {
         ScreenClickEvent event = new ScreenClickEvent(new FabricPlayer(player), cursor, clickType);
 
         switch (element) {
-            case ScreenElement.Button button   -> button.onClick().onClick(event);
-            case ScreenElement.ItemSlot slot   -> { if (slot.onClick() != null) slot.onClick().onClick(event); }
+            case ScreenElement.Button button -> button.onClick().onClick(event);
+            case ScreenElement.ItemSlot slot -> {
+                if (slot.onClick() != null) slot.onClick().onClick(event);
+            }
             default -> {}
         }
     }
@@ -207,8 +217,8 @@ public class FabricScreenManager implements ScreenManager {
 
     private Vector2 computeCursorNorm(ServerPlayer player, Screen screen) {
         Vec3 forward = player.getLookAngle().normalize();
-        Vec3 right   = forward.cross(new Vec3(0, 1, 0)).normalize();
-        Vec3 up      = right.cross(forward).normalize();
+        Vec3 right = forward.cross(new Vec3(0, 1, 0)).normalize();
+        Vec3 up = right.cross(forward).normalize();
 
         float u = (float) Math.max(0, Math.min(1, forward.dot(right) + 0.5));
         float v = (float) Math.max(0, Math.min(1, 0.5 - forward.dot(up)));

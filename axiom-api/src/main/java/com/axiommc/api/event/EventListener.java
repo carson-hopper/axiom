@@ -5,5 +5,4 @@ package com.axiommc.api.event;
  * Classes implementing this interface can have methods marked with @EventHandler
  * that will be automatically registered with the event bus.
  */
-public interface EventListener {
-}
+public interface EventListener {}

@@ -7,5 +7,4 @@ public interface SoundKey {
     static SoundKey of(String key) {
         return () -> key;
     }
-
 }

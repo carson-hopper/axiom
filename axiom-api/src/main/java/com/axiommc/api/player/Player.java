@@ -59,8 +59,8 @@ public interface Player extends LivingEntity, CommandSender {
      * @param fadeOut the fade-out duration in ticks
      * @param ttl the total lifetime of the title in ticks
      */
-    void showTitle(ChatComponent title, ChatComponent subtitle, int fadeIn, int stay,
-                   int fadeOut, int ttl);
+    void showTitle(
+        ChatComponent title, ChatComponent subtitle, int fadeIn, int stay, int fadeOut, int ttl);
 
     /**
      * Clears any title currently shown to this player.
@@ -105,5 +105,4 @@ public interface Player extends LivingEntity, CommandSender {
      * @param gameMode the game mode to set
      */
     void gameMode(GameMode gameMode);
-
 }

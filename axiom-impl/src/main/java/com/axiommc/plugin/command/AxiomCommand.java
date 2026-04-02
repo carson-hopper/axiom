@@ -2,12 +2,11 @@ package com.axiommc.plugin.command;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.annotation.Description;
-import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
+import com.axiommc.api.command.annotation.Permission;
 
 @Command(name = "axiom")
 @Description("")
@@ -23,5 +22,4 @@ public class AxiomCommand {
     public void help(CommandSender sender) {
         sender.sendMessage("axiom");
     }
-
 }

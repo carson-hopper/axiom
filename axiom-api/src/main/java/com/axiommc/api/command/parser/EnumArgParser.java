@@ -26,19 +26,18 @@ public class EnumArgParser<E extends Enum<E>> implements ArgParser<E> {
             }
         }
         String valid = Arrays.stream(enumClass.getEnumConstants())
-                .map(constant -> constant.name().toLowerCase())
-                .collect(Collectors.joining(", "));
+            .map(constant -> constant.name().toLowerCase())
+            .collect(Collectors.joining(", "));
         throw new ArgParseException(
-                "Unknown " + enumClass.getSimpleName() + ": " + input
-                        + ". Valid values: " + valid);
+            "Unknown " + enumClass.getSimpleName() + ": " + input + ". Valid values: " + valid);
     }
 
     @Override
     public List<String> suggest(String partial) {
         String lowerPartial = partial.toLowerCase();
         return Arrays.stream(enumClass.getEnumConstants())
-                .map(constant -> constant.name().toLowerCase())
-                .filter(name -> name.startsWith(lowerPartial))
-                .collect(Collectors.toList());
+            .map(constant -> constant.name().toLowerCase())
+            .filter(name -> name.startsWith(lowerPartial))
+            .collect(Collectors.toList());
     }
 }

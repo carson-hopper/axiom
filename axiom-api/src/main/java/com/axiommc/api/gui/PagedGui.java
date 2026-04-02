@@ -3,7 +3,6 @@ package com.axiommc.api.gui;
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.chat.Item;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,8 +23,13 @@ public final class PagedGui {
     private final GuiItem nextButton;
     private final GuiItem emptyFill;
 
-    private PagedGui(ChatComponent title, GuiSize size, List<GuiItem> contentItems,
-                     GuiItem prevButton, GuiItem nextButton, GuiItem emptyFill) {
+    private PagedGui(
+        ChatComponent title,
+        GuiSize size,
+        List<GuiItem> contentItems,
+        GuiItem prevButton,
+        GuiItem nextButton,
+        GuiItem emptyFill) {
         this.title = title;
         this.size = size;
         this.contentItems = List.copyOf(contentItems);
@@ -76,14 +80,18 @@ public final class PagedGui {
 
         if (clamped > 1 && prevButton != null) {
             int prevPage = clamped - 1;
-            builder.slot(navOffset, prevButton.withClickHandler(e ->
-                guiManager.open(e.player(), buildPage(prevPage, guiManager))));
+            builder.slot(
+                navOffset,
+                prevButton.withClickHandler(
+                    e -> guiManager.open(e.player(), buildPage(prevPage, guiManager))));
         }
 
         if (clamped < total && nextButton != null) {
             int nextPage = clamped + 1;
-            builder.slot(navOffset + 8, nextButton.withClickHandler(e ->
-                guiManager.open(e.player(), buildPage(nextPage, guiManager))));
+            builder.slot(
+                navOffset + 8,
+                nextButton.withClickHandler(
+                    e -> guiManager.open(e.player(), buildPage(nextPage, guiManager))));
         }
 
         return builder.build();

@@ -6,11 +6,10 @@ import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.world.FabricWorld;
+import java.util.UUID;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.UUID;
 
 /**
  * Wraps a Minecraft {@link net.minecraft.world.entity.Entity} as an

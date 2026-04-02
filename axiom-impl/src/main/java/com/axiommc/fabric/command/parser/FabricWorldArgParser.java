@@ -1,10 +1,9 @@
 package com.axiommc.fabric.command.parser;
 
-import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.command.parser.ArgParseException;
+import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,8 +26,8 @@ public class FabricWorldArgParser implements ArgParser<World> {
     public List<String> suggest(String partial) {
         String lowerPartial = partial.toLowerCase();
         return Axiom.worlds().stream()
-                .map(world -> world.name().replace("minecraft:", ""))
-                .filter(name -> name.toLowerCase().startsWith(lowerPartial))
-                .collect(Collectors.toList());
+            .map(world -> world.name().replace("minecraft:", ""))
+            .filter(name -> name.toLowerCase().startsWith(lowerPartial))
+            .collect(Collectors.toList());
     }
 }

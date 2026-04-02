@@ -2,13 +2,12 @@ package com.axiommc.fabric.bossbar;
 
 import com.axiommc.api.bossbar.BossBar;
 import com.axiommc.api.bossbar.BossBarManager;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerBossEvent;
-import net.minecraft.world.BossEvent;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.world.BossEvent;
 
 public class FabricBossBarManager implements BossBarManager {
 

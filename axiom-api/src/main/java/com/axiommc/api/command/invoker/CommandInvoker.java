@@ -20,9 +20,6 @@ import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.command.parser.ArgParserRegistry;
 import com.axiommc.api.entity.Entity;
 import com.axiommc.api.plugin.PluginEnvironment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -34,6 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Invokes command methods with reflection, parsing arguments and handling subcommands.
@@ -58,7 +57,8 @@ public class CommandInvoker {
     /** Subcommands that exist but were excluded because their side doesn't match this environment. */
     private final Set<String> excludedSubcommands = new LinkedHashSet<>();
 
-    public CommandInvoker(Object command, ArgParserRegistry parserRegistry, PluginEnvironment environment) {
+    public CommandInvoker(
+        Object command, ArgParserRegistry parserRegistry, PluginEnvironment environment) {
         this.command = command;
         this.parserRegistry = parserRegistry;
         this.environment = environment;
@@ -122,11 +122,13 @@ public class CommandInvoker {
                 if (param.isAnnotationPresent(Greedy.class)) {
                     if (param.getType() != String.class) {
                         throw new IllegalStateException(
-                            "@Greedy can only be applied to String parameters in method: " + method.getName());
+                            "@Greedy can only be applied to String parameters in method: "
+                                + method.getName());
                     }
                     if (i != positionalParams.size() - 1) {
                         throw new IllegalStateException(
-                            "@Greedy parameter must be the last positional parameter in method: " + method.getName());
+                            "@Greedy parameter must be the last positional parameter in method: "
+                                + method.getName());
                     }
                 }
             }
@@ -139,10 +141,12 @@ public class CommandInvoker {
                             "@Flag cannot be combined with @Greedy in method: " + method.getName());
                     }
                     boolean hasDefault = param.isAnnotationPresent(Default.class);
-                    boolean isOptional = param.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class);
+                    boolean isOptional = param.isAnnotationPresent(
+                        com.axiommc.api.command.annotation.Optional.class);
                     if (!hasDefault && !isOptional) {
                         throw new IllegalStateException(
-                            "@Flag parameter must be @Optional or have @Default in method: " + method.getName());
+                            "@Flag parameter must be @Optional or have @Default in method: "
+                                + method.getName());
                     }
                 }
             }
@@ -153,8 +157,10 @@ public class CommandInvoker {
         Class<?> commandClass = command.getClass();
         Command cmdAnnotation = commandClass.getAnnotation(Command.class);
 
-        String commandName = cmdAnnotation != null ? cmdAnnotation.name() : commandClass.getSimpleName();
-        String senderName = sender.isPlayer() ? sender.asPlayer().map(Entity::name).orElse("Unknown") : "Console";
+        String commandName =
+            cmdAnnotation != null ? cmdAnnotation.name() : commandClass.getSimpleName();
+        String senderName =
+            sender.isPlayer() ? sender.asPlayer().map(Entity::name).orElse("Unknown") : "Console";
         String argsStr = args.length > 0 ? String.join(" ", args) : "";
         LOGGER.info("Command executed: /{} {} (by: {})", commandName, argsStr, senderName);
 
@@ -173,7 +179,8 @@ public class CommandInvoker {
             }
             methodArgs = Arrays.copyOfRange(args, 1, args.length);
         } else if (args.length > 0 && excludedSubcommands.contains(args[0].toLowerCase())) {
-            String target = environment == PluginEnvironment.PROXY ? "the game server" : "the proxy";
+            String target =
+                environment == PluginEnvironment.PROXY ? "the game server" : "the proxy";
             sender.sendMessage("This subcommand is only available on " + target + ".");
             return true;
         } else if (!executeMethods.isEmpty()) {
@@ -191,7 +198,9 @@ public class CommandInvoker {
 
         // Check permission on the selected method (method-level overrides class-level)
         String requiredPermission = getRequiredPermission(method);
-        if (requiredPermission != null && !requiredPermission.isEmpty() && !sender.hasPermission(requiredPermission)) {
+        if (requiredPermission != null
+            && !requiredPermission.isEmpty()
+            && !sender.hasPermission(requiredPermission)) {
             sender.sendMessage("You don't have permission to use this command.");
             return true;
         }
@@ -214,7 +223,8 @@ public class CommandInvoker {
                 throw (RuntimeException) cause;
             } else if (cause != null) {
                 LOGGER.error("Error executing command: /{}", commandName, cause);
-                throw new RuntimeException("Command execution failed: " + cause.getMessage(), cause);
+                throw new RuntimeException(
+                    "Command execution failed: " + cause.getMessage(), cause);
             } else {
                 LOGGER.error("Error executing command: /{}", commandName, e);
                 throw new RuntimeException("Command execution failed", e);
@@ -226,7 +236,8 @@ public class CommandInvoker {
         return true;
     }
 
-    private Object[] buildArgs(CommandSender sender, Method method, String[] args) throws ArgParseException {
+    private Object[] buildArgs(CommandSender sender, Method method, String[] args)
+        throws ArgParseException {
         Parameter[] params = method.getParameters();
         Object[] result = new Object[params.length];
 
@@ -273,14 +284,16 @@ public class CommandInvoker {
                 if (flagValue != null) {
                     ArgParser<?> parser = parserRegistry.get(param.getType());
                     if (parser == null) {
-                        throw new ArgParseException("No parser for flag type: " + param.getType().getSimpleName());
+                        throw new ArgParseException(
+                            "No parser for flag type: " + param.getType().getSimpleName());
                     }
                     Object parsed = parser.parse(flagValue);
                     Range range = param.getAnnotation(Range.class);
                     if (range != null && parsed instanceof Number numberValue) {
                         double doubleValue = numberValue.doubleValue();
                         if (doubleValue < range.min() || doubleValue > range.max()) {
-                            throw new ArgParseException("Flag --" + flagName + " value out of range [" + range.min() + ", " + range.max() + "]");
+                            throw new ArgParseException("Flag --" + flagName
+                                + " value out of range [" + range.min() + ", " + range.max() + "]");
                         }
                     }
                     result[i] = parsed;
@@ -304,7 +317,9 @@ public class CommandInvoker {
 
             // @Default alone implies optionality — no @Optional annotation required
             boolean hasDefault = param.isAnnotationPresent(Default.class);
-            boolean isOptional = param.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) || hasDefault;
+            boolean isOptional =
+                param.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class)
+                    || hasDefault;
             boolean isGreedy = param.isAnnotationPresent(Greedy.class);
 
             if (isGreedy && param.getType() == String.class) {
@@ -314,12 +329,14 @@ public class CommandInvoker {
                         result[i] = defaultAnnotation != null ? defaultAnnotation.value() : null;
                     } else {
                         Arg argAnnotation = param.getAnnotation(Arg.class);
-                        String name = argAnnotation != null ? argAnnotation.value() : param.getName();
+                        String name =
+                            argAnnotation != null ? argAnnotation.value() : param.getName();
                         sender.sendMessage("Missing required argument: <" + name + ">");
                         return null;
                     }
                 } else {
-                    result[i] = String.join(" ", positionalArgs.subList(argIdx, positionalArgs.size()));
+                    result[i] =
+                        String.join(" ", positionalArgs.subList(argIdx, positionalArgs.size()));
                     argIdx = positionalArgs.size();
                 }
                 continue;
@@ -337,7 +354,9 @@ public class CommandInvoker {
                             if (range != null && parsed instanceof Number numberValue) {
                                 double doubleValue = numberValue.doubleValue();
                                 if (doubleValue < range.min() || doubleValue > range.max()) {
-                                    throw new ArgParseException("Default value " + defaultAnnotation.value() + " is out of range [" + range.min() + ", " + range.max() + "]");
+                                    throw new ArgParseException("Default value "
+                                        + defaultAnnotation.value() + " is out of range ["
+                                        + range.min() + ", " + range.max() + "]");
                                 }
                             }
                             result[i] = parsed;
@@ -359,7 +378,8 @@ public class CommandInvoker {
             String raw = positionalArgs.get(argIdx++);
             ArgParser<?> parser = parserRegistry.get(param.getType());
             if (parser == null) {
-                throw new ArgParseException("No parser for type: " + param.getType().getSimpleName());
+                throw new ArgParseException(
+                    "No parser for type: " + param.getType().getSimpleName());
             }
 
             Object parsed = parser.parse(raw);
@@ -368,7 +388,8 @@ public class CommandInvoker {
             if (range != null && parsed instanceof Number numberValue) {
                 double doubleValue = numberValue.doubleValue();
                 if (doubleValue < range.min() || doubleValue > range.max()) {
-                    throw new ArgParseException("Value " + raw + " is out of range [" + range.min() + ", " + range.max() + "]");
+                    throw new ArgParseException("Value " + raw + " is out of range [" + range.min()
+                        + ", " + range.max() + "]");
                 }
             }
 
@@ -423,7 +444,8 @@ public class CommandInvoker {
         String sub = args[0].toLowerCase();
         if (subcommandMethods.containsKey(sub)) {
             Method method = subcommandMethods.get(sub);
-            int argPos = args.length - 2; // args[0] is subcommand name, args[1..] are the actual args
+            int argPos =
+                args.length - 2; // args[0] is subcommand name, args[1..] are the actual args
             return filterPrefix(getParamSuggestions(method, argPos, last), last);
         }
 
@@ -439,12 +461,14 @@ public class CommandInvoker {
                     // Find the greedy parameter position
                     int greedyParamPos = findGreedyParameterIndex(method);
                     if (greedyParamPos >= 0) {
-                        // Reconstruct the entire greedy input by joining all args from that position
-                        String greedyInput = String.join(" ", Arrays.copyOfRange(args, greedyParamPos, args.length));
+                        // Reconstruct the entire greedy input by joining all args from that
+                        // position
+                        String greedyInput =
+                            String.join(" ", Arrays.copyOfRange(args, greedyParamPos, args.length));
                         seen.addAll(getParamSuggestions(method, greedyParamPos, greedyInput));
                     }
                 } else {
-                    int argPos = args.length - 1;  // Position of the last argument (0-indexed)
+                    int argPos = args.length - 1; // Position of the last argument (0-indexed)
                     seen.addAll(getParamSuggestions(method, argPos, last));
                 }
             }
@@ -633,7 +657,8 @@ public class CommandInvoker {
             if (!isCommandSenderParameter(p)) {
                 // Exclude @Flag parameters
                 if (!p.isAnnotationPresent(Flag.class)) {
-                    if (!p.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class) && !p.isAnnotationPresent(Default.class)) {
+                    if (!p.isAnnotationPresent(com.axiommc.api.command.annotation.Optional.class)
+                        && !p.isAnnotationPresent(Default.class)) {
                         count++;
                     }
                 }
@@ -690,7 +715,8 @@ public class CommandInvoker {
                 DynamicTabComplete dtc = param.getAnnotation(DynamicTabComplete.class);
                 if (dtc != null) {
                     try {
-                        Method suggestionMethod = command.getClass().getMethod(dtc.value(), String.class);
+                        Method suggestionMethod =
+                            command.getClass().getMethod(dtc.value(), String.class);
                         Object result = suggestionMethod.invoke(command, partial);
                         if (result instanceof List<?>) {
                             @SuppressWarnings("unchecked")
@@ -715,7 +741,8 @@ public class CommandInvoker {
                     // If parser has no suggestions, use the parameter name as guidance
                     if (suggestions.isEmpty()) {
                         Arg argAnnotation = param.getAnnotation(Arg.class);
-                        String paramName = argAnnotation != null ? argAnnotation.value() : param.getName();
+                        String paramName =
+                            argAnnotation != null ? argAnnotation.value() : param.getName();
                         return Arrays.asList("<" + paramName + ">");
                     }
                     return suggestions;

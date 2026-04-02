@@ -1,7 +1,7 @@
 package com.axiommc.fabric.command.parser;
 
-import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.command.parser.ArgParseException;
+import com.axiommc.api.command.parser.ArgParser;
 import com.axiommc.api.math.Vector3;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +12,7 @@ public class Vector3ArgParser implements ArgParser<Vector3> {
     public Vector3 parse(String input) throws ArgParseException {
         // Split on commas and/or whitespace: "100 50 200" or "100,50,200" or "100, 50, 200"
         String[] parts = input.split("[,\\s]+");
-        
+
         if (parts.length == 1) {
             try {
                 double value = Double.parseDouble(parts[0]);
@@ -21,7 +21,7 @@ public class Vector3ArgParser implements ArgParser<Vector3> {
                 throw new ArgParseException("Invalid number: " + parts[0]);
             }
         }
-        
+
         if (parts.length == 3) {
             try {
                 double x = Double.parseDouble(parts[0]);
@@ -32,7 +32,7 @@ public class Vector3ArgParser implements ArgParser<Vector3> {
                 throw new ArgParseException("Invalid coordinates: " + input);
             }
         }
-        
+
         throw new ArgParseException("Vector3 requires 1 or 3 values (got " + parts.length + ")");
     }
 

@@ -6,13 +6,13 @@ import com.axiommc.api.gui.GuiItem;
 import com.axiommc.api.gui.GuiSize;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayer;
+import java.util.UUID;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
-import java.util.UUID;
 
 public class AxiomChestMenu extends AbstractContainerMenu {
 
@@ -22,7 +22,13 @@ public class AxiomChestMenu extends AbstractContainerMenu {
     private final Container container;
     private final ServerPlayer player;
 
-    public AxiomChestMenu(int containerId, Container container, Gui gui, UUID sessionId, FabricGuiManager manager, ServerPlayer player) {
+    public AxiomChestMenu(
+        int containerId,
+        Container container,
+        Gui gui,
+        UUID sessionId,
+        FabricGuiManager manager,
+        ServerPlayer player) {
         super(menuType(gui.size()), containerId);
         this.gui = gui;
         this.sessionId = sessionId;
@@ -37,7 +43,8 @@ public class AxiomChestMenu extends AbstractContainerMenu {
             for (int col = 0; col < 9; col++) {
                 int slotIndex = row * 9 + col;
                 GuiItem guiItem = gui.slot(slotIndex);
-                addSlot(new GuiSlot(container, slotIndex, 8 + col * 18, rowOffset + row * 18, guiItem, player));
+                addSlot(new GuiSlot(
+                    container, slotIndex, 8 + col * 18, rowOffset + row * 18, guiItem, player));
             }
         }
     }
@@ -62,7 +69,6 @@ public class AxiomChestMenu extends AbstractContainerMenu {
     public boolean stillValid(Player player) {
         return true;
     }
-
 
     @Override
     public void removed(Player player) {

@@ -13,5 +13,4 @@ public interface DisplayEntity extends Entity {
 
     /** Returns {@code true} after {@link #remove()} has been called or the TTL has expired. */
     boolean isRemoved();
-
 }

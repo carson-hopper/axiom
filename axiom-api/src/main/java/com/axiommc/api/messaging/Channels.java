@@ -14,13 +14,13 @@ public final class Channels {
     public static final String OPS_SYNC = "helix:ops_sync";
     public static final String OPS_SERVER_SYNC = "helix:ops_server_sync";
 
-    public static final String GUI_OPEN   = "helix:gui_open";
-    public static final String GUI_CLICK  = "helix:gui_click";
-    public static final String GUI_CLOSE  = "helix:gui_close";
+    public static final String GUI_OPEN = "helix:gui_open";
+    public static final String GUI_CLICK = "helix:gui_click";
+    public static final String GUI_CLOSE = "helix:gui_close";
     public static final String GUI_UPDATE = "helix:gui_update";
 
     public static final String EVENT_FORWARD = "helix:event_forward";
 
-    public static final String SOUND_PLAY      = "helix:sound_play";
+    public static final String SOUND_PLAY = "helix:sound_play";
     public static final String PLAYER_TELEPORT = "helix:player_teleport";
 }

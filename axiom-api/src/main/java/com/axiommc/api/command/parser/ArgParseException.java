@@ -9,5 +9,4 @@ public class ArgParseException extends Exception {
     public ArgParseException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

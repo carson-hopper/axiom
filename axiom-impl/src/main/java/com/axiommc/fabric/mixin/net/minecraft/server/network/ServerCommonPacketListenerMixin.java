@@ -41,7 +41,8 @@ public abstract class ServerCommonPacketListenerMixin {
     }
 
     @Inject(method = "handleResourcePackResponse", at = @At("HEAD"))
-    private void onResourcePackResponse(ServerboundResourcePackPacket packet, CallbackInfo callbackInfo) {
+    private void onResourcePackResponse(
+        ServerboundResourcePackPacket packet, CallbackInfo callbackInfo) {
         ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
         ServerPlayer player = getPlayerFromListener(self);
         if (player != null) {
@@ -59,8 +60,7 @@ public abstract class ServerCommonPacketListenerMixin {
 
         if (packet instanceof ClientboundResourcePackPushPacket pushPacket) {
             ResourcePackAdapter.onResourcePackSend(
-                    player, pushPacket.url(), pushPacket.hash(),
-                    pushPacket.required());
+                player, pushPacket.url(), pushPacket.hash(), pushPacket.required());
         } else if (packet instanceof ClientboundResourcePackPopPacket popPacket) {
             ResourcePackAdapter.onResourcePackRemove(player);
         }
@@ -68,7 +68,8 @@ public abstract class ServerCommonPacketListenerMixin {
 
     @Unique
     private static ServerPlayer getPlayerFromListener(ServerCommonPacketListenerImpl listener) {
-        if (listener instanceof net.minecraft.server.network.ServerGamePacketListenerImpl gameListener) {
+        if (listener
+            instanceof net.minecraft.server.network.ServerGamePacketListenerImpl gameListener) {
             return gameListener.getPlayer();
         }
         return null;

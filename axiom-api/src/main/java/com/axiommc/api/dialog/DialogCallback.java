@@ -6,5 +6,4 @@ import com.axiommc.api.player.Player;
 public interface DialogCallback {
 
     void accept(DialogResponseView view, Player player);
-
 }

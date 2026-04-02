@@ -14,7 +14,8 @@ public record DialogButton(ChatComponent label, ChatComponent tooltip, DialogCal
         return new DialogButton(label, null, callback);
     }
 
-    public static DialogButton of(ChatComponent label, ChatComponent tooltip, DialogCallback callback) {
+    public static DialogButton of(
+        ChatComponent label, ChatComponent tooltip, DialogCallback callback) {
         return new DialogButton(label, tooltip, callback);
     }
 
@@ -31,5 +32,4 @@ public record DialogButton(ChatComponent label, ChatComponent tooltip, DialogCal
     public static DialogButton close(ChatComponent label, ChatComponent tooltip) {
         return new DialogButton(label, tooltip, null);
     }
-
 }

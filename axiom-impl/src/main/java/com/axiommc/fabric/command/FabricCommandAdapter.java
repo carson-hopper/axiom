@@ -2,6 +2,7 @@ package com.axiommc.fabric.command;
 
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.invoker.CommandInvoker;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.event.adapter.CommandExecuteAdapter;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -10,21 +11,21 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.commands.CommandSourceStack;
-import com.axiommc.fabric.Axiom;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.commands.CommandSourceStack;
 
 public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
 
     public LiteralArgumentBuilder<CommandSourceStack> buildNode() {
-        LiteralArgumentBuilder<CommandSourceStack> builder = LiteralArgumentBuilder.literal(commandName);
+        LiteralArgumentBuilder<CommandSourceStack> builder =
+            LiteralArgumentBuilder.literal(commandName);
 
         RequiredArgumentBuilder<CommandSourceStack, String> argsBuilder =
-                RequiredArgumentBuilder.<CommandSourceStack, String>argument("args", StringArgumentType.greedyString())
-                        .suggests(this::suggest)
-                        .executes(this::executeWithArgs);
+            RequiredArgumentBuilder.<CommandSourceStack, String>argument(
+                    "args", StringArgumentType.greedyString())
+                .suggests(this::suggest)
+                .executes(this::executeWithArgs);
 
         return builder.then(argsBuilder).executes(this::executeNoArgs);
     }
@@ -46,7 +47,8 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
     private int executeWithArgs(CommandContext<CommandSourceStack> ctx) {
         try {
             String rawArgs = StringArgumentType.getString(ctx, "args");
-            String[] args = rawArgs.trim().isEmpty() ? new String[0] : rawArgs.trim().split("\\s+");
+            String[] args =
+                rawArgs.trim().isEmpty() ? new String[0] : rawArgs.trim().split("\\s+");
             FabricCommandSender sender = new FabricCommandSender(ctx.getSource());
             String fullCommand = commandName + (rawArgs.trim().isEmpty() ? "" : " " + rawArgs);
             if (!CommandExecuteAdapter.firePreEvent(sender, fullCommand)) {
@@ -60,9 +62,8 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
         return Command.SINGLE_SUCCESS;
     }
 
-
     private CompletableFuture<Suggestions> suggest(
-            CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
+        CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
         CommandSender sender = new FabricCommandSender(ctx.getSource());
         String input = builder.getRemaining();
         String[] args = input.isEmpty() ? new String[0] : input.split("\\s+", -1);

@@ -29,5 +29,4 @@ public interface CommandRegistry {
      * @param name the command name (must not be null)
      */
     void unregister(String name);
-
 }

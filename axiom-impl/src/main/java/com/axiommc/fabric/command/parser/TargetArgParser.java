@@ -8,16 +8,16 @@ import java.util.List;
 public class TargetArgParser implements ArgParser<String> {
 
     private static final String[] FILTER_OPTIONS = {
-        "filter:players",
-        "filter:mobs",
-        "filter:entities",
-        "filter:hostile",
-        "filter:passive",
-        "filter:animals",
-        "filter:all",
-        "filter:!self",
-        "filter:!players"
-    };
+    "filter:players",
+    "filter:mobs",
+    "filter:entities",
+    "filter:hostile",
+    "filter:passive",
+    "filter:animals",
+    "filter:all",
+    "filter:!self",
+    "filter:!players"
+};
 
     @Override
     public String parse(String input) {

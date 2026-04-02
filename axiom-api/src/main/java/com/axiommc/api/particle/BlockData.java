@@ -9,5 +9,7 @@ public final class BlockData extends ParticleData {
         this.blockId = Objects.requireNonNull(blockId, "blockId");
     }
 
-    public String blockId() { return blockId; }
+    public String blockId() {
+        return blockId;
+    }
 }

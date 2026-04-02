@@ -18,36 +18,35 @@ import com.axiommc.api.entity.LivingEntity;
 import com.axiommc.api.player.Player;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.command.filter.TargetFilter;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.phys.AABB;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.AABB;
 
 @Command(name = "kill")
 @Description("Kill a player or mob")
 public class KillCommand {
 
     private static final String[] FILTER_OPTIONS = {
-        "players",
-        "mobs",
-        "entities",
-        "hostile",
-        "passive",
-        "animals",
-        "all",
-
-        "!self",
-        "!players",
-        "!mobs",
-        "!entities",
-        "!hostile",
-        "!passive",
-        "!animals",
-        "!all"
-    };
+    "players",
+    "mobs",
+    "entities",
+    "hostile",
+    "passive",
+    "animals",
+    "all",
+    "!self",
+    "!players",
+    "!mobs",
+    "!entities",
+    "!hostile",
+    "!passive",
+    "!animals",
+    "!all"
+};
 
     @Execute(type = SenderType.PLAYER)
     @Permission("axiom.kill")
@@ -60,14 +59,14 @@ public class KillCommand {
     @Permission("axiom.kill.others")
     @Usage("<filter> [--radius <value>]")
     public void execute(
-            CommandSender sender,
-            @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target,
-            @Flag("radius") @Optional int radius
-    ) {
+        CommandSender sender,
+        @Arg("target") @Greedy @DynamicTabComplete("suggestTargets") String target,
+        @Flag("radius") @Optional int radius) {
         Set<LivingEntity> allTargets = new LinkedHashSet<>(TargetFilter.parse(target, sender));
 
         if (allTargets.isEmpty()) {
-            sender.sendMessage(ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
+            sender.sendMessage(
+                ChatComponent.text("No targets found: " + target).color(ChatColor.RED));
             return;
         }
 
@@ -89,9 +88,12 @@ public class KillCommand {
         }
 
         if (allTargets.size() == 1) {
-            sender.sendMessage(ChatComponent.text("Killed " + allTargets.iterator().next().name()).color(ChatColor.RED));
+            sender.sendMessage(
+                ChatComponent.text("Killed " + allTargets.iterator().next().name())
+                    .color(ChatColor.RED));
         } else {
-            sender.sendMessage(ChatComponent.text("Killed " + allTargets.size() + " entities").color(ChatColor.RED));
+            sender.sendMessage(ChatComponent.text("Killed " + allTargets.size() + " entities")
+                .color(ChatColor.RED));
         }
     }
 
@@ -155,24 +157,18 @@ public class KillCommand {
         return suggestions;
     }
 
-    private void addAllFilterSuggestions(List<String> suggestions, String prefix, String lowerPartial, boolean hasAll) {
+    private void addAllFilterSuggestions(
+        List<String> suggestions, String prefix, String lowerPartial, boolean hasAll) {
         Set<String> mobTypes = discoverMobTypes();
 
         if (hasAll) {
             // If "all" is already present, only suggest negative filters
-            
+
             // Negative filter keywords
             String[] negativeFilters = {
-                "!self",
-                "!players",
-                "!mobs",
-                "!entities",
-                "!hostile",
-                "!passive",
-                "!animals",
-                "!all"
-            };
-            
+            "!self", "!players", "!mobs", "!entities", "!hostile", "!passive", "!animals", "!all"
+        };
+
             for (String filter : negativeFilters) {
                 if (filter.toLowerCase().startsWith(lowerPartial)) {
                     suggestions.add(prefix + filter);
@@ -196,7 +192,7 @@ public class KillCommand {
             });
         } else {
             // "all" not present - suggest both positive and negative
-            
+
             // Positive filter keywords
             for (String filter : FILTER_OPTIONS) {
                 if (filter.startsWith("!")) {
@@ -256,12 +252,16 @@ public class KillCommand {
             if (world instanceof com.axiommc.fabric.world.FabricWorld fabricWorld) {
                 ServerLevel level = fabricWorld.level();
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
-                ((net.minecraft.world.level.EntityGetter) level).getEntities(null, worldBounds).forEach(entity -> {
-                    if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
-                        String simpleName = entity.getClass().getSimpleName().toLowerCase();
-                        mobTypes.add(simpleName);
-                    }
-                });
+                ((net.minecraft.world.level.EntityGetter) level)
+                    .getEntities(null, worldBounds)
+                    .forEach(entity -> {
+                        if (entity instanceof net.minecraft.world.entity.LivingEntity
+                            && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
+                            String simpleName =
+                                entity.getClass().getSimpleName().toLowerCase();
+                            mobTypes.add(simpleName);
+                        }
+                    });
             }
         }
 

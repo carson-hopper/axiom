@@ -14,14 +14,13 @@ import com.axiommc.fabric.config.TomlPluginConfig;
 import com.axiommc.fabric.gui.FabricGuiManager;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import com.axiommc.fabric.sidebar.FabricSidebarManager;
-import net.minecraft.server.MinecraftServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.server.MinecraftServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimplePluginContext implements PluginContext {
 
@@ -37,13 +36,17 @@ public class SimplePluginContext implements PluginContext {
     private final ServiceRegistry serviceRegistry;
     private SidebarManager sidebarManager;
 
-    public SimplePluginContext(String pluginId, String pluginName, EventBus eventBus, FabricPlayerProvider playerProvider) {
+    public SimplePluginContext(
+        String pluginId,
+        String pluginName,
+        EventBus eventBus,
+        FabricPlayerProvider playerProvider) {
         this.pluginId = pluginId;
         this.pluginName = pluginName;
         this.eventBus = eventBus;
         this.playerManager = playerProvider;
         this.bossBarManager = new InlineBossBarManager();
-        this.dataFolder = new File("plugins/" + pluginName);
+        this.dataFolder = new File("plugins/" + pluginId);
         this.pluginConfig = new TomlPluginConfig(new File(dataFolder, "config.toml"));
         this.logger = LoggerFactory.getLogger(pluginName);
         this.guiManager = new FabricGuiManager();

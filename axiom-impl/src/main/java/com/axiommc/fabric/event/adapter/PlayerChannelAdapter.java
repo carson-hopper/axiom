@@ -29,12 +29,11 @@ public class PlayerChannelAdapter implements FabricEventAdapter {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             for (Identifier channel : channels) {
                 try {
-                    eventBus.publish(new PlayerPluginChannelEvent.Register(
-                            player, channel.toString()));
+                    eventBus.publish(
+                        new PlayerPluginChannelEvent.Register(player, channel.toString()));
                 } catch (Exception exception) {
-                    Axiom.logger().debug(
-                            "Error firing PlayerPluginChannelEvent.Register",
-                            exception);
+                    Axiom.logger()
+                        .debug("Error firing PlayerPluginChannelEvent.Register", exception);
                 }
             }
         });
@@ -44,12 +43,11 @@ public class PlayerChannelAdapter implements FabricEventAdapter {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             for (Identifier channel : channels) {
                 try {
-                    eventBus.publish(new PlayerPluginChannelEvent.Unregister(
-                            player, channel.toString()));
+                    eventBus.publish(
+                        new PlayerPluginChannelEvent.Unregister(player, channel.toString()));
                 } catch (Exception exception) {
-                    Axiom.logger().debug(
-                            "Error firing PlayerPluginChannelEvent.Unregister",
-                            exception);
+                    Axiom.logger()
+                        .debug("Error firing PlayerPluginChannelEvent.Unregister", exception);
                 }
             }
         });

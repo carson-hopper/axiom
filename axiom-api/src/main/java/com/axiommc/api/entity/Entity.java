@@ -4,7 +4,6 @@ import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.world.World;
-
 import java.util.UUID;
 
 /**

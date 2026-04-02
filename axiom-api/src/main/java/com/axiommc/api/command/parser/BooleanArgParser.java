@@ -17,5 +17,4 @@ public class BooleanArgParser implements ArgParser<Boolean> {
     public List<String> suggest(String partial) {
         return List.of("true", "false");
     }
-
 }

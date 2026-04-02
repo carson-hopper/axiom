@@ -7,5 +7,4 @@ public interface DialogManager {
     void show(Player player, Dialog dialog);
 
     void close(Player player);
-
 }

@@ -2,7 +2,6 @@ package com.axiommc.api.screen;
 
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.player.Player;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,12 +33,15 @@ public record Screen(
     float width,
     float height,
     float distance,
-    Consumer<Player> closeHandler
-) {
+    Consumer<Player> closeHandler) {
 
-    public Screen(ChatComponent title, List<ScreenElement> elements,
-                  float width, float height, float distance,
-                  Consumer<Player> closeHandler) {
+    public Screen(
+        ChatComponent title,
+        List<ScreenElement> elements,
+        float width,
+        float height,
+        float distance,
+        Consumer<Player> closeHandler) {
         this.title = Objects.requireNonNull(title, "title must not be null");
         this.elements = List.copyOf(elements);
         this.width = width;

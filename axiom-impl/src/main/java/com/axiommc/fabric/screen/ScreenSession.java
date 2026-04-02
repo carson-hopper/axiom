@@ -2,11 +2,10 @@ package com.axiommc.fabric.screen;
 
 import com.axiommc.api.screen.Screen;
 import com.axiommc.api.screen.ScreenElement;
-import net.minecraft.server.level.ServerPlayer;
-
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Tracks one open screen session for a player.
@@ -19,10 +18,9 @@ import java.util.UUID;
  * @param cursorEntityId entity ID of the cursor dot text_display
  */
 public record ScreenSession(
-        UUID sessionId,
-        ServerPlayer player,
-        Screen screen,
-        List<Integer> entityIds,
-        Map<Integer, ScreenElement> interactionMap,
-        int cursorEntityId
-) {}
+    UUID sessionId,
+    ServerPlayer player,
+    Screen screen,
+    List<Integer> entityIds,
+    Map<Integer, ScreenElement> interactionMap,
+    int cursorEntityId) {}

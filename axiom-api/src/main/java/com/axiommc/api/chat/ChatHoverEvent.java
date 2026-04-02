@@ -6,13 +6,22 @@ import java.util.UUID;
  * Defines a hover event for chat components. When a player hovers over a component with an
  * attached hover event, the specified content is displayed as a tooltip.
  */
-public record ChatHoverEvent(Type type, ChatComponent text, Item item, UUID entityUuid, String entityType,
-                             ChatComponent entityName) {
+public record ChatHoverEvent(
+    Type type,
+    ChatComponent text,
+    Item item,
+    UUID entityUuid,
+    String entityType,
+    ChatComponent entityName) {
 
     /**
      * The type of hover event: showing text, an item tooltip, or an entity information panel.
      */
-    public enum Type {SHOW_TEXT, SHOW_ITEM, SHOW_ENTITY}
+    public enum Type {
+        SHOW_TEXT,
+        SHOW_ITEM,
+        SHOW_ENTITY
+    }
 
     /**
      * Creates a hover event that displays the given chat component as a tooltip.

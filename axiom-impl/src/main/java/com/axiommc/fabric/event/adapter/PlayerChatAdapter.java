@@ -5,9 +5,8 @@ import com.axiommc.api.event.player.PlayerChatEvent;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.player.FabricPlayerProvider;
-import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
-
 import java.util.Optional;
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 
 /**
  * Fires {@link PlayerChatEvent.Pre} and {@link PlayerChatEvent.Post}

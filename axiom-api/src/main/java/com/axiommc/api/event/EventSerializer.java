@@ -2,7 +2,6 @@ package com.axiommc.api.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -57,7 +56,8 @@ final class EventSerializer {
             out.flush();
             return baos.toByteArray();
         } catch (Exception e) {
-            throw new PluginSideSerializationException("Failed to serialize event: " + e.getMessage());
+            throw new PluginSideSerializationException(
+                "Failed to serialize event: " + e.getMessage());
         }
     }
 
@@ -77,7 +77,8 @@ final class EventSerializer {
             // Jackson automatically discovers fields and populates them from JSON
             return (Event) MAPPER.readValue(jsonStr, clazz);
         } catch (Exception e) {
-            throw new PluginSideSerializationException("Failed to deserialize event: " + e.getMessage());
+            throw new PluginSideSerializationException(
+                "Failed to deserialize event: " + e.getMessage());
         }
     }
 
@@ -85,9 +86,9 @@ final class EventSerializer {
         try {
             clazz.getDeclaredConstructor();
         } catch (NoSuchMethodException e) {
-            throw new PluginSideSerializationException(
-                    clazz.getName() + " must have a no-arg constructor for @CrossSide serialization. " +
-                    "Add a package-private no-arg constructor: " + clazz.getSimpleName() + "() {}");
+            throw new PluginSideSerializationException(clazz.getName()
+                + " must have a no-arg constructor for @CrossSide serialization. "
+                + "Add a package-private no-arg constructor: " + clazz.getSimpleName() + "() {}");
         }
     }
 }

@@ -6,5 +6,4 @@ public class StringArgParser implements ArgParser<String> {
     public String parse(String input) {
         return input;
     }
-
 }

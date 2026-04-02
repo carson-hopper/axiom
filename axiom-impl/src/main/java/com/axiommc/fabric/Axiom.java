@@ -2,7 +2,6 @@ package com.axiommc.fabric;
 
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.gui.GuiManager;
-import net.minecraft.SharedConstants;
 import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
@@ -10,10 +9,10 @@ import com.axiommc.api.world.World;
 import com.axiommc.fabric.console.AxiomLogger;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.util.TaskScheduler;
-
 import java.util.Collection;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
+import net.minecraft.SharedConstants;
 
 public class Axiom {
 

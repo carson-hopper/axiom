@@ -23,10 +23,10 @@ public abstract class PlayerListMixin {
 
     @Inject(method = "respawn", at = @At("HEAD"))
     private void onRespawn(
-            ServerPlayer serverPlayer,
-            boolean keepEverything,
-            Entity.RemovalReason removalReason,
-            CallbackInfoReturnable<ServerPlayer> callbackInfo) {
+        ServerPlayer serverPlayer,
+        boolean keepEverything,
+        Entity.RemovalReason removalReason,
+        CallbackInfoReturnable<ServerPlayer> callbackInfo) {
         PlayerLifecycleAdapter.onRespawn(serverPlayer);
     }
 }

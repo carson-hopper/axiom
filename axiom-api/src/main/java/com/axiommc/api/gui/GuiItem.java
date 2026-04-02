@@ -1,7 +1,6 @@
 package com.axiommc.api.gui;
 
 import com.axiommc.api.chat.Item;
-
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -16,9 +15,8 @@ public record GuiItem(Item item, Consumer<GuiClickEvent> clickHandler) {
 
     public static GuiItem of(Item item, Consumer<GuiClickEvent> clickHandler) {
         return new GuiItem(
-                Objects.requireNonNull(item, "item must not be null"),
-                Objects.requireNonNull(clickHandler, "clickHandler must not be null")
-        );
+            Objects.requireNonNull(item, "item must not be null"),
+            Objects.requireNonNull(clickHandler, "clickHandler must not be null"));
     }
 
     /**

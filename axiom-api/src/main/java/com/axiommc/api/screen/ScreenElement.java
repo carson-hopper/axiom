@@ -17,10 +17,7 @@ import com.axiommc.api.chat.ChatComponent;
  * </ul>
  */
 public sealed interface ScreenElement
-    permits ScreenElement.Panel,
-            ScreenElement.Label,
-            ScreenElement.Button,
-            ScreenElement.ItemSlot {
+    permits ScreenElement.Panel, ScreenElement.Label, ScreenElement.Button, ScreenElement.ItemSlot {
 
     // ── Panel ─────────────────────────────────────────────────────────────────
 
@@ -83,18 +80,27 @@ public sealed interface ScreenElement
      * @param label   the button label component
      * @param onClick callback fired on click
      */
-    record Button(float x, float y, float width, float height,
-                  ChatComponent label,
-                  ScreenClickHandler onClick)
+    record Button(
+        float x,
+        float y,
+        float width,
+        float height,
+        ChatComponent label,
+        ScreenClickHandler onClick)
         implements ScreenElement {
 
-        public static Button of(float x, float y, float width, float height,
-                                ChatComponent label, ScreenClickHandler onClick) {
+        public static Button of(
+            float x,
+            float y,
+            float width,
+            float height,
+            ChatComponent label,
+            ScreenClickHandler onClick) {
             return new Button(x, y, width, height, label, onClick);
         }
 
-        public static Button of(float x, float y, float width, float height,
-                                String label, ScreenClickHandler onClick) {
+        public static Button of(
+            float x, float y, float width, float height, String label, ScreenClickHandler onClick) {
             return new Button(x, y, width, height, ChatComponent.text(label), onClick);
         }
     }
@@ -120,8 +126,8 @@ public sealed interface ScreenElement
             return new ItemSlot(x, y, size, item, null);
         }
 
-        public static ItemSlot of(float x, float y, float size, String item,
-                                  ScreenClickHandler onClick) {
+        public static ItemSlot of(
+            float x, float y, float size, String item, ScreenClickHandler onClick) {
             return new ItemSlot(x, y, size, item, onClick);
         }
     }

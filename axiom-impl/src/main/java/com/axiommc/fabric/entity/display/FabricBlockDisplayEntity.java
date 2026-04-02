@@ -4,11 +4,10 @@ import com.axiommc.api.entity.display.BlockDisplayEntity;
 import com.axiommc.api.entity.display.BlockDisplaySpec;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
-import net.minecraft.world.entity.Display;
-import net.minecraft.world.phys.Vec3;
-
 import java.util.UUID;
 import java.util.function.Consumer;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.phys.Vec3;
 
 public record FabricBlockDisplayEntity(Display.BlockDisplay entity) implements BlockDisplayEntity {
 
@@ -45,8 +44,7 @@ public record FabricBlockDisplayEntity(Display.BlockDisplay entity) implements B
         return new Location(
             world(),
             new Vector3(entity.getX(), entity.getY(), entity.getZ()),
-            new com.axiommc.api.math.Vector2(entity.getYRot(), entity.getXRot())
-        );
+            new com.axiommc.api.math.Vector2(entity.getYRot(), entity.getXRot()));
     }
 
     @Override
@@ -73,7 +71,10 @@ public record FabricBlockDisplayEntity(Display.BlockDisplay entity) implements B
 
     @Override
     public void teleport(Location location) {
-        entity.setPos(location.position().x(), location.position().y(), location.position().z());
+        entity.setPos(
+            location.position().x(),
+            location.position().y(),
+            location.position().z());
         entity.setYRot(location.rotation().yaw());
         entity.setXRot(location.rotation().pitch());
     }

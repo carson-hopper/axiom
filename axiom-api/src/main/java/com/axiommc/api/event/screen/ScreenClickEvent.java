@@ -5,7 +5,6 @@ import com.axiommc.api.math.Vector2;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.screen.ScreenClickHandler;
 import com.axiommc.api.screen.ScreenElement;
-
 import java.util.Objects;
 
 /**
@@ -19,8 +18,8 @@ import java.util.Objects;
 public record ScreenClickEvent(Player player, Vector2 cursor, ClickType clickType) {
 
     public ScreenClickEvent(Player player, Vector2 cursor, ClickType clickType) {
-        this.player    = Objects.requireNonNull(player,    "player must not be null");
-        this.cursor    = Objects.requireNonNull(cursor,    "cursor must not be null");
+        this.player = Objects.requireNonNull(player, "player must not be null");
+        this.cursor = Objects.requireNonNull(cursor, "cursor must not be null");
         this.clickType = Objects.requireNonNull(clickType, "clickType must not be null");
     }
 }

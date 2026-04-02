@@ -4,7 +4,6 @@ import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerJoinEvent;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayerProvider;
-
 import java.util.UUID;
 
 /**
@@ -37,8 +36,7 @@ public class GameProfileAdapter implements FabricEventAdapter {
             }
             eventBus.publish(event);
         } catch (Exception exception) {
-            Axiom.logger().debug(
-                    "Error firing GameProfileRequest", exception);
+            Axiom.logger().debug("Error firing GameProfileRequest", exception);
         }
     }
 }

@@ -2,8 +2,15 @@ package com.axiommc.api.particle;
 
 import java.util.Objects;
 
-public record ParticleEffect(ParticleType type, ParticleData data, int count, double spreadX, double spreadY,
-                             double spreadZ, float speed, boolean force) {
+public record ParticleEffect(
+    ParticleType type,
+    ParticleData data,
+    int count,
+    double spreadX,
+    double spreadY,
+    double spreadZ,
+    float speed,
+    boolean force) {
 
     // ============================================================
     // Record Accessors
@@ -70,9 +77,8 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
                 throw new IllegalArgumentException(type.key() + " does not accept data");
             }
             if (!expected.isInstance(data)) {
-                throw new IllegalArgumentException(
-                        type.key() + " requires " + expected.getSimpleName()
-                                + ", got " + data.getClass().getSimpleName());
+                throw new IllegalArgumentException(type.key() + " requires "
+                    + expected.getSimpleName() + ", got " + data.getClass().getSimpleName());
             }
         }
 
@@ -131,7 +137,7 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
                 return;
             }
             throw new IllegalArgumentException(
-                    type.key() + " requires " + required.getSimpleName() + " data");
+                type.key() + " requires " + required.getSimpleName() + " data");
         }
     }
 }

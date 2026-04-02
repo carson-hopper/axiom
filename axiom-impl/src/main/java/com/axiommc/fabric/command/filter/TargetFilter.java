@@ -7,6 +7,13 @@ import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.entity.FabricLivingEntity;
 import com.axiommc.fabric.world.FabricWorld;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
@@ -16,20 +23,11 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.phys.AABB;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
 public class TargetFilter {
 
     public static List<LivingEntity> parse(String input, CommandSender sender) {
         return parseFilter(input, sender);
     }
-
 
     private static List<LivingEntity> parseFilter(String filter, CommandSender sender) {
         // Check for space-separated filters (e.g., "zombie creeper !skeleton")
@@ -105,9 +103,9 @@ public class TargetFilter {
 
     private static List<LivingEntity> parsePlayerOrMobFilter(String name, CommandSender sender) {
         Optional<Player> player = Axiom.players().stream()
-                .filter(p -> p.name().equalsIgnoreCase(name))
-                .map(p -> (Player) p)
-                .findFirst();
+            .filter(p -> p.name().equalsIgnoreCase(name))
+            .map(p -> (Player) p)
+            .findFirst();
 
         if (player.isPresent()) {
             List<LivingEntity> result = new ArrayList<>();
@@ -125,9 +123,11 @@ public class TargetFilter {
             if (world instanceof FabricWorld(ServerLevel level)) {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
                 level.getEntities(null, worldBounds).forEach(entity -> {
-                    if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
+                    if (entity instanceof net.minecraft.world.entity.LivingEntity
+                        && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
                         if (!isBossMob(entity) && matchesEntityType(entity, typeName)) {
-                            mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
+                            mobs.add(new FabricLivingEntity(
+                                (net.minecraft.world.entity.LivingEntity) entity));
                         }
                     }
                 });
@@ -137,16 +137,17 @@ public class TargetFilter {
         return mobs;
     }
 
-    private static boolean matchesEntityType(net.minecraft.world.entity.Entity entity, String typeName) {
+    private static boolean matchesEntityType(
+        net.minecraft.world.entity.Entity entity, String typeName) {
         String simpleName = entity.getClass().getSimpleName().toLowerCase();
         return simpleName.equals(typeName.toLowerCase());
     }
 
     private static boolean isBossMob(net.minecraft.world.entity.Entity entity) {
-        return entity instanceof EnderDragon ||
-                entity instanceof WitherBoss ||
-                entity instanceof Warden ||
-                entity instanceof EnderDragonPart;
+        return entity instanceof EnderDragon
+            || entity instanceof WitherBoss
+            || entity instanceof Warden
+            || entity instanceof EnderDragonPart;
     }
 
     private static Collection<World> getWorldsForSender(CommandSender sender) {
@@ -176,8 +177,8 @@ public class TargetFilter {
             if (player.isPresent()) {
                 World playerWorld = player.get().location().world();
                 Axiom.players().stream()
-                        .filter(p -> p.location().world().equals(playerWorld))
-                        .forEach(targets::add);
+                    .filter(p -> p.location().world().equals(playerWorld))
+                    .forEach(targets::add);
             }
         } else {
             targets.addAll(Axiom.players());
@@ -194,9 +195,11 @@ public class TargetFilter {
             if (world instanceof FabricWorld(ServerLevel level)) {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
                 level.getEntities(null, worldBounds).forEach(entity -> {
-                    if (entity instanceof net.minecraft.world.entity.LivingEntity && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
+                    if (entity instanceof net.minecraft.world.entity.LivingEntity
+                        && !(entity instanceof net.minecraft.server.level.ServerPlayer)) {
                         if (!isBossMob(entity)) {
-                            mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
+                            mobs.add(new FabricLivingEntity(
+                                (net.minecraft.world.entity.LivingEntity) entity));
                         }
                     }
                 });
@@ -214,7 +217,8 @@ public class TargetFilter {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
                 level.getEntities(null, worldBounds).forEach(entity -> {
                     if (entity instanceof Monster && !isBossMob(entity)) {
-                        mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
+                        mobs.add(new FabricLivingEntity(
+                            (net.minecraft.world.entity.LivingEntity) entity));
                     }
                 });
             }
@@ -231,7 +235,8 @@ public class TargetFilter {
                 AABB worldBounds = new AABB(-3e7, -64, -3e7, 3e7, 320, 3e7);
                 level.getEntities(null, worldBounds).forEach(entity -> {
                     if (entity instanceof Animal && !isBossMob(entity)) {
-                        mobs.add(new FabricLivingEntity((net.minecraft.world.entity.LivingEntity) entity));
+                        mobs.add(new FabricLivingEntity(
+                            (net.minecraft.world.entity.LivingEntity) entity));
                     }
                 });
             }

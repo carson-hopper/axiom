@@ -22,5 +22,4 @@ public interface TextDisplayEntity extends DisplayEntity {
     default void update(Consumer<TextDisplaySpec.Builder> editor) {
         update(editor, 0);
     }
-
 }

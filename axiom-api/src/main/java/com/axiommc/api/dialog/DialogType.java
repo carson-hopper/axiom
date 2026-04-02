@@ -1,11 +1,11 @@
 package com.axiommc.api.dialog;
 
 import com.axiommc.api.chat.ChatComponent;
-
 import java.util.Arrays;
 import java.util.List;
 
-public sealed interface DialogType permits DialogType.Notice, DialogType.Confirmation, DialogType.MultiAction {
+public sealed interface DialogType
+    permits DialogType.Notice, DialogType.Confirmation, DialogType.MultiAction {
 
     record Notice(DialogButton button) implements DialogType {}
 
@@ -35,5 +35,4 @@ public sealed interface DialogType permits DialogType.Notice, DialogType.Confirm
     static DialogType multiAction(DialogButton... buttons) {
         return new MultiAction(List.copyOf(Arrays.asList(buttons)));
     }
-
 }

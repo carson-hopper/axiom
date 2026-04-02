@@ -3,14 +3,14 @@ package com.axiommc.fabric;
 import com.axiommc.api.event.EventBus;
 import com.axiommc.api.event.server.ServerStartEvent;
 import com.axiommc.api.event.server.ServerStopEvent;
-import com.axiommc.api.screen.ScreenManager;
-import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
 import com.axiommc.api.gui.GuiManager;
+import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.command.FabricCommandHandler;
 import com.axiommc.fabric.event.FabricEventBus;
+import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
 import com.axiommc.fabric.gui.FabricGuiManager;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import com.axiommc.fabric.plugin.SimplePluginLoader;
@@ -20,14 +20,6 @@ import com.axiommc.fabric.util.TaskScheduler;
 import com.axiommc.fabric.world.FabricWorld;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.CommandNode;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -35,6 +27,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AxiomMod implements ModInitializer {
 
@@ -98,22 +97,34 @@ public class AxiomMod implements ModInitializer {
             this.commandHandler = new FabricCommandHandler(eventBus);
 
             try {
-                CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-                    try {
-                        // unregisterAllCommands(dispatcher);
-                        commandHandler.register(dispatcher);
-                    } catch (Throwable e) {
-                        Axiom.logger().warn("Failed to register commands with Brigadier - commands will not be available", e);
-                    }
-                });
+                CommandRegistrationCallback.EVENT.register(
+                    (dispatcher, registryAccess, environment) -> {
+                        try {
+                            // unregisterAllCommands(dispatcher);
+                            commandHandler.register(dispatcher);
+                        } catch (Throwable e) {
+                            Axiom.logger()
+                                .warn(
+                                    "Failed to register commands with Brigadier - commands will"
+                                        + " not be available",
+                                    e);
+                        }
+                    });
                 Axiom.logger().debug("Command handler registered with CommandRegistrationCallback");
             } catch (Throwable e) {
-                Axiom.logger().warn("Failed to register command handler callback - commands will not be available", e);
-                Axiom.logger().debug("This is expected in some production environments due to class loading issues");
+                Axiom.logger()
+                    .warn(
+                        "Failed to register command handler callback - commands will not be"
+                            + " available",
+                        e);
+                Axiom.logger()
+                    .debug("This is expected in some production environments due to class loading"
+                        + " issues");
             }
         } catch (Exception e) {
             Axiom.logger().error("Failed to create command handler", e);
-            throw new RuntimeException("Axiom initialization failed at command handler creation", e);
+            throw new RuntimeException(
+                "Axiom initialization failed at command handler creation", e);
         }
 
         // ────────────────────────────────────────────────────────
@@ -296,7 +307,9 @@ public class AxiomMod implements ModInitializer {
         }
 
         String serverId = "axiom-server";
-        String host = minecraftServer.getLocalIp().isEmpty() ? "localhost" : minecraftServer.getLocalIp();;
+        String host =
+            minecraftServer.getLocalIp().isEmpty() ? "localhost" : minecraftServer.getLocalIp();
+        ;
         int port = minecraftServer.getPort();
         return new Server(serverId, host, port);
     }

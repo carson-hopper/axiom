@@ -9,5 +9,7 @@ public final class ItemData extends ParticleData {
         this.itemId = Objects.requireNonNull(itemId, "itemId");
     }
 
-    public String itemId() { return itemId; }
+    public String itemId() {
+        return itemId;
+    }
 }

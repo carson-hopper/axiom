@@ -1,21 +1,19 @@
 package com.axiommc.plugin.command;
 
+import com.axiommc.api.block.Block;
+import com.axiommc.api.block.Material;
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
-
 import com.axiommc.api.command.CommandSender;
 import com.axiommc.api.command.annotation.Arg;
 import com.axiommc.api.command.annotation.Command;
 import com.axiommc.api.command.annotation.Description;
-import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Execute;
+import com.axiommc.api.command.annotation.Permission;
 import com.axiommc.api.command.annotation.Subcommand;
 import com.axiommc.api.world.Dimension;
 import com.axiommc.api.world.World;
-import com.axiommc.api.block.Block;
-import com.axiommc.api.block.Material;
 import com.axiommc.fabric.Axiom;
-
 import java.util.Collection;
 import java.util.Optional;
 
@@ -26,7 +24,9 @@ public class TestWorldCommand {
 
     @Execute
     public void execute(CommandSender sender) {
-        sender.sendMessage(ChatComponent.text("Usage: /testworld <worlds|info|block|setblock|highest>").color(ChatColor.RED));
+        sender.sendMessage(
+            ChatComponent.text("Usage: /testworld <worlds|info|block|setblock|highest>")
+                .color(ChatColor.RED));
     }
 
     @Subcommand
@@ -39,7 +39,8 @@ public class TestWorldCommand {
 
         sender.sendMessage(ChatComponent.text("Loaded worlds:").color(ChatColor.GOLD));
         for (World w : worlds) {
-            sender.sendMessage(ChatComponent.text("  - " + w.name() + " (" + w.players().size() + " players)")
+            sender.sendMessage(
+                ChatComponent.text("  - " + w.name() + " (" + w.players().size() + " players)")
                     .color(ChatColor.WHITE));
         }
     }
@@ -54,7 +55,8 @@ public class TestWorldCommand {
 
         World w = world.get();
         sender.sendMessage(ChatComponent.text("World: " + w.name()).color(ChatColor.GOLD));
-        sender.sendMessage(ChatComponent.text("Players: " + w.players().size()).color(ChatColor.WHITE));
+        sender.sendMessage(
+            ChatComponent.text("Players: " + w.players().size()).color(ChatColor.WHITE));
 
         Dimension dim = w.dimension();
         sender.sendMessage(ChatComponent.text("Dimension Properties:").color(ChatColor.YELLOW));
@@ -63,7 +65,11 @@ public class TestWorldCommand {
     }
 
     @Subcommand
-    public void block(CommandSender sender, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z) {
+    public void block(
+        CommandSender sender,
+        @Arg("x") int x,
+        @Arg("y") int y,
+        @Arg("z") int z) {
         Optional<World> world = Axiom.world("minecraft:overworld");
         if (world.isEmpty()) {
             sender.sendMessage(ChatComponent.text("Overworld not found").color(ChatColor.RED));
@@ -71,12 +77,18 @@ public class TestWorldCommand {
         }
 
         Block block = world.get().blockAt(x, y, z);
-        sender.sendMessage(ChatComponent.text("Block at " + x + "," + y + "," + z + ": " + block.type().id())
-                .color(ChatColor.GREEN));
+        sender.sendMessage(ChatComponent.text(
+                "Block at " + x + "," + y + "," + z + ": " + block.type().id())
+            .color(ChatColor.GREEN));
     }
 
     @Subcommand
-    public void setblock(CommandSender sender, @Arg("x") int x, @Arg("y") int y, @Arg("z") int z, @Arg("material") String material) {
+    public void setblock(
+        CommandSender sender,
+        @Arg("x") int x,
+        @Arg("y") int y,
+        @Arg("z") int z,
+        @Arg("material") String material) {
         Optional<World> world = Axiom.world("minecraft:overworld");
         if (world.isEmpty()) {
             sender.sendMessage(ChatComponent.text("Overworld not found").color(ChatColor.RED));
@@ -88,7 +100,10 @@ public class TestWorldCommand {
     }
 
     @Subcommand
-    public void highest(CommandSender sender, @Arg("x") int x, @Arg("z") int z) {
+    public void highest(
+        CommandSender sender,
+        @Arg("x") int x,
+        @Arg("z") int z) {
         Optional<World> world = Axiom.world("minecraft:overworld");
         if (world.isEmpty()) {
             sender.sendMessage(ChatComponent.text("Overworld not found").color(ChatColor.RED));
@@ -97,7 +112,6 @@ public class TestWorldCommand {
 
         int y = world.get().highestBlockY(x, z);
         sender.sendMessage(ChatComponent.text("Highest block at " + x + "," + z + ": Y=" + y)
-                .color(ChatColor.GREEN));
+            .color(ChatColor.GREEN));
     }
-
 }

@@ -10,5 +10,4 @@ public class LongArgParser implements ArgParser<Long> {
             throw new ArgParseException("Expected a long, got: " + input, e);
         }
     }
-
 }

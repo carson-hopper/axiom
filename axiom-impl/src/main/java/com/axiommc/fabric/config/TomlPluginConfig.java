@@ -1,10 +1,9 @@
 package com.axiommc.fabric.config;
 
 import com.axiommc.api.config.PluginConfig;
+import com.axiommc.fabric.Axiom;
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
-import com.axiommc.fabric.Axiom;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -151,7 +150,10 @@ public class TomlPluginConfig implements PluginConfig {
                 Axiom.logger().debug("Loaded config from {}", configFile.getAbsolutePath());
             } else {
                 data = new LinkedHashMap<>();
-                Axiom.logger().debug("Config file {} does not exist, using empty config", configFile.getAbsolutePath());
+                Axiom.logger()
+                    .debug(
+                        "Config file {} does not exist, using empty config",
+                        configFile.getAbsolutePath());
             }
         } catch (Exception e) {
             Axiom.logger().warn("Failed to load config from {}", configFile.getAbsolutePath(), e);
@@ -173,7 +175,8 @@ public class TomlPluginConfig implements PluginConfig {
                 Axiom.logger().warn("Default config template not found in resources");
             }
         } catch (IOException e) {
-            Axiom.logger().warn("Failed to create default config at {}", configFile.getAbsolutePath(), e);
+            Axiom.logger()
+                .warn("Failed to create default config at {}", configFile.getAbsolutePath(), e);
         }
     }
 

@@ -37,8 +37,7 @@ public class PlayerLifecycleAdapter implements FabricEventAdapter {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             eventBus.publish(new PlayerKickEvent(player, reason));
         } catch (Exception exception) {
-            Axiom.logger().debug(
-                    "Error firing PlayerKickEvent", exception);
+            Axiom.logger().debug("Error firing PlayerKickEvent", exception);
         }
     }
 
@@ -55,8 +54,7 @@ public class PlayerLifecycleAdapter implements FabricEventAdapter {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             eventBus.publish(new PlayerDeathEvent.Respawn(player));
         } catch (Exception exception) {
-            Axiom.logger().debug(
-                    "Error firing PlayerRespawnEvent", exception);
+            Axiom.logger().debug("Error firing PlayerRespawnEvent", exception);
         }
     }
 }

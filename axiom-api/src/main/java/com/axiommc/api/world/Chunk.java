@@ -17,6 +17,7 @@ public interface Chunk {
     boolean loaded();
 
     void load();
+
     void unload();
 
     /**
@@ -24,6 +25,7 @@ public interface Chunk {
      * Biomes are sampled at 4-block resolution since 1.18 (3-D biomes).
      */
     Biome biomeAt(int x, int y, int z);
+
     default Biome biomeAt(Vector3 position) {
         return biomeAt((int) position.x(), (int) position.y(), (int) position.z());
     }

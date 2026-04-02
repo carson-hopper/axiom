@@ -10,5 +10,4 @@ public interface ArgParser<T> {
     default List<String> suggest(String partial) {
         return Collections.emptyList();
     }
-
 }

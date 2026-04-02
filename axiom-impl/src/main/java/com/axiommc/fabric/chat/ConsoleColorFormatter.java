@@ -58,7 +58,8 @@ public final class ConsoleColorFormatter {
         }
 
         try {
-            int versionMajor = Integer.parseInt(System.getProperty("os.version", "0").split("\\.")[0]);
+            int versionMajor =
+                Integer.parseInt(System.getProperty("os.version", "0").split("\\.")[0]);
             return versionMajor >= 10;
         } catch (Exception e) {
             return false;

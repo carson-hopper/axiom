@@ -7,5 +7,4 @@ package com.axiommc.api.event;
  * the {@link EventBus}. Implementations should provide relevant data about
  * what occurred as public fields or getter methods.
  */
-public abstract class Event {
-}
+public abstract class Event {}

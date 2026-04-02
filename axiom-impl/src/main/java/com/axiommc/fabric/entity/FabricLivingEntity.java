@@ -6,11 +6,10 @@ import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.world.FabricWorld;
+import java.util.UUID;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.UUID;
 
 public class FabricLivingEntity implements LivingEntity {
 
@@ -71,7 +70,10 @@ public class FabricLivingEntity implements LivingEntity {
 
     @Override
     public void teleport(Location location) {
-        entity.teleportTo(location.position().x(), location.position().y(), location.position().z());
+        entity.teleportTo(
+            location.position().x(),
+            location.position().y(),
+            location.position().z());
     }
 
     @Override
@@ -106,5 +108,4 @@ public class FabricLivingEntity implements LivingEntity {
     public boolean alive() {
         return entity.isAlive();
     }
-
 }

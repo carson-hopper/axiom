@@ -1,7 +1,6 @@
 package com.axiommc.api.chat;
 
 import com.axiommc.api.player.Player;
-
 import java.time.Instant;
 
 /**
@@ -12,7 +11,9 @@ import java.time.Instant;
 public interface SignedMessage {
 
     Player sender();
+
     String content();
+
     Instant timestamp();
 
     boolean isSigned();

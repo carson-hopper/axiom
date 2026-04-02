@@ -16,10 +16,11 @@ import java.util.function.Consumer;
  */
 public class SimpleEventBus implements EventBus {
 
-    private record PrioritizedHandler<T extends Event>(Consumer<T> handler, EventPriority priority) {}
+    private record PrioritizedHandler<T extends Event>(
+        Consumer<T> handler, EventPriority priority) {}
 
     private final ConcurrentHashMap<Class<?>, List<PrioritizedHandler<?>>> handlers =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     @Override
     public <T extends Event> void subscribe(Class<T> eventType, Consumer<T> handler) {
@@ -28,10 +29,10 @@ public class SimpleEventBus implements EventBus {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Event> void subscribe(Class<T> eventType, Consumer<T> handler,
-                                                  EventPriority priority) {
+    public <T extends Event> void subscribe(
+        Class<T> eventType, Consumer<T> handler, EventPriority priority) {
         handlers.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>())
-                .add(new PrioritizedHandler<>(handler, priority));
+            .add(new PrioritizedHandler<>(handler, priority));
     }
 
     @Override
@@ -55,8 +56,9 @@ public class SimpleEventBus implements EventBus {
         sorted.sort(Comparator.comparingInt(ph -> ph.priority().ordinal()));
 
         for (PrioritizedHandler ph : sorted) {
-            if (event instanceof Cancellable c && c.isCancelled()
-                    && ph.priority() != EventPriority.MONITOR) {
+            if (event instanceof Cancellable c
+                && c.isCancelled()
+                && ph.priority() != EventPriority.MONITOR) {
                 continue;
             }
             ph.handler().accept(event);

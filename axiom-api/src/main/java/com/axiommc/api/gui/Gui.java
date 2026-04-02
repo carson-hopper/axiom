@@ -2,7 +2,6 @@ package com.axiommc.api.gui;
 
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.player.Player;
-
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
@@ -22,7 +21,8 @@ import java.util.function.Consumer;
  * @param slots the item in each slot (may contain null for empty slots)
  * @param closeHandler callback when the player closes the GUI, or null
  */
-public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<Player> closeHandler) {
+public record Gui(
+    ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<Player> closeHandler) {
 
     public Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<Player> closeHandler) {
         this.title = title;
@@ -113,7 +113,8 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
          */
         public Builder slot(int index, GuiItem item) {
             if (index < 0 || index >= slots.length) {
-                throw new IndexOutOfBoundsException("Slot " + index + " out of range for size " + size);
+                throw new IndexOutOfBoundsException(
+                    "Slot " + index + " out of range for size " + size);
             }
             this.slots[index] = item;
             return this;
@@ -134,12 +135,12 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
             Objects.requireNonNull(item, "item must not be null");
             int rows = size.rows();
             for (int col = 0; col < 9; col++) {
-                slots[col] = item;                         // top row
-                slots[(rows - 1) * 9 + col] = item;       // bottom row
+                slots[col] = item; // top row
+                slots[(rows - 1) * 9 + col] = item; // bottom row
             }
             for (int row = 1; row < rows - 1; row++) {
-                slots[row * 9] = item;                     // left column
-                slots[row * 9 + 8] = item;                 // right column
+                slots[row * 9] = item; // left column
+                slots[row * 9 + 8] = item; // right column
             }
             return this;
         }

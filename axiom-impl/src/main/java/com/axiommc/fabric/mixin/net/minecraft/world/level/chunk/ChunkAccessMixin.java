@@ -18,13 +18,16 @@ import org.spongepowered.asm.mixin.Shadow;
 public abstract class ChunkAccessMixin implements BiomeWritable {
 
     @Final
-    @Shadow protected LevelChunkSection[] sections;
+    @Shadow
+    protected LevelChunkSection[] sections;
 
     @Final
-    @Shadow protected net.minecraft.world.level.LevelHeightAccessor levelHeightAccessor;
+    @Shadow
+    protected net.minecraft.world.level.LevelHeightAccessor levelHeightAccessor;
 
     @Override
-    public void setBiome(int x, int y, int z, com.axiommc.api.world.Biome biome, Object registryAccess) {
+    public void setBiome(
+        int x, int y, int z, com.axiommc.api.world.Biome biome, Object registryAccess) {
         int quartMinY = QuartPos.fromBlock(this.levelHeightAccessor.getMinY());
         int quartMaxY = quartMinY + QuartPos.fromBlock(this.levelHeightAccessor.getHeight()) - 1;
         int clampedY = Mth.clamp(y, quartMinY, quartMaxY);
@@ -32,14 +35,17 @@ public abstract class ChunkAccessMixin implements BiomeWritable {
 
         // Set biome directly on the LevelChunkSection's biomes palette
         LevelChunkSection section = this.sections[sectionIndex];
-        net.minecraft.core.RegistryAccess access = (net.minecraft.core.RegistryAccess) registryAccess;
+        net.minecraft.core.RegistryAccess access =
+            (net.minecraft.core.RegistryAccess) registryAccess;
         net.minecraft.core.Registry<net.minecraft.world.level.biome.Biome> biomeRegistry =
-                access.lookupOrThrow(Registries.BIOME);
+            access.lookupOrThrow(Registries.BIOME);
         Identifier location = Identifier.parse(biome.id());
         biomeRegistry.get(location).ifPresent(h -> {
-            PalettedContainerRO<Holder<net.minecraft.world.level.biome.Biome>> biomes = section.getBiomes();
+            PalettedContainerRO<Holder<net.minecraft.world.level.biome.Biome>> biomes =
+                section.getBiomes();
             if (biomes instanceof PalettedContainer<?>) {
-                ((PalettedContainer<Holder<net.minecraft.world.level.biome.Biome>>) biomes).set(x & 3, clampedY & 3, z & 3, h);
+                ((PalettedContainer<Holder<net.minecraft.world.level.biome.Biome>>) biomes)
+                    .set(x & 3, clampedY & 3, z & 3, h);
             }
         });
     }

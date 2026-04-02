@@ -1,9 +1,9 @@
 package com.axiommc.api.event.block;
 
+import com.axiommc.api.block.Block;
 import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
-import com.axiommc.api.block.Block;
 
 public class BlockInteractEvent {
 
@@ -66,5 +66,4 @@ public class BlockInteractEvent {
             this.cancelled = cancelled;
         }
     }
-
 }

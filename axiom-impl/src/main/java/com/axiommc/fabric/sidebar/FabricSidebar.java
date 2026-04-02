@@ -5,8 +5,14 @@ import com.axiommc.api.player.Player;
 import com.axiommc.api.sidebar.Sidebar;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.player.FabricPlayer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.numbers.NumberFormat;
 import net.minecraft.network.protocol.game.ClientboundResetScorePacket;
 import net.minecraft.network.protocol.game.ClientboundSetDisplayObjectivePacket;
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
@@ -17,20 +23,12 @@ import net.minecraft.world.scores.DisplaySlot;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.criteria.ObjectiveCriteria;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FabricSidebar implements Sidebar {
 
     private static final String[] SCORE_HOLDERS = {
-        "§0","§1","§2","§3","§4","§5","§6","§7","§8","§9",
-        "§a","§b","§c","§d","§e"
-    };
+    "§0", "§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9", "§a", "§b", "§c", "§d", "§e"
+};
 
     private final String objectiveName;
     private Component title;
@@ -55,8 +53,7 @@ public class FabricSidebar implements Sidebar {
             title,
             ObjectiveCriteria.RenderType.INTEGER,
             false,
-            null
-        );
+            null);
     }
 
     @Override
@@ -87,7 +84,8 @@ public class FabricSidebar implements Sidebar {
         }
         lines.remove(index);
         for (ServerPlayer viewer : viewers) {
-            viewer.connection.send(new ClientboundResetScorePacket(SCORE_HOLDERS[index], objectiveName));
+            viewer.connection.send(
+                new ClientboundResetScorePacket(SCORE_HOLDERS[index], objectiveName));
         }
     }
 
@@ -102,7 +100,8 @@ public class FabricSidebar implements Sidebar {
             sendLineToPlayer(sp, entry.getKey(), entry.getValue());
         }
 
-        sp.connection.send(new ClientboundSetDisplayObjectivePacket(DisplaySlot.SIDEBAR, objective));
+        sp.connection.send(
+            new ClientboundSetDisplayObjectivePacket(DisplaySlot.SIDEBAR, objective));
     }
 
     @Override
@@ -126,8 +125,6 @@ public class FabricSidebar implements Sidebar {
     private void sendLineToPlayer(ServerPlayer player, int index, Component text) {
         int score = 15 - index;
         player.connection.send(new ClientboundSetScorePacket(
-            SCORE_HOLDERS[index], objectiveName, score,
-            Optional.empty(), Optional.empty()
-        ));
+            SCORE_HOLDERS[index], objectiveName, score, Optional.empty(), Optional.empty()));
     }
 }

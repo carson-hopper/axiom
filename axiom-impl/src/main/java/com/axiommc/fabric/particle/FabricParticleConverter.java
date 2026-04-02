@@ -1,10 +1,10 @@
 package com.axiommc.fabric.particle;
 
 import com.axiommc.api.particle.ParticleEffect;
+import com.axiommc.fabric.Axiom;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
-import com.axiommc.fabric.Axiom;
 
 public class FabricParticleConverter {
 

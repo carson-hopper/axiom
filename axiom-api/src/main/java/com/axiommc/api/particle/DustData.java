@@ -8,9 +8,14 @@ public final class DustData extends ParticleData {
 
     public DustData(Color color, float size) {
         this.color = Objects.requireNonNull(color, "color");
-        this.size  = size;
+        this.size = size;
     }
 
-    public Color color() { return color; }
-    public float size()  { return size; }
+    public Color color() {
+        return color;
+    }
+
+    public float size() {
+        return size;
+    }
 }

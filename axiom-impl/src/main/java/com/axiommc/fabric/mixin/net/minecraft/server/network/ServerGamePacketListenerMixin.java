@@ -30,14 +30,13 @@ public abstract class ServerGamePacketListenerMixin {
 
     @Inject(method = "handleClientInformation", at = @At("HEAD"))
     private void onClientInformation(
-            ServerboundClientInformationPacket packet,
-            CallbackInfo callbackInfo) {
+        ServerboundClientInformationPacket packet, CallbackInfo callbackInfo) {
         ClientInformation information = packet.information();
         PlayerSettingsAdapter.onSettingsChanged(
-                getPlayer(),
-                information.language(),
-                information.viewDistance(),
-                (information.modelCustomisation() & 0x01) != 0);
+            getPlayer(),
+            information.language(),
+            information.viewDistance(),
+            (information.modelCustomisation() & 0x01) != 0);
     }
 
     @Inject(method = "handleMovePlayer", at = @At("HEAD"), cancellable = true)

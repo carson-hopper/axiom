@@ -1,7 +1,6 @@
 package com.axiommc.api.gui;
 
 import com.axiommc.api.player.Player;
-
 import java.util.UUID;
 
 /**

@@ -5,6 +5,13 @@ import com.axiommc.api.screen.Screen;
 import com.axiommc.api.screen.ScreenElement;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
@@ -19,14 +26,6 @@ import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Spawns display and interaction entities for a Screen using packets (client-side only).
@@ -52,10 +51,7 @@ public final class ScreenEntitySpawner {
     // ── Spawn result ──────────────────────────────────────────────────────────
 
     public record SpawnResult(
-            List<Integer> entityIds,
-            Map<Integer, ScreenElement> interactionMap,
-            int cursorEntityId
-    ) {}
+        List<Integer> entityIds, Map<Integer, ScreenElement> interactionMap, int cursorEntityId) {}
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -63,11 +59,11 @@ public final class ScreenEntitySpawner {
         List<Integer> entityIds = new ArrayList<>();
         Map<Integer, ScreenElement> interactionMap = new HashMap<>();
 
-        Vec3 eyePos  = player.getEyePosition();
+        Vec3 eyePos = player.getEyePosition();
         Vec3 forward = player.getLookAngle().normalize();
-        Vec3 right   = forward.cross(new Vec3(0, 1, 0)).normalize();
-        Vec3 up      = right.cross(forward).normalize();
-        Vec3 center  = eyePos.add(forward.scale(screen.distance()));
+        Vec3 right = forward.cross(new Vec3(0, 1, 0)).normalize();
+        Vec3 up = right.cross(forward).normalize();
+        Vec3 center = eyePos.add(forward.scale(screen.distance()));
 
         float yaw = player.getYRot();
         // Labels/buttons/items sit slightly in front of panels to avoid z-fighting
@@ -81,13 +77,14 @@ public final class ScreenEntitySpawner {
                     entityIds.add(spawnPanel(player, level, panel, screen, center, right, up, yaw));
                 }
                 case ScreenElement.Label label -> {
-                    entityIds.add(spawnLabel(player, level, label, screen,
-                            center.add(frontOffset), right, up, yaw));
+                    entityIds.add(spawnLabel(
+                        player, level, label, screen, center.add(frontOffset), right, up, yaw));
                 }
                 case ScreenElement.Button button -> {
                     Vec3 bc = center.add(frontOffset);
                     entityIds.add(spawnButton(player, level, button, screen, bc, right, up, yaw));
-                    int interactionId = spawnInteraction(player, level, button, screen, bc, right, up);
+                    int interactionId =
+                        spawnInteraction(player, level, button, screen, bc, right, up);
                     entityIds.add(interactionId);
                     interactionMap.put(interactionId, button);
                 }
@@ -95,7 +92,8 @@ public final class ScreenEntitySpawner {
                     Vec3 sc = center.add(frontOffset);
                     entityIds.add(spawnItemSlot(player, level, slot, screen, sc, right, up, yaw));
                     if (slot.onClick() != null) {
-                        int interactionId = spawnInteractionForItem(player, level, slot, screen, sc, right, up);
+                        int interactionId =
+                            spawnInteractionForItem(player, level, slot, screen, sc, right, up);
                         entityIds.add(interactionId);
                         interactionMap.put(interactionId, slot);
                     }
@@ -112,17 +110,16 @@ public final class ScreenEntitySpawner {
 
     public static void moveCursor(ServerPlayer player, int cursorEntityId, Vec3 position) {
         player.connection.send(ClientboundTeleportEntityPacket.teleport(
-                cursorEntityId,
-                new PositionMoveRotation(position, Vec3.ZERO, 0f, 0f),
-                Set.of(),
-                false
-        ));
+            cursorEntityId,
+            new PositionMoveRotation(position, Vec3.ZERO, 0f, 0f),
+            Set.of(),
+            false));
     }
 
     public static void despawnEntities(ServerPlayer player, List<Integer> entityIds) {
         if (entityIds.isEmpty()) return;
-        player.connection.send(
-                new ClientboundRemoveEntitiesPacket(entityIds.stream().mapToInt(i -> i).toArray()));
+        player.connection.send(new ClientboundRemoveEntitiesPacket(
+            entityIds.stream().mapToInt(i -> i).toArray()));
     }
 
     // ── Element spawners ──────────────────────────────────────────────────────
@@ -131,9 +128,15 @@ public final class ScreenEntitySpawner {
      * Panel = TextDisplay with solid backgroundColor, empty text, full brightness.
      * Renders as a clean flat colored rectangle — no block textures.
      */
-    private static int spawnPanel(ServerPlayer player, ServerLevel level,
-                                  ScreenElement.Panel panel, Screen screen,
-                                  Vec3 center, Vec3 right, Vec3 up, float yaw) {
+    private static int spawnPanel(
+        ServerPlayer player,
+        ServerLevel level,
+        ScreenElement.Panel panel,
+        Screen screen,
+        Vec3 center,
+        Vec3 right,
+        Vec3 up,
+        float yaw) {
         Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
         int id = nextId();
         entity.setId(id);
@@ -146,16 +149,21 @@ public final class ScreenEntitySpawner {
         int argb = panelStyleToArgb(panel.style());
 
         // Single space — the background color is the visual. Scale controls size.
-        invokeMethod(entity, Display.TextDisplay.class, "setText",
-                net.minecraft.network.chat.Component.class,
-                net.minecraft.network.chat.Component.literal(" "));
+        invokeMethod(
+            entity,
+            Display.TextDisplay.class,
+            "setText",
+            net.minecraft.network.chat.Component.class,
+            net.minecraft.network.chat.Component.literal(" "));
 
-        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
-                Integer.class, argb);
-        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, 1); // narrow line width forces background to fill
-        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
-                Byte.class, (byte) -1);
+        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID", Integer.class, argb);
+        setData(
+            entity,
+            Display.TextDisplay.class,
+            "DATA_LINE_WIDTH_ID",
+            Integer.class,
+            1); // narrow line width forces background to fill
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID", Byte.class, (byte) -1);
 
         // Scale the entity so 1 text pixel maps to the desired world size
         // A single space with lineWidth=1 renders as a small box
@@ -167,21 +175,39 @@ public final class ScreenEntitySpawner {
         float baseHeight = 0.3f;
         float sx = worldWidth / baseWidth;
         float sy = worldHeight / baseHeight;
-        setData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(sx, sy, 1f));
+        setData(
+            entity,
+            Display.class,
+            "DATA_SCALE_ID",
+            org.joml.Vector3f.class,
+            new org.joml.Vector3f(sx, sy, 1f));
 
-        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
-                Byte.class, BILLBOARD_FIXED);
-        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
-                Integer.class, packBrightness(15, 15));
+        setData(
+            entity,
+            Display.class,
+            "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+            Byte.class,
+            BILLBOARD_FIXED);
+        setData(
+            entity,
+            Display.class,
+            "DATA_BRIGHTNESS_OVERRIDE_ID",
+            Integer.class,
+            packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
     }
 
-    private static int spawnLabel(ServerPlayer player, ServerLevel level,
-                                  ScreenElement.Label label, Screen screen,
-                                  Vec3 center, Vec3 right, Vec3 up, float yaw) {
+    private static int spawnLabel(
+        ServerPlayer player,
+        ServerLevel level,
+        ScreenElement.Label label,
+        Screen screen,
+        Vec3 center,
+        Vec3 right,
+        Vec3 up,
+        float yaw) {
         Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
         int id = nextId();
         entity.setId(id);
@@ -190,78 +216,121 @@ public final class ScreenEntitySpawner {
         entity.setPos(position.x, position.y, position.z);
         entity.setYRot(yaw + 180f);
 
-        invokeMethod(entity, Display.TextDisplay.class, "setText",
-                net.minecraft.network.chat.Component.class,
-                SERIALIZER.serialize(label.text()));
+        invokeMethod(
+            entity,
+            Display.TextDisplay.class,
+            "setText",
+            net.minecraft.network.chat.Component.class,
+            SERIALIZER.serialize(label.text()));
 
-        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
-                Integer.class, 0x00000000); // fully transparent background
-        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, 10000);
-        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
-                Byte.class, (byte) -1);
-        setData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
-        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
-                Byte.class, BILLBOARD_FIXED);
-        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
-                Integer.class, packBrightness(15, 15));
+        setData(
+            entity,
+            Display.TextDisplay.class,
+            "DATA_BACKGROUND_COLOR_ID",
+            Integer.class,
+            0x00000000); // fully transparent background
+        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID", Integer.class, 10000);
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID", Byte.class, (byte) -1);
+        setData(
+            entity,
+            Display.class,
+            "DATA_SCALE_ID",
+            org.joml.Vector3f.class,
+            new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
+        setData(
+            entity,
+            Display.class,
+            "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+            Byte.class,
+            BILLBOARD_FIXED);
+        setData(
+            entity,
+            Display.class,
+            "DATA_BRIGHTNESS_OVERRIDE_ID",
+            Integer.class,
+            packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
     }
 
-    private static int spawnButton(ServerPlayer player, ServerLevel level,
-                                   ScreenElement.Button button, Screen screen,
-                                   Vec3 center, Vec3 right, Vec3 up, float yaw) {
+    private static int spawnButton(
+        ServerPlayer player,
+        ServerLevel level,
+        ScreenElement.Button button,
+        Screen screen,
+        Vec3 center,
+        Vec3 right,
+        Vec3 up,
+        float yaw) {
         Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
         int id = nextId();
         entity.setId(id);
 
         float centerX = button.x() + button.width() / 2f;
         float centerY = button.y() + button.height() / 2f;
-        Vec3 position = elementPosition(
-                center, right, up, centerX, centerY, screen);
+        Vec3 position = elementPosition(center, right, up, centerX, centerY, screen);
         entity.setPos(position.x, position.y, position.z);
         entity.setYRot(yaw + 180f);
 
-        invokeMethod(entity, Display.TextDisplay.class, "setText",
-                net.minecraft.network.chat.Component.class,
-                SERIALIZER.serialize(button.label()));
+        invokeMethod(
+            entity,
+            Display.TextDisplay.class,
+            "setText",
+            net.minecraft.network.chat.Component.class,
+            SERIALIZER.serialize(button.label()));
 
-        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
-                Integer.class, 0xCC1E293B); // dark button background
-        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, 10000);
-        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
-                Byte.class, (byte) -1);
-        setData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
-        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
-                Byte.class, BILLBOARD_FIXED);
-        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
-                Integer.class, packBrightness(15, 15));
+        setData(
+            entity,
+            Display.TextDisplay.class,
+            "DATA_BACKGROUND_COLOR_ID",
+            Integer.class,
+            0xCC1E293B); // dark button background
+        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID", Integer.class, 10000);
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID", Byte.class, (byte) -1);
+        setData(
+            entity,
+            Display.class,
+            "DATA_SCALE_ID",
+            org.joml.Vector3f.class,
+            new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
+        setData(
+            entity,
+            Display.class,
+            "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+            Byte.class,
+            BILLBOARD_FIXED);
+        setData(
+            entity,
+            Display.class,
+            "DATA_BRIGHTNESS_OVERRIDE_ID",
+            Integer.class,
+            packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
     }
 
-    private static int spawnInteraction(ServerPlayer player, ServerLevel level,
-                                        ScreenElement.Button button, Screen screen,
-                                        Vec3 center, Vec3 right, Vec3 up) {
+    private static int spawnInteraction(
+        ServerPlayer player,
+        ServerLevel level,
+        ScreenElement.Button button,
+        Screen screen,
+        Vec3 center,
+        Vec3 right,
+        Vec3 up) {
         Interaction entity = new Interaction(EntityType.INTERACTION, level);
         int id = nextId();
         entity.setId(id);
 
         float centerX = button.x() + button.width() / 2f;
         float centerY = button.y() + button.height() / 2f;
-        Vec3 position = elementPosition(
-                center, right, up, centerX, centerY, screen);
+        Vec3 position = elementPosition(center, right, up, centerX, centerY, screen);
         entity.setPos(position.x, position.y, position.z);
 
         float w = button.width() * screen.width();
         float h = button.height() * screen.height();
-        setData(entity, Interaction.class, "DATA_WIDTH_ID",  Float.class, w);
+        setData(entity, Interaction.class, "DATA_WIDTH_ID", Float.class, w);
         setData(entity, Interaction.class, "DATA_HEIGHT_ID", Float.class, h);
         setData(entity, Interaction.class, "DATA_RESPONSE_ID", Boolean.class, true);
 
@@ -269,9 +338,14 @@ public final class ScreenEntitySpawner {
         return id;
     }
 
-    private static int spawnInteractionForItem(ServerPlayer player, ServerLevel level,
-                                               ScreenElement.ItemSlot slot, Screen screen,
-                                               Vec3 center, Vec3 right, Vec3 up) {
+    private static int spawnInteractionForItem(
+        ServerPlayer player,
+        ServerLevel level,
+        ScreenElement.ItemSlot slot,
+        Screen screen,
+        Vec3 center,
+        Vec3 right,
+        Vec3 up) {
         Interaction entity = new Interaction(EntityType.INTERACTION, level);
         int id = nextId();
         entity.setId(id);
@@ -280,7 +354,7 @@ public final class ScreenEntitySpawner {
         entity.setPos(position.x, position.y, position.z);
 
         float size = slot.size() * Math.min(screen.width(), screen.height());
-        setData(entity, Interaction.class, "DATA_WIDTH_ID",  Float.class, size);
+        setData(entity, Interaction.class, "DATA_WIDTH_ID", Float.class, size);
         setData(entity, Interaction.class, "DATA_HEIGHT_ID", Float.class, size);
         setData(entity, Interaction.class, "DATA_RESPONSE_ID", Boolean.class, true);
 
@@ -288,9 +362,15 @@ public final class ScreenEntitySpawner {
         return id;
     }
 
-    private static int spawnItemSlot(ServerPlayer player, ServerLevel level,
-                                     ScreenElement.ItemSlot slot, Screen screen,
-                                     Vec3 center, Vec3 right, Vec3 up, float yaw) {
+    private static int spawnItemSlot(
+        ServerPlayer player,
+        ServerLevel level,
+        ScreenElement.ItemSlot slot,
+        Screen screen,
+        Vec3 center,
+        Vec3 right,
+        Vec3 up,
+        float yaw) {
         Display.ItemDisplay entity = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
         int id = nextId();
         entity.setId(id);
@@ -300,17 +380,33 @@ public final class ScreenEntitySpawner {
         entity.setYRot(yaw + 180f);
 
         net.minecraft.world.item.Item item =
-                BuiltInRegistries.ITEM.getValue(Identifier.parse(slot.item()));
-        invokeMethod(entity, Display.ItemDisplay.class, "setItemStack",
-                ItemStack.class, new ItemStack(item));
+            BuiltInRegistries.ITEM.getValue(Identifier.parse(slot.item()));
+        invokeMethod(
+            entity,
+            Display.ItemDisplay.class,
+            "setItemStack",
+            ItemStack.class,
+            new ItemStack(item));
 
         float size = slot.size() * Math.min(screen.width(), screen.height());
-        setData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(size, size, size));
-        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
-                Byte.class, BILLBOARD_FIXED);
-        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
-                Integer.class, packBrightness(15, 15));
+        setData(
+            entity,
+            Display.class,
+            "DATA_SCALE_ID",
+            org.joml.Vector3f.class,
+            new org.joml.Vector3f(size, size, size));
+        setData(
+            entity,
+            Display.class,
+            "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+            Byte.class,
+            BILLBOARD_FIXED);
+        setData(
+            entity,
+            Display.class,
+            "DATA_BRIGHTNESS_OVERRIDE_ID",
+            Integer.class,
+            packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -323,22 +419,39 @@ public final class ScreenEntitySpawner {
 
         entity.setPos(position.x, position.y, position.z);
 
-        invokeMethod(entity, Display.TextDisplay.class, "setText",
-                net.minecraft.network.chat.Component.class,
-                net.minecraft.network.chat.Component.literal("⬤").withColor(0xFFFFFF));
+        invokeMethod(
+            entity,
+            Display.TextDisplay.class,
+            "setText",
+            net.minecraft.network.chat.Component.class,
+            net.minecraft.network.chat.Component.literal("⬤").withColor(0xFFFFFF));
 
-        setData(entity, Display.TextDisplay.class, "DATA_BACKGROUND_COLOR_ID",
-                Integer.class, 0x00000000);
-        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID",
-                Integer.class, 10000);
-        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID",
-                Byte.class, (byte) -1);
-        setData(entity, Display.class, "DATA_SCALE_ID",
-                org.joml.Vector3f.class, new org.joml.Vector3f(0.15f, 0.15f, 0.15f));
-        setData(entity, Display.class, "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
-                Byte.class, BILLBOARD_FIXED);
-        setData(entity, Display.class, "DATA_BRIGHTNESS_OVERRIDE_ID",
-                Integer.class, packBrightness(15, 15));
+        setData(
+            entity,
+            Display.TextDisplay.class,
+            "DATA_BACKGROUND_COLOR_ID",
+            Integer.class,
+            0x00000000);
+        setData(entity, Display.TextDisplay.class, "DATA_LINE_WIDTH_ID", Integer.class, 10000);
+        setData(entity, Display.TextDisplay.class, "DATA_TEXT_OPACITY_ID", Byte.class, (byte) -1);
+        setData(
+            entity,
+            Display.class,
+            "DATA_SCALE_ID",
+            org.joml.Vector3f.class,
+            new org.joml.Vector3f(0.15f, 0.15f, 0.15f));
+        setData(
+            entity,
+            Display.class,
+            "DATA_BILLBOARD_RENDER_CONSTRAINTS_ID",
+            Byte.class,
+            BILLBOARD_FIXED);
+        setData(
+            entity,
+            Display.class,
+            "DATA_BRIGHTNESS_OVERRIDE_ID",
+            Integer.class,
+            packBrightness(15, 15));
 
         sendSpawnPackets(player, entity, id);
         return id;
@@ -346,8 +459,8 @@ public final class ScreenEntitySpawner {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static Vec3 elementPosition(Vec3 center, Vec3 right, Vec3 up,
-                                        float normX, float normY, Screen screen) {
+    private static Vec3 elementPosition(
+        Vec3 center, Vec3 right, Vec3 up, float normX, float normY, Screen screen) {
         double offsetX = (normX - 0.5) * screen.width();
         double offsetY = (0.5 - normY) * screen.height();
         return center.add(right.scale(offsetX)).add(up.scale(offsetY));
@@ -355,8 +468,8 @@ public final class ScreenEntitySpawner {
 
     private static int panelStyleToArgb(PanelStyle style) {
         return switch (style) {
-            case DARK   -> 0xEE0F172A; // near-black navy, mostly opaque
-            case GLASS  -> 0x991E293B; // semi-transparent slate
+            case DARK -> 0xEE0F172A; // near-black navy, mostly opaque
+            case GLASS -> 0x991E293B; // semi-transparent slate
             case BORDER -> 0xFF000000; // solid black
             case ACCENT -> 0xFF0E7490; // teal
         };
@@ -382,18 +495,25 @@ public final class ScreenEntitySpawner {
      *           DATA_BRIGHTNESS_OVERRIDE_ID, DATA_WIDTH_ID, DATA_HEIGHT_ID, DATA_RESPONSE_ID.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> void setData(net.minecraft.world.entity.Entity entity,
-                                    Class<?> holderClass, String fieldName,
-                                    Class<T> type, T value) {
+    private static <T> void setData(
+        net.minecraft.world.entity.Entity entity,
+        Class<?> holderClass,
+        String fieldName,
+        Class<T> type,
+        T value) {
         try {
-            java.lang.reflect.Field field =
-                    holderClass.getDeclaredField(fieldName);
+            java.lang.reflect.Field field = holderClass.getDeclaredField(fieldName);
             field.setAccessible(true);
             net.minecraft.network.syncher.EntityDataAccessor accessor =
-                    (net.minecraft.network.syncher.EntityDataAccessor) field.get(null);
+                (net.minecraft.network.syncher.EntityDataAccessor) field.get(null);
             entity.getEntityData().set(accessor, value);
         } catch (Exception e) {
-            Axiom.logger().debug("setData({}.{}) failed: {}", holderClass.getSimpleName(), fieldName, e.getMessage());
+            Axiom.logger()
+                .debug(
+                    "setData({}.{}) failed: {}",
+                    holderClass.getSimpleName(),
+                    fieldName,
+                    e.getMessage());
         }
     }
 
@@ -401,15 +521,23 @@ public final class ScreenEntitySpawner {
      * Invokes a private method via reflection.
      * Used for: setText, setItemStack (private in 26.1 without AccessWidener).
      */
-    private static void invokeMethod(Object target, Class<?> declaringClass,
-                                     String methodName, Class<?> paramType, Object value) {
+    private static void invokeMethod(
+        Object target,
+        Class<?> declaringClass,
+        String methodName,
+        Class<?> paramType,
+        Object value) {
         try {
             Method method = declaringClass.getDeclaredMethod(methodName, paramType);
             method.setAccessible(true);
             method.invoke(target, value);
         } catch (Exception e) {
-            Axiom.logger().debug("invokeMethod({}.{}) failed: {}",
-                    declaringClass.getSimpleName(), methodName, e.getMessage());
+            Axiom.logger()
+                .debug(
+                    "invokeMethod({}.{}) failed: {}",
+                    declaringClass.getSimpleName(),
+                    methodName,
+                    e.getMessage());
         }
     }
 
@@ -418,8 +546,8 @@ public final class ScreenEntitySpawner {
      * Uses packAll() (not getNonDefaultValues()) to ensure all configured
      * data fields are included — matches CursorCS approach.
      */
-    private static void sendSpawnPackets(ServerPlayer player,
-                                         net.minecraft.world.entity.Entity entity, int id) {
+    private static void sendSpawnPackets(
+        ServerPlayer player, net.minecraft.world.entity.Entity entity, int id) {
         player.connection.send(new ClientboundAddEntityPacket(entity, 0, entity.blockPosition()));
         try {
             // packAll() returns all synced data, not just dirty values — safer for initial spawn
@@ -432,7 +560,7 @@ public final class ScreenEntitySpawner {
         } catch (Exception e) {
             // Fallback to getNonDefaultValues if packAll is renamed/unavailable
             List<net.minecraft.network.syncher.SynchedEntityData.DataValue<?>> packed =
-                    entity.getEntityData().getNonDefaultValues();
+                entity.getEntityData().getNonDefaultValues();
             if (packed != null) {
                 player.connection.send(new ClientboundSetEntityDataPacket(id, packed));
             }

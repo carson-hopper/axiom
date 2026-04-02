@@ -30,8 +30,8 @@ public interface EventBus {
      * @param handler the handler to call when the event fires
      * @param priority the priority at which this handler executes
      */
-    <T extends Event> void subscribe(Class<T> eventType, Consumer<T> handler,
-                                     EventPriority priority);
+    <T extends Event> void subscribe(
+        Class<T> eventType, Consumer<T> handler, EventPriority priority);
 
     /**
      * Unsubscribes a handler from an event type.

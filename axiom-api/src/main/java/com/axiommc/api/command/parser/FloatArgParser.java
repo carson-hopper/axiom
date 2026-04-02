@@ -10,5 +10,4 @@ public class FloatArgParser implements ArgParser<Float> {
             throw new ArgParseException("Expected a float, got: " + input, e);
         }
     }
-
 }

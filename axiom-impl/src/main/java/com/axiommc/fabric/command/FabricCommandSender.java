@@ -6,11 +6,10 @@ import com.axiommc.api.player.Player;
 import com.axiommc.fabric.chat.ConsoleColorFormatter;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.player.FabricPlayer;
+import java.util.Optional;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-
-import java.util.Optional;
 
 public record FabricCommandSender(CommandSourceStack source) implements CommandSender {
 
@@ -38,7 +37,8 @@ public record FabricCommandSender(CommandSourceStack source) implements CommandS
     @Override
     public boolean hasPermission(String permission) {
         // For now, just check if sender is a player or console
-        // Console always has permissions, players always allowed (permission check done in command execution)
+        // Console always has permissions, players always allowed (permission check done in command
+        // execution)
         return true;
     }
 

@@ -7,7 +7,6 @@ import com.axiommc.api.world.Server;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
-import com.axiommc.fabric.Axiom;
 
 /**
  * Fires ServerStartEvent and ServerStopEvent using Fabric lifecycle callbacks.

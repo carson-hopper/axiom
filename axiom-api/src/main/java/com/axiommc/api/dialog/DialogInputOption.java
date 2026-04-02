@@ -11,5 +11,4 @@ public record DialogInputOption(String id, ChatComponent display, boolean initia
     public static DialogInputOption of(String id, ChatComponent display, boolean initial) {
         return new DialogInputOption(id, display, initial);
     }
-
 }

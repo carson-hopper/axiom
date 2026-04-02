@@ -1,21 +1,20 @@
 package com.axiommc.fabric.block;
 
-import com.axiommc.api.math.Vector3;
-import com.axiommc.api.world.World;
 import com.axiommc.api.block.Block;
 import com.axiommc.api.block.BlockFace;
 import com.axiommc.api.block.BlockState;
 import com.axiommc.api.block.Material;
+import com.axiommc.api.math.Vector3;
+import com.axiommc.api.world.World;
 import com.axiommc.fabric.world.FabricWorld;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class FabricBlock implements Block {
 
@@ -53,17 +52,20 @@ public class FabricBlock implements Block {
 
     @Override
     public Material type() {
-        net.minecraft.world.level.block.Block mcBlock = serverLevel.getBlockState(blockPos).getBlock();
+        net.minecraft.world.level.block.Block mcBlock =
+            serverLevel.getBlockState(blockPos).getBlock();
         Identifier identifier = BuiltInRegistries.BLOCK.getKey(mcBlock);
         return Material.of(identifier.toString());
     }
 
     @Override
     public BlockState state() {
-        net.minecraft.world.level.block.state.BlockState mcBlockState = serverLevel.getBlockState(blockPos);
+        net.minecraft.world.level.block.state.BlockState mcBlockState =
+            serverLevel.getBlockState(blockPos);
         Map<String, String> properties = new HashMap<String, String>();
 
-        for (net.minecraft.world.level.block.state.properties.Property<?> property : mcBlockState.getProperties()) {
+        for (net.minecraft.world.level.block.state.properties.Property<?> property :
+            mcBlockState.getProperties()) {
             Comparable<?> value = mcBlockState.getValue(property);
             properties.put(property.getName(), value.toString());
         }
@@ -86,7 +88,8 @@ public class FabricBlock implements Block {
 
     @Override
     public boolean solid() {
-        net.minecraft.world.level.block.state.BlockState blockState = serverLevel.getBlockState(blockPos);
+        net.minecraft.world.level.block.state.BlockState blockState =
+            serverLevel.getBlockState(blockPos);
         return !blockState.isAir();
     }
 
@@ -111,14 +114,15 @@ public class FabricBlock implements Block {
 
     @Override
     public Block relative(BlockFace face) {
-        Direction direction = switch (face) {
-            case UP -> Direction.UP;
-            case DOWN -> Direction.DOWN;
-            case NORTH -> Direction.NORTH;
-            case SOUTH -> Direction.SOUTH;
-            case EAST -> Direction.EAST;
-            case WEST -> Direction.WEST;
-        };
+        Direction direction =
+            switch (face) {
+                case UP -> Direction.UP;
+                case DOWN -> Direction.DOWN;
+                case NORTH -> Direction.NORTH;
+                case SOUTH -> Direction.SOUTH;
+                case EAST -> Direction.EAST;
+                case WEST -> Direction.WEST;
+            };
         BlockPos newPos = blockPos.relative(direction);
         return new FabricBlock(serverLevel, newPos.getX(), newPos.getY(), newPos.getZ(), world);
     }
@@ -153,7 +157,8 @@ public class FabricBlock implements Block {
             return null;
         }
 
-        java.util.Optional<? extends Holder<net.minecraft.world.level.block.Block>> blockHolderOptional = BuiltInRegistries.BLOCK.get(identifier);
+        java.util.Optional<? extends Holder<net.minecraft.world.level.block.Block>>
+            blockHolderOptional = BuiltInRegistries.BLOCK.get(identifier);
         if (blockHolderOptional.isEmpty()) {
             return null;
         }

@@ -1,7 +1,6 @@
 package com.axiommc.api.dialog;
 
 import com.axiommc.api.chat.ChatComponent;
-
 import java.util.List;
 
 public abstract class DialogInput {
@@ -14,8 +13,13 @@ public abstract class DialogInput {
         this.label = label;
     }
 
-    public String key() { return key; }
-    public ChatComponent label() { return label; }
+    public String key() {
+        return key;
+    }
+
+    public ChatComponent label() {
+        return label;
+    }
 
     // ── Bool ──────────────────────────────────────────────────────────────────
 
@@ -27,7 +31,9 @@ public abstract class DialogInput {
             this.initial = initial;
         }
 
-        public boolean isInitial() { return initial; }
+        public boolean isInitial() {
+            return initial;
+        }
     }
 
     public static Bool bool(String key, ChatComponent label) {
@@ -50,8 +56,13 @@ public abstract class DialogInput {
             this.maxLength = maxLength;
         }
 
-        public String initial() { return initial; }
-        public int maxLength() { return maxLength; }
+        public String initial() {
+            return initial;
+        }
+
+        public int maxLength() {
+            return maxLength;
+        }
     }
 
     public static Text text(String key, ChatComponent label) {
@@ -70,7 +81,8 @@ public abstract class DialogInput {
         private final float initial;
         private final float step;
 
-        public NumberRange(String key, ChatComponent label, float min, float max, float initial, float step) {
+        public NumberRange(
+            String key, ChatComponent label, float min, float max, float initial, float step) {
             super(key, label);
             this.min = min;
             this.max = max;
@@ -78,17 +90,29 @@ public abstract class DialogInput {
             this.step = step;
         }
 
-        public float min() { return min; }
-        public float max() { return max; }
-        public float initial() { return initial; }
-        public float step() { return step; }
+        public float min() {
+            return min;
+        }
+
+        public float max() {
+            return max;
+        }
+
+        public float initial() {
+            return initial;
+        }
+
+        public float step() {
+            return step;
+        }
     }
 
     public static NumberRange numberRange(String key, ChatComponent label, float min, float max) {
         return new NumberRange(key, label, min, max, min, 1.0f);
     }
 
-    public static NumberRange numberRange(String key, ChatComponent label, float min, float max, float initial, float step) {
+    public static NumberRange numberRange(
+        String key, ChatComponent label, float min, float max, float initial, float step) {
         return new NumberRange(key, label, min, max, initial, step);
     }
 
@@ -102,11 +126,13 @@ public abstract class DialogInput {
             this.options = List.copyOf(options);
         }
 
-        public List<DialogInputOption> options() { return options; }
+        public List<DialogInputOption> options() {
+            return options;
+        }
     }
 
-    public static SingleOption singleOption(String key, ChatComponent label, List<DialogInputOption> options) {
+    public static SingleOption singleOption(
+        String key, ChatComponent label, List<DialogInputOption> options) {
         return new SingleOption(key, label, options);
     }
-
 }

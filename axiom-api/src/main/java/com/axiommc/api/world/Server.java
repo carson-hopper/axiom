@@ -6,7 +6,9 @@ package com.axiommc.api.world;
  */
 public record Server(String id, String host, int port) {
 
-    public String id() { return id; }
+    public String id() {
+        return id;
+    }
 
     public String address() {
         return host + ":" + port;

@@ -8,7 +8,6 @@ import com.axiommc.api.player.Player;
 import com.axiommc.fabric.player.FabricPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 
 public record FabricBossBar(ServerBossEvent bossEvent) implements BossBar {

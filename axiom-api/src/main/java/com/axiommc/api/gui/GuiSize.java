@@ -48,12 +48,16 @@ public enum GuiSize {
      *
      * @return the number of slots
      */
-    public int slots() { return slots; }
+    public int slots() {
+        return slots;
+    }
 
     /**
      * Gets the number of rows in this GUI size.
      *
      * @return the number of rows
      */
-    public int rows()  { return slots / 9; }
+    public int rows() {
+        return slots / 9;
+    }
 }

@@ -1,7 +1,6 @@
 package com.axiommc.api.chat;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,10 +28,22 @@ import java.util.UUID;
  * @param hoverEvent hover event or null
  * @param children child components
  */
-public record ChatComponent(String type, String content, String translatableKey, ChatComponent[] translatableArgs,
-                            String keybind, ChatColor color, boolean bold, boolean italic, boolean underlined,
-                            boolean strikethrough, boolean obfuscated, String insertion, ChatClickEvent clickEvent,
-                            ChatHoverEvent hoverEvent, List<ChatComponent> children) {
+public record ChatComponent(
+    String type,
+    String content,
+    String translatableKey,
+    ChatComponent[] translatableArgs,
+    String keybind,
+    ChatColor color,
+    boolean bold,
+    boolean italic,
+    boolean underlined,
+    boolean strikethrough,
+    boolean obfuscated,
+    String insertion,
+    ChatClickEvent clickEvent,
+    ChatHoverEvent hoverEvent,
+    List<ChatComponent> children) {
 
     // Type constants
     private static final String TYPE_TEXT = "text";
@@ -41,18 +52,27 @@ public record ChatComponent(String type, String content, String translatableKey,
     private static final String TYPE_NEWLINE = "newline";
     private static final String TYPE_SPACE = "space";
 
-    public ChatComponent(String type, String content, String translatableKey,
-                         ChatComponent[] translatableArgs, String keybind,
-                         ChatColor color, boolean bold, boolean italic, boolean underlined,
-                         boolean strikethrough, boolean obfuscated, String insertion,
-                         ChatClickEvent clickEvent, ChatHoverEvent hoverEvent,
-                         List<ChatComponent> children) {
+    public ChatComponent(
+        String type,
+        String content,
+        String translatableKey,
+        ChatComponent[] translatableArgs,
+        String keybind,
+        ChatColor color,
+        boolean bold,
+        boolean italic,
+        boolean underlined,
+        boolean strikethrough,
+        boolean obfuscated,
+        String insertion,
+        ChatClickEvent clickEvent,
+        ChatHoverEvent hoverEvent,
+        List<ChatComponent> children) {
         this.type = type;
         this.content = content;
         this.translatableKey = translatableKey;
-        this.translatableArgs = translatableArgs != null
-            ? translatableArgs.clone()
-            : new ChatComponent[0];
+        this.translatableArgs =
+            translatableArgs != null ? translatableArgs.clone() : new ChatComponent[0];
         this.keybind = keybind;
         this.color = color;
         this.bold = bold;
@@ -69,7 +89,8 @@ public record ChatComponent(String type, String content, String translatableKey,
     // ── Internal copy-with ─────────────────────────────────────────────────
 
     private BuilderImpl copyToBuilder() {
-        BuilderImpl builder = new BuilderImpl(type, content, translatableKey, translatableArgs, keybind);
+        BuilderImpl builder =
+            new BuilderImpl(type, content, translatableKey, translatableArgs, keybind);
         builder.color = this.color;
         builder.bold = this.bold;
         builder.italic = this.italic;
@@ -129,7 +150,8 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @param decorations formatting decorations to apply
      * @return a new text component with the specified color and decorations
      */
-    public static ChatComponent text(String content, ChatColor color, ChatDecoration... decorations) {
+    public static ChatComponent text(
+        String content, ChatColor color, ChatDecoration... decorations) {
         ChatComponent component = text(content).color(color);
         for (ChatDecoration decoration : decorations) {
             component = component.decoration(decoration, true);
@@ -506,9 +528,8 @@ public record ChatComponent(String type, String content, String translatableKey,
     private void appendMiniMessage(StringBuilder output) {
         List<String> openTags = new ArrayList<>();
         if (color != null) {
-            String tag = color.hasLegacyCode()
-                    ? colorNameForMiniMessage(color)
-                    : color.asHexString();
+            String tag =
+                color.hasLegacyCode() ? colorNameForMiniMessage(color) : color.asHexString();
             output.append('<').append(tag).append('>');
             openTags.add(tag);
         }
@@ -533,13 +554,18 @@ public record ChatComponent(String type, String content, String translatableKey,
             openTags.add("obfuscated");
         }
         if (clickEvent != null) {
-            String action = switch (clickEvent.action()) {
-                case RUN_COMMAND -> "run_command";
-                case SUGGEST_COMMAND -> "suggest_command";
-                case OPEN_URL -> "open_url";
-                case COPY_TO_CLIPBOARD -> "copy_to_clipboard";
-            };
-            output.append("<click:").append(action).append(":\"").append(sanitizeMiniMessageValue(clickEvent.value())).append("\">");
+            String action =
+                switch (clickEvent.action()) {
+                    case RUN_COMMAND -> "run_command";
+                    case SUGGEST_COMMAND -> "suggest_command";
+                    case OPEN_URL -> "open_url";
+                    case COPY_TO_CLIPBOARD -> "copy_to_clipboard";
+                };
+            output.append("<click:")
+                .append(action)
+                .append(":\"")
+                .append(sanitizeMiniMessageValue(clickEvent.value()))
+                .append("\">");
             openTags.add("click");
         }
         // Note: hover events are not serialized to MiniMessage format (complex nested structure)
@@ -566,12 +592,11 @@ public record ChatComponent(String type, String content, String translatableKey,
     }
 
     private static String htmlEscape(String text) {
-        return text
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#x27;");
+        return text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#x27;");
     }
 
     private void appendHtml(StringBuilder output) {
@@ -591,19 +616,23 @@ public record ChatComponent(String type, String content, String translatableKey,
         if (clickEvent != null) {
             switch (clickEvent.action()) {
                 case RUN_COMMAND -> {
-                    openTags.add("<span class=\"helix-click-run\" data-command=\"" + htmlEscape(clickEvent.value()) + "\">");
+                    openTags.add("<span class=\"helix-click-run\" data-command=\""
+                        + htmlEscape(clickEvent.value()) + "\">");
                     closeTags.addFirst("</span>");
                 }
                 case SUGGEST_COMMAND -> {
-                    openTags.add("<span class=\"helix-click-suggest\" data-command=\"" + htmlEscape(clickEvent.value()) + "\">");
+                    openTags.add("<span class=\"helix-click-suggest\" data-command=\""
+                        + htmlEscape(clickEvent.value()) + "\">");
                     closeTags.addFirst("</span>");
                 }
                 case OPEN_URL -> {
-                    openTags.add("<a href=\"" + htmlEscape(clickEvent.value()) + "\" target=\"_blank\" rel=\"noopener noreferrer\">");
+                    openTags.add("<a href=\"" + htmlEscape(clickEvent.value())
+                        + "\" target=\"_blank\" rel=\"noopener noreferrer\">");
                     closeTags.addFirst("</a>");
                 }
                 case COPY_TO_CLIPBOARD -> {
-                    openTags.add("<span class=\"helix-click-copy\" data-value=\"" + htmlEscape(clickEvent.value()) + "\">");
+                    openTags.add("<span class=\"helix-click-copy\" data-value=\""
+                        + htmlEscape(clickEvent.value()) + "\">");
                     closeTags.addFirst("</span>");
                 }
             }
@@ -620,8 +649,9 @@ public record ChatComponent(String type, String content, String translatableKey,
                 case SHOW_ITEM -> {
                     Item item = hoverEvent.item();
                     if (item != null) {
-                        openTags.add("<span class=\"helix-hover-item\" data-item=\"" + htmlEscape(item.materialKey())
-                                + "\" title=\"" + htmlEscape(item.displayName()) + "\">");
+                        openTags.add("<span class=\"helix-hover-item\" data-item=\""
+                            + htmlEscape(item.materialKey()) + "\" title=\""
+                            + htmlEscape(item.displayName()) + "\">");
                         closeTags.addFirst("</span>");
                     }
                 }
@@ -911,8 +941,12 @@ public record ChatComponent(String type, String content, String translatableKey,
         private ChatHoverEvent hoverEvent;
         private final List<ChatComponent> children = new ArrayList<>();
 
-        BuilderImpl(String type, String content, String translatableKey,
-                    ChatComponent[] translatableArgs, String keybind) {
+        BuilderImpl(
+            String type,
+            String content,
+            String translatableKey,
+            ChatComponent[] translatableArgs,
+            String keybind) {
             this.type = type;
             this.content = content != null ? content : "";
             this.translatableKey = translatableKey;
@@ -1040,12 +1074,26 @@ public record ChatComponent(String type, String content, String translatableKey,
         @Override
         public ChatComponent build() {
             if (built) {
-                throw new IllegalStateException("Builder has already been used; create a new builder");
+                throw new IllegalStateException(
+                    "Builder has already been used; create a new builder");
             }
             built = true;
-            return new ChatComponent(type, content, translatableKey, translatableArgs, keybind,
-                    color, bold, italic, underlined, strikethrough, obfuscated,
-                    insertion, clickEvent, hoverEvent, children);
+            return new ChatComponent(
+                type,
+                content,
+                translatableKey,
+                translatableArgs,
+                keybind,
+                color,
+                bold,
+                italic,
+                underlined,
+                strikethrough,
+                obfuscated,
+                insertion,
+                clickEvent,
+                hoverEvent,
+                children);
         }
     }
 
@@ -1062,9 +1110,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      */
     public static ChatComponent playerName(String name) {
         return ChatComponent.text(name)
-                .color(ChatColor.AQUA)
-                .hoverText(ChatComponent.text("Click to view profile").color(ChatColor.GRAY))
-                .clickRunCommand("/whois " + name);
+            .color(ChatColor.AQUA)
+            .hoverText(ChatComponent.text("Click to view profile").color(ChatColor.GRAY))
+            .clickRunCommand("/whois " + name);
     }
 
     /**
@@ -1079,9 +1127,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      */
     public static ChatComponent commandSuggestion(String label, String command) {
         return ChatComponent.text(label)
-                .color(ChatColor.YELLOW)
-                .hoverText(ChatComponent.text("Click to fill: " + command).color(ChatColor.GRAY))
-                .clickSuggestCommand(command);
+            .color(ChatColor.YELLOW)
+            .hoverText(ChatComponent.text("Click to fill: " + command).color(ChatColor.GRAY))
+            .clickSuggestCommand(command);
     }
 
     /**
@@ -1096,10 +1144,10 @@ public record ChatComponent(String type, String content, String translatableKey,
      */
     public static ChatComponent link(String label, String url) {
         return ChatComponent.text(label)
-                .color(ChatColor.BLUE)
-                .underlined(true)
-                .hoverText(ChatComponent.text(url).color(ChatColor.GRAY))
-                .clickOpenUrl(url);
+            .color(ChatColor.BLUE)
+            .underlined(true)
+            .hoverText(ChatComponent.text(url).color(ChatColor.GRAY))
+            .clickOpenUrl(url);
     }
 
     /**
@@ -1114,9 +1162,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      */
     public static ChatComponent copyable(String label, String valueToCopy) {
         return ChatComponent.text(label)
-                .color(ChatColor.GREEN)
-                .hoverText(ChatComponent.text("Click to copy: " + valueToCopy).color(ChatColor.GRAY))
-                .clickCopyToClipboard(valueToCopy);
+            .color(ChatColor.GREEN)
+            .hoverText(ChatComponent.text("Click to copy: " + valueToCopy).color(ChatColor.GRAY))
+            .clickCopyToClipboard(valueToCopy);
     }
 
     private static String format(String message, Object... args) {
@@ -1128,8 +1176,8 @@ public record ChatComponent(String type, String content, String translatableKey,
         int i = 0;
         while (i < message.length()) {
             if (i + 1 < message.length()
-                    && message.charAt(i) == '{'
-                    && message.charAt(i + 1) == '}') {
+                && message.charAt(i) == '{'
+                && message.charAt(i + 1) == '}') {
                 if (argIndex < args.length) {
                     result.append(args[argIndex++]);
                 } else {

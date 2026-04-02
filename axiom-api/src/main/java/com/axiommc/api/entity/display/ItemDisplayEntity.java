@@ -10,5 +10,4 @@ public interface ItemDisplayEntity extends DisplayEntity {
     default void update(Consumer<ItemDisplaySpec.Builder> editor) {
         update(editor, 0);
     }
-
 }

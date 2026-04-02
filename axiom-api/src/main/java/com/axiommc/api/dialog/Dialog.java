@@ -1,17 +1,24 @@
 package com.axiommc.api.dialog;
 
 import com.axiommc.api.chat.ChatComponent;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public record Dialog(ChatComponent title, List<DialogBody> body, List<DialogInput> inputs, DialogType type,
-                     boolean canCloseWithEscape) {
+public record Dialog(
+    ChatComponent title,
+    List<DialogBody> body,
+    List<DialogInput> inputs,
+    DialogType type,
+    boolean canCloseWithEscape) {
 
-    public Dialog(ChatComponent title, List<DialogBody> body, List<DialogInput> inputs,
-                  DialogType type, boolean canCloseWithEscape) {
+    public Dialog(
+        ChatComponent title,
+        List<DialogBody> body,
+        List<DialogInput> inputs,
+        DialogType type,
+        boolean canCloseWithEscape) {
         this.title = title;
         this.body = List.copyOf(body);
         this.inputs = List.copyOf(inputs);
@@ -65,5 +72,4 @@ public record Dialog(ChatComponent title, List<DialogBody> body, List<DialogInpu
             return new Dialog(title, body, inputs, type, canCloseWithEscape);
         }
     }
-
 }

@@ -3,7 +3,6 @@ package com.axiommc.api.event.gui;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.gui.Gui;
 import com.axiommc.api.player.Player;
-
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,6 +27,6 @@ public final class GuiOpenEvent extends Event {
     }
 
     public Gui gui() {
-        return gui; }
-
+        return gui;
+    }
 }

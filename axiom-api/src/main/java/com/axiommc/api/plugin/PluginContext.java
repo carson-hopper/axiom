@@ -7,10 +7,8 @@ import com.axiommc.api.player.PlayerManager;
 import com.axiommc.api.service.ServiceRegistry;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.BossBarManager;
-import org.slf4j.Logger;
-
 import java.io.File;
-
+import org.slf4j.Logger;
 
 /**
  * Provides access to plugin-related services and managers.

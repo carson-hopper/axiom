@@ -25,26 +25,31 @@ public abstract class ServerPlayerMixin {
     private void onDie(DamageSource damageSource, CallbackInfo callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
         PlayerActionAdapter.onDeath(
-                self,
-                damageSource.getLocalizedDeathMessage(self).getString());
+            self, damageSource.getLocalizedDeathMessage(self).getString());
     }
 
     @Inject(method = "hurtServer", at = @At("HEAD"), cancellable = true)
-    private void onHurtServer(ServerLevel serverLevel,
-                              DamageSource damageSource,
-                              float damage,
-                              CallbackInfoReturnable<Boolean> callbackInfo) {
+    private void onHurtServer(
+        ServerLevel serverLevel,
+        DamageSource damageSource,
+        float damage,
+        CallbackInfoReturnable<Boolean> callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
         if (PlayerActionAdapter.onDamage(self, damage, damageSource.type().msgId())) {
             callbackInfo.setReturnValue(false);
         }
     }
 
-    @Inject(method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("HEAD"), cancellable = true)
-    private void onDrop(ItemStack itemStack,
-                        boolean throwRandomly,
-                        boolean retainOwnership,
-                        CallbackInfoReturnable<ItemEntity> callbackInfo) {
+    @Inject(
+        method =
+            "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;",
+        at = @At("HEAD"),
+        cancellable = true)
+    private void onDrop(
+        ItemStack itemStack,
+        boolean throwRandomly,
+        boolean retainOwnership,
+        CallbackInfoReturnable<ItemEntity> callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
         if (PlayerActionAdapter.onDropItem(self, itemStack)) {
             callbackInfo.setReturnValue(null);
@@ -65,9 +70,13 @@ public abstract class ServerPlayerMixin {
         }
     }
 
-    @Inject(method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;", at = @At("HEAD"), cancellable = true)
-    private void onTeleport(TeleportTransition transition,
-                            CallbackInfoReturnable<ServerPlayer> callbackInfo) {
+    @Inject(
+        method =
+            "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
+        at = @At("HEAD"),
+        cancellable = true)
+    private void onTeleport(
+        TeleportTransition transition, CallbackInfoReturnable<ServerPlayer> callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
         if (PlayerActionAdapter.onTeleport(self, transition)) {
             callbackInfo.setReturnValue(null);
@@ -75,10 +84,11 @@ public abstract class ServerPlayerMixin {
     }
 
     @Inject(method = "startRiding", at = @At("HEAD"), cancellable = true)
-    private void onStartRiding(Entity entity,
-                               boolean force,
-                               boolean suppressEvent,
-                               CallbackInfoReturnable<Boolean> callbackInfo) {
+    private void onStartRiding(
+        Entity entity,
+        boolean force,
+        boolean suppressEvent,
+        CallbackInfoReturnable<Boolean> callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
         if (PlayerActionAdapter.onMount(self, entity)) {
             callbackInfo.setReturnValue(false);

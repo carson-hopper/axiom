@@ -2,6 +2,7 @@ package com.axiommc.fabric.event;
 
 import com.axiommc.api.event.EventListener;
 import com.axiommc.api.event.SimpleEventBus;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.event.adapter.BlockInteractAdapter;
 import com.axiommc.fabric.event.adapter.CommandExecuteAdapter;
 import com.axiommc.fabric.event.adapter.FabricEventAdapter;
@@ -15,9 +16,7 @@ import com.axiommc.fabric.event.adapter.PlayerLifecycleAdapter;
 import com.axiommc.fabric.event.adapter.PlayerSettingsAdapter;
 import com.axiommc.fabric.event.adapter.ResourcePackAdapter;
 import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
-import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayerProvider;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,9 +58,11 @@ public class FabricEventBus extends SimpleEventBus {
         for (FabricEventAdapter adapter : adapters) {
             try {
                 adapter.register(this, playerProvider);
-                Axiom.logger().info("Registered event adapter: {}", adapter.getClass().getSimpleName());
+                Axiom.logger()
+                    .info("Registered event adapter: {}", adapter.getClass().getSimpleName());
             } catch (Exception e) {
-                Axiom.logger().warn("Failed to register adapter: {}", adapter.getClass().getSimpleName(), e);
+                Axiom.logger()
+                    .warn("Failed to register adapter: {}", adapter.getClass().getSimpleName(), e);
             }
         }
     }

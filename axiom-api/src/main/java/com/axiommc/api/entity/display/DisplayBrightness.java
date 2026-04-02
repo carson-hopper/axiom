@@ -11,5 +11,4 @@ public record DisplayBrightness(int block, int sky) {
             throw new IllegalArgumentException("sky must be 0–15");
         }
     }
-
 }

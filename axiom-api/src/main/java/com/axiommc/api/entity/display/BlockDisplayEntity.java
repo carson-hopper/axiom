@@ -10,5 +10,4 @@ public interface BlockDisplayEntity extends DisplayEntity {
     default void update(Consumer<BlockDisplaySpec.Builder> editor) {
         update(editor, 0);
     }
-
 }

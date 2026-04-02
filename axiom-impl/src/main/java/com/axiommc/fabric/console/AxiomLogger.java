@@ -89,8 +89,8 @@ public class AxiomLogger {
         int i = 0;
         while (i < message.length()) {
             if (i + 1 < message.length()
-                    && message.charAt(i) == '{'
-                    && message.charAt(i + 1) == '}') {
+                && message.charAt(i) == '{'
+                && message.charAt(i + 1) == '}') {
                 if (argIndex < args.length) {
                     result.append(args[argIndex++]);
                 } else {

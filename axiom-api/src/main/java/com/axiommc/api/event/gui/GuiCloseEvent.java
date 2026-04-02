@@ -2,7 +2,6 @@ package com.axiommc.api.event.gui;
 
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
-
 import java.util.Objects;
 import java.util.UUID;
 

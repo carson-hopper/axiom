@@ -7,14 +7,13 @@ import com.axiommc.fabric.block.FabricBlock;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import com.axiommc.fabric.world.FabricWorld;
+import java.util.Optional;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-
-import java.util.Optional;
 
 /**
  * Fires BlockInteractEvent.MainHand and BlockInteractEvent.OffHand
@@ -42,19 +41,18 @@ public class BlockInteractAdapter implements FabricEventAdapter {
                 BlockPos blockPos = hitResult.getBlockPos();
                 FabricWorld fabricWorld = new FabricWorld(serverLevel);
                 FabricBlock block = new FabricBlock(
-                        serverLevel, blockPos.getX(), blockPos.getY(),
-                        blockPos.getZ(), fabricWorld);
+                    serverLevel, blockPos.getX(), blockPos.getY(), blockPos.getZ(), fabricWorld);
 
                 if (hand == InteractionHand.MAIN_HAND) {
-                    BlockInteractEvent.MainHand event = new BlockInteractEvent.MainHand(
-                            axiomPlayer.get(), block);
+                    BlockInteractEvent.MainHand event =
+                        new BlockInteractEvent.MainHand(axiomPlayer.get(), block);
                     eventBus.publish(event);
                     if (event.isCancelled()) {
                         return InteractionResult.FAIL;
                     }
                 } else {
-                    BlockInteractEvent.OffHand event = new BlockInteractEvent.OffHand(
-                            axiomPlayer.get(), block);
+                    BlockInteractEvent.OffHand event =
+                        new BlockInteractEvent.OffHand(axiomPlayer.get(), block);
                     eventBus.publish(event);
                     if (event.isCancelled()) {
                         return InteractionResult.FAIL;

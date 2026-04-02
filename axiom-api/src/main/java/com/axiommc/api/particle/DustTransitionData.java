@@ -9,11 +9,19 @@ public final class DustTransitionData extends ParticleData {
 
     public DustTransitionData(Color fromColor, Color toColor, float size) {
         this.fromColor = Objects.requireNonNull(fromColor, "fromColor");
-        this.toColor   = Objects.requireNonNull(toColor,   "toColor");
-        this.size      = size;
+        this.toColor = Objects.requireNonNull(toColor, "toColor");
+        this.size = size;
     }
 
-    public Color fromColor() { return fromColor; }
-    public Color toColor()   { return toColor; }
-    public float size()      { return size; }
+    public Color fromColor() {
+        return fromColor;
+    }
+
+    public Color toColor() {
+        return toColor;
+    }
+
+    public float size() {
+        return size;
+    }
 }

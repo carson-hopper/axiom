@@ -21,7 +21,8 @@ public class FabricItemEntity extends FabricEntity implements ItemEntity {
     @Override
     public ItemStack itemStack() {
         net.minecraft.world.item.ItemStack mcStack = itemEntity.getItem();
-        String key = mcStack.getItem().builtInRegistryHolder().key().identifier().toString();
+        String key =
+            mcStack.getItem().builtInRegistryHolder().key().identifier().toString();
         return ItemStack.of(Item.of(key), mcStack.getCount());
     }
 

@@ -13,7 +13,8 @@ public class PlayerSettingsChangedEvent extends Event {
     private final int viewDistance;
     private final boolean showCape;
 
-    public PlayerSettingsChangedEvent(Player player, String language, int viewDistance, boolean showCape) {
+    public PlayerSettingsChangedEvent(
+        Player player, String language, int viewDistance, boolean showCape) {
         this.player = player;
         this.language = language;
         this.viewDistance = viewDistance;

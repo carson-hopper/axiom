@@ -1,5 +1,6 @@
 package com.axiommc.fabric.world;
 
+import com.axiommc.api.block.Block;
 import com.axiommc.api.entity.display.BlockDisplayEntity;
 import com.axiommc.api.entity.display.BlockDisplaySpec;
 import com.axiommc.api.entity.display.ItemDisplayEntity;
@@ -18,7 +19,7 @@ import com.axiommc.api.world.Dimension;
 import com.axiommc.api.world.DimensionType;
 import com.axiommc.api.world.Weather;
 import com.axiommc.api.world.World;
-import com.axiommc.api.block.Block;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.block.FabricBlock;
 import com.axiommc.fabric.entity.display.DisplayEntityUtil;
 import com.axiommc.fabric.entity.display.FabricBlockDisplayEntity;
@@ -27,6 +28,10 @@ import com.axiommc.fabric.entity.display.FabricTextDisplayEntity;
 import com.axiommc.fabric.particle.FabricParticleConverter;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.util.TaskScheduler;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -41,16 +46,10 @@ import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.chunk.LevelChunk;
-import com.axiommc.fabric.Axiom;
-
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public record FabricWorld(ServerLevel level) implements World {
 
@@ -88,7 +87,8 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public Dimension dimension() {
         DimensionType dimType = mapDimensionType(level.dimension());
-        Holder<net.minecraft.world.level.dimension.DimensionType> mcDimType = level.dimensionTypeRegistration();
+        Holder<net.minecraft.world.level.dimension.DimensionType> mcDimType =
+            level.dimensionTypeRegistration();
         net.minecraft.world.level.dimension.DimensionType dimTypeValue = mcDimType.value();
 
         return new Dimension(
@@ -101,8 +101,7 @@ public record FabricWorld(ServerLevel level) implements World {
             level.getHeight(),
             dimTypeValue.logicalHeight(),
             dimTypeValue.ambientLight(),
-            dimTypeValue.coordinateScale()
-        );
+            dimTypeValue.coordinateScale());
     }
 
     // ────────────────────────────────────────────────────────
@@ -185,11 +184,10 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public void difficulty(Difficulty difficulty) {
-        level().getServer().setDifficulty(
+        level().getServer()
+            .setDifficulty(
                 Objects.requireNonNull(net.minecraft.world.Difficulty.byName(difficulty.key())),
-                false
-        );
-
+                false);
     }
 
     @Override
@@ -203,24 +201,22 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public void playSound(SoundKey sound, float volume, float pitch, Vector3 position) {
-        Registry<SoundEvent> registry = level().registryAccess().lookupOrThrow(Registries.SOUND_EVENT);
+        Registry<SoundEvent> registry =
+            level().registryAccess().lookupOrThrow(Registries.SOUND_EVENT);
 
         Identifier identifier = Identifier.parse(sound.key());
         Optional<Holder.Reference<SoundEvent>> holder = registry.get(identifier);
 
-        holder.ifPresent(soundEvent ->
-                level().playSeededSound(
-                        null,
-                        position.x(),
-                        position.y(),
-                        position.z(),
-                        soundEvent,
-                        SoundSource.MASTER,
-                        volume,
-                        pitch,
-                        level().getRandom().nextLong()
-                )
-        );
+        holder.ifPresent(soundEvent -> level().playSeededSound(
+                null,
+                position.x(),
+                position.y(),
+                position.z(),
+                soundEvent,
+                SoundSource.MASTER,
+                volume,
+                pitch,
+                level().getRandom().nextLong()));
     }
 
     // ============================================================
@@ -230,7 +226,8 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public Location spawnLocation() {
         BlockPos spawnPos = new BlockPos(0, level.getSeaLevel() + 1, 0);
-        Vector3 position = new Vector3(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
+        Vector3 position =
+            new Vector3(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
         Vector2 rotation = new Vector2(0.0f, 0.0f);
         return new Location(this, position, rotation);
     }
@@ -243,8 +240,9 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public Collection<? extends Player> players() {
         return level.players().stream()
-                .filter(player -> !player.isRemoved())
-                .map(FabricPlayer::new).toList();
+            .filter(player -> !player.isRemoved())
+            .map(FabricPlayer::new)
+            .toList();
     }
 
     // ============================================================
@@ -273,14 +271,15 @@ public record FabricWorld(ServerLevel level) implements World {
     @Override
     public CompletableFuture<Chunk> loadChunkAsync(int chunkX, int chunkZ) {
         return level().getChunkSource()
-                .getChunkFuture(chunkX, chunkZ, ChunkStatus.FULL, true)
-                .thenApply(result -> {
-                    ChunkAccess access = result.orElse(null);
-                    if (access instanceof LevelChunk levelChunk) {
-                        return new FabricChunk(levelChunk, this);
-                    }
-                    throw new IllegalStateException("Failed to load chunk [" + chunkX + ", " + chunkZ + "]");
-                });
+            .getChunkFuture(chunkX, chunkZ, ChunkStatus.FULL, true)
+            .thenApply(result -> {
+                ChunkAccess access = result.orElse(null);
+                if (access instanceof LevelChunk levelChunk) {
+                    return new FabricChunk(levelChunk, this);
+                }
+                throw new IllegalStateException(
+                    "Failed to load chunk [" + chunkX + ", " + chunkZ + "]");
+            });
     }
 
     // ────────────────────────────────────────────────────────
@@ -316,7 +315,8 @@ public record FabricWorld(ServerLevel level) implements World {
     public void spawnParticle(ParticleEffect effect, Location location) {
         ParticleOptions particleOptions = FabricParticleConverter.toMinecraftParticle(effect);
         if (particleOptions == null) {
-            Axiom.logger().warn("Failed to convert particle effect: {}", effect.type().key());
+            Axiom.logger()
+                .warn("Failed to convert particle effect: {}", effect.type().key());
             return;
         }
 
@@ -325,13 +325,14 @@ public record FabricWorld(ServerLevel level) implements World {
             particleOptions,
             effect.force(),
             false,
-            position.x(), position.y(), position.z(),
+            position.x(),
+            position.y(),
+            position.z(),
             effect.count(),
             effect.spreadX(),
             effect.spreadY(),
             effect.spreadZ(),
-            effect.speed()
-        );
+            effect.speed());
     }
 
     // ────────────────────────────────────────────────────────

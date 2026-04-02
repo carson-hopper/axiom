@@ -6,7 +6,6 @@ import com.axiommc.api.command.invoker.CommandInvoker;
 import com.axiommc.api.command.parser.ArgParserRegistry;
 import com.axiommc.api.plugin.PluginEnvironment;
 import com.axiommc.fabric.Axiom;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,8 +24,10 @@ public class FabricCommandRegistry implements CommandRegistry {
     public void register(Object command) {
         Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
         if (cmdAnnotation == null) {
-            Axiom.logger().warn("Command {} does not have @Command annotation, skipping registration",
-                command.getClass().getName());
+            Axiom.logger()
+                .warn(
+                    "Command {} does not have @Command annotation, skipping registration",
+                    command.getClass().getName());
             return;
         }
 
@@ -34,7 +35,8 @@ public class FabricCommandRegistry implements CommandRegistry {
             CommandInvoker invoker = new CommandInvoker(command, parserRegistry, environment);
             commands.put(cmdAnnotation.name(), invoker);
         } catch (Exception e) {
-            Axiom.logger().error("Failed to register command {}", command.getClass().getName());
+            Axiom.logger()
+                .error("Failed to register command {}", command.getClass().getName());
         }
     }
 

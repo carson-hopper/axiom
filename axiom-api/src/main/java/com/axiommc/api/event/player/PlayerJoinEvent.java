@@ -4,7 +4,6 @@ import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.world.Server;
-
 import java.util.UUID;
 
 /**
