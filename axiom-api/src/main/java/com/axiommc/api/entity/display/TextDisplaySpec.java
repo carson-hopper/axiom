@@ -151,7 +151,9 @@ public final class TextDisplaySpec {
         }
 
         public TextDisplaySpec build() {
-            if (text == null) throw new IllegalArgumentException("text is required");
+            if (text == null) {
+                throw new IllegalArgumentException("text is required");
+            }
             return new TextDisplaySpec(this);
         }
     }

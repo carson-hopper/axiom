@@ -97,7 +97,9 @@ public final class BlockDisplaySpec {
         }
 
         public BlockDisplaySpec build() {
-            if (block == null) throw new IllegalArgumentException("block is required");
+            if (block == null) {
+                throw new IllegalArgumentException("block is required");
+            }
             return new BlockDisplaySpec(this);
         }
     }

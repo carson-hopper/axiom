@@ -103,7 +103,9 @@ public final class ItemDisplaySpec {
         }
 
         public ItemDisplaySpec build() {
-            if (item == null) throw new IllegalArgumentException("item is required");
+            if (item == null) {
+                throw new IllegalArgumentException("item is required");
+            }
             return new ItemDisplaySpec(this);
         }
     }
