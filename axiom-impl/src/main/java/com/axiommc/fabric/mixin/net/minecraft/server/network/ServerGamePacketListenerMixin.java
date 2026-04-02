@@ -2,22 +2,27 @@ package com.axiommc.fabric.mixin.net.minecraft.server.network;
 
 import com.axiommc.fabric.event.adapter.PlayerInputAdapter;
 import com.axiommc.fabric.event.adapter.PlayerInventoryAdapter;
+import com.axiommc.fabric.event.adapter.PlayerMiscAdapter;
 import com.axiommc.fabric.event.adapter.PlayerSettingsAdapter;
 import net.minecraft.network.protocol.common.ServerboundClientInformationPacket;
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
+import net.minecraft.network.protocol.game.ServerboundEditBookPacket;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerAbilitiesPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket;
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Input;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,6 +47,27 @@ public abstract class ServerGamePacketListenerMixin {
             information.language(),
             information.viewDistance(),
             (information.modelCustomisation() & 0x01) != 0);
+    }
+
+    @Inject(method = "handleAnimate", at = @At("HEAD"))
+    private void onAnimate(ServerboundSwingPacket packet, CallbackInfo callbackInfo) {
+        PlayerMiscAdapter.onAnimation(getPlayer(), "ARM_SWING");
+    }
+
+    @Inject(method = "handleEditBook", at = @At("HEAD"), cancellable = true)
+    private void onEditBook(ServerboundEditBookPacket packet, CallbackInfo callbackInfo) {
+        net.minecraft.world.item.ItemStack book = getPlayer().getInventory().getItem(packet.slot());
+        if (PlayerMiscAdapter.onEditBook(getPlayer(), book)) {
+            callbackInfo.cancel();
+        }
+    }
+
+    @Inject(method = "handlePlayerAbilities", at = @At("HEAD"), cancellable = true)
+    private void onPlayerAbilities(
+        ServerboundPlayerAbilitiesPacket packet, CallbackInfo callbackInfo) {
+        if (PlayerMiscAdapter.onToggleFlight(getPlayer(), packet.isFlying())) {
+            callbackInfo.cancel();
+        }
     }
 
     @Inject(method = "handleMovePlayer", at = @At("HEAD"), cancellable = true)
@@ -85,7 +111,17 @@ public abstract class ServerGamePacketListenerMixin {
 
     @Inject(method = "handlePlayerInput", at = @At("HEAD"))
     private void onPlayerInput(ServerboundPlayerInputPacket packet, CallbackInfo callbackInfo) {
-        boolean sneaking = packet.input().shift();
+        Input input = packet.input();
+        PlayerMiscAdapter.onInput(
+            getPlayer(),
+            input.forward(),
+            input.backward(),
+            input.left(),
+            input.right(),
+            input.jump(),
+            input.shift(),
+            input.sprint());
+        boolean sneaking = input.shift();
         if (sneaking != getPlayer().isShiftKeyDown()) {
             PlayerInputAdapter.onToggleSneak(getPlayer(), sneaking);
         }

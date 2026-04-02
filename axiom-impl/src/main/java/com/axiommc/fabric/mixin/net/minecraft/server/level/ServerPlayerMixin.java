@@ -1,17 +1,27 @@
 package com.axiommc.fabric.mixin.net.minecraft.server.level;
 
+import com.axiommc.api.math.Vector2;
+import com.axiommc.api.math.Vector3;
+import com.axiommc.api.player.Location;
+import com.axiommc.api.world.World;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.event.adapter.PlayerActionAdapter;
 import com.axiommc.fabric.event.adapter.PlayerInventoryAdapter;
+import com.axiommc.fabric.event.adapter.PlayerStateAdapter;
+import com.mojang.datafixers.util.Either;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.portal.TeleportTransition;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -22,6 +32,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(value = ServerPlayer.class, remap = false)
 public abstract class ServerPlayerMixin {
+
+    @Shadow
+    public int experienceLevel;
 
     @Inject(method = "die", at = @At("HEAD"))
     private void onDie(DamageSource damageSource, CallbackInfo callbackInfo) {
@@ -111,5 +124,55 @@ public abstract class ServerPlayerMixin {
         MenuProvider menuProvider, CallbackInfoReturnable<java.util.OptionalInt> callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
         PlayerInventoryAdapter.onOpen(self);
+    }
+
+    @Inject(method = "startSleepInBed", at = @At("HEAD"), cancellable = true)
+    private void onStartSleepInBed(
+        BlockPos blockPos,
+        CallbackInfoReturnable<Either<Player.BedSleepingProblem, net.minecraft.util.Unit>>
+            callbackInfo) {
+        ServerPlayer self = (ServerPlayer) (Object) this;
+        String worldName = self.level().dimension().identifier().toString();
+        World world = Axiom.world(worldName).orElse(null);
+        Vector3 position = new Vector3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        Location bedLocation = new Location(world, position, new Vector2(0, 0));
+        if (PlayerStateAdapter.onBedEnter(self, bedLocation)) {
+            callbackInfo.setReturnValue(Either.left(Player.BedSleepingProblem.OTHER_PROBLEM));
+        }
+    }
+
+    @Inject(method = "stopSleepInBed", at = @At("HEAD"))
+    private void onStopSleepInBed(
+        boolean wakeImmediately, boolean updateLevelForSleepingPlayers, CallbackInfo callbackInfo) {
+        ServerPlayer self = (ServerPlayer) (Object) this;
+        self.getSleepingPos().ifPresent(blockPos -> {
+            String worldName = self.level().dimension().identifier().toString();
+            World world = Axiom.world(worldName).orElse(null);
+            Vector3 position = new Vector3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            Location bedLocation = new Location(world, position, new Vector2(0, 0));
+            PlayerStateAdapter.onBedLeave(self, bedLocation);
+        });
+    }
+
+    @Inject(method = "giveExperiencePoints", at = @At("HEAD"), cancellable = true)
+    private void onGiveExperiencePoints(int amount, CallbackInfo callbackInfo) {
+        ServerPlayer self = (ServerPlayer) (Object) this;
+        if (PlayerStateAdapter.onExperienceChange(self, amount)) {
+            callbackInfo.cancel();
+        }
+    }
+
+    @Inject(method = "setExperienceLevels", at = @At("HEAD"))
+    private void onSetExperienceLevels(int newLevel, CallbackInfo callbackInfo) {
+        ServerPlayer self = (ServerPlayer) (Object) this;
+        PlayerStateAdapter.onLevelChange(self, experienceLevel, newLevel);
+    }
+
+    @Inject(method = "push", at = @At("HEAD"), cancellable = true)
+    private void onPush(double x, double y, double z, CallbackInfo callbackInfo) {
+        ServerPlayer self = (ServerPlayer) (Object) this;
+        if (PlayerStateAdapter.onVelocityChange(self, x, y, z)) {
+            callbackInfo.cancel();
+        }
     }
 }

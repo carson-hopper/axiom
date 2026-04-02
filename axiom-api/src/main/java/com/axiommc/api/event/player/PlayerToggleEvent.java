@@ -1,12 +1,13 @@
 package com.axiommc.api.event.player;
 
+import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
 
 /**
  * Events fired when a player toggles movement states.
  *
- * <p>Subtypes: {@link Sneak}, {@link Sprint}.
+ * <p>Subtypes: {@link Sneak}, {@link Sprint}, {@link Flight}.
  */
 public class PlayerToggleEvent {
 
@@ -49,6 +50,37 @@ public class PlayerToggleEvent {
 
         public boolean isSprinting() {
             return sprinting;
+        }
+    }
+
+    /** Fired when a player toggles flight. */
+    public static class Flight extends Event implements Cancellable {
+
+        private final Player player;
+        private final boolean flying;
+        private boolean cancelled = false;
+
+        public Flight(Player player, boolean flying) {
+            this.player = player;
+            this.flying = flying;
+        }
+
+        public Player player() {
+            return player;
+        }
+
+        public boolean isFlying() {
+            return flying;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public void cancelled(boolean cancelled) {
+            this.cancelled = cancelled;
         }
     }
 }
