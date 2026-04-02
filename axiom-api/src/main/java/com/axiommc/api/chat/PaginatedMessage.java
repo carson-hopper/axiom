@@ -36,7 +36,9 @@ public final class PaginatedMessage {
     }
 
     public int totalPages() {
-        if (entries.isEmpty()) return 1;
+        if (entries.isEmpty()) {
+            return 1;
+        }
         return (int) Math.ceil((double) entries.size() / entriesPerPage);
     }
 
@@ -131,7 +133,9 @@ public final class PaginatedMessage {
         }
 
         public Builder entriesPerPage(int count) {
-            if (count < 1) throw new IllegalArgumentException("entriesPerPage must be >= 1");
+            if (count < 1) {
+                throw new IllegalArgumentException("entriesPerPage must be >= 1");
+            }
             this.entriesPerPage = count;
             return this;
         }

@@ -54,7 +54,9 @@ public record Screen(
      * @param player the player who closed the screen
      */
     public void handleClose(Player player) {
-        if (closeHandler != null) closeHandler.accept(player);
+        if (closeHandler != null) {
+            closeHandler.accept(player);
+        }
     }
 
     /**

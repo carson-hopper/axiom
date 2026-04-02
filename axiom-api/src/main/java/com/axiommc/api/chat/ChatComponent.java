@@ -93,7 +93,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @throws NullPointerException if content is null
      */
     public static ChatComponent text(String content) {
-        if (content == null) throw new NullPointerException("content must not be null");
+        if (content == null) {
+            throw new NullPointerException("content must not be null");
+        }
         return new BuilderImpl(TYPE_TEXT, content, null, null, null).build();
     }
 
@@ -129,7 +131,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      */
     public static ChatComponent text(String content, ChatColor color, ChatDecoration... decorations) {
         ChatComponent c = text(content).color(color);
-        for (ChatDecoration d : decorations) c = c.decoration(d, true);
+        for (ChatDecoration d : decorations) {
+            c = c.decoration(d, true);
+        }
         return c;
     }
 
@@ -451,14 +455,28 @@ public record ChatComponent(String type, String content, String translatableKey,
     }
 
     private void appendLegacy(StringBuilder sb) {
-        if (color != null && color.hasLegacyCode()) sb.append('§').append(color.legacyCode());
-        if (bold) sb.append("§l");
-        if (italic) sb.append("§o");
-        if (underlined) sb.append("§n");
-        if (strikethrough) sb.append("§m");
-        if (obfuscated) sb.append("§k");
+        if (color != null && color.hasLegacyCode()) {
+            sb.append('§').append(color.legacyCode());
+        }
+        if (bold) {
+            sb.append("§l");
+        }
+        if (italic) {
+            sb.append("§o");
+        }
+        if (underlined) {
+            sb.append("§n");
+        }
+        if (strikethrough) {
+            sb.append("§m");
+        }
+        if (obfuscated) {
+            sb.append("§k");
+        }
         sb.append(content);
-        for (ChatComponent child : children) child.appendLegacy(sb);
+        for (ChatComponent child : children) {
+            child.appendLegacy(sb);
+        }
     }
 
     /**
@@ -468,7 +486,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      */
     public String toPlainText() {
         StringBuilder sb = new StringBuilder(content);
-        for (ChatComponent child : children) sb.append(child.toPlainText());
+        for (ChatComponent child : children) {
+            sb.append(child.toPlainText());
+        }
         return sb.toString();
     }
 
@@ -524,7 +544,9 @@ public record ChatComponent(String type, String content, String translatableKey,
         }
         // Note: hover events are not serialized to MiniMessage format (complex nested structure)
         sb.append(stripLegacyCodes(content));
-        for (ChatComponent child : children) child.appendMiniMessage(sb);
+        for (ChatComponent child : children) {
+            child.appendMiniMessage(sb);
+        }
         for (int i = openTags.size() - 1; i >= 0; i--) {
             sb.append("</").append(openTags.get(i)).append('>');
         }
@@ -555,7 +577,9 @@ public record ChatComponent(String type, String content, String translatableKey,
     private void appendHtml(StringBuilder sb) {
         if (TYPE_NEWLINE.equals(type)) {
             sb.append("<br>");
-            for (ChatComponent child : children) child.appendHtml(sb);
+            for (ChatComponent child : children) {
+                child.appendHtml(sb);
+            }
             return;
         }
 
@@ -644,17 +668,25 @@ public record ChatComponent(String type, String content, String translatableKey,
             closeTags.addFirst("</s>");
         }
 
-        for (String t : openTags) sb.append(t);
+        for (String t : openTags) {
+            sb.append(t);
+        }
         sb.append(htmlEscape(content));
-        for (ChatComponent child : children) child.appendHtml(sb);
-        for (String t : closeTags) sb.append(t);
+        for (ChatComponent child : children) {
+            child.appendHtml(sb);
+        }
+        for (String t : closeTags) {
+            sb.append(t);
+        }
     }
 
     /**
      * Strips §-prefixed legacy color/format codes from a string so MiniMessage won't reject it.
      */
     private static String stripLegacyCodes(String text) {
-        if (text == null || text.indexOf('\u00A7') < 0) return text;
+        if (text == null || text.indexOf('\u00A7') < 0) {
+            return text;
+        }
         StringBuilder out = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
@@ -890,7 +922,9 @@ public record ChatComponent(String type, String content, String translatableKey,
 
         @Override
         public Builder content(String text) {
-            if (text == null) throw new NullPointerException("content must not be null");
+            if (text == null) {
+                throw new NullPointerException("content must not be null");
+            }
             this.content = text;
             return this;
         }
@@ -1005,7 +1039,9 @@ public record ChatComponent(String type, String content, String translatableKey,
 
         @Override
         public ChatComponent build() {
-            if (built) throw new IllegalStateException("Builder has already been used; create a new builder");
+            if (built) {
+                throw new IllegalStateException("Builder has already been used; create a new builder");
+            }
             built = true;
             return new ChatComponent(type, content, translatableKey, translatableArgs, keybind,
                     color, bold, italic, underlined, strikethrough, obfuscated,

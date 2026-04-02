@@ -40,7 +40,9 @@ public final class PagedGui {
     }
 
     public int totalPages() {
-        if (contentItems.isEmpty()) return 1;
+        if (contentItems.isEmpty()) {
+            return 1;
+        }
         return (int) Math.ceil((double) contentItems.size() / contentSlotsPerPage());
     }
 

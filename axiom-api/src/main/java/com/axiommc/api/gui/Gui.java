@@ -38,7 +38,9 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
      * @return the item in the slot, or null if empty or out of range
      */
     public GuiItem slot(int slot) {
-        if (slot < 0 || slot >= slots.length) return null;
+        if (slot < 0 || slot >= slots.length) {
+            return null;
+        }
         return slots[slot];
     }
 
@@ -53,7 +55,9 @@ public record Gui(ChatComponent title, GuiSize size, GuiItem[] slots, Consumer<P
      * @param player the player who closed the GUI
      */
     public void handleClose(Player player) {
-        if (closeHandler != null) closeHandler.accept(player);
+        if (closeHandler != null) {
+            closeHandler.accept(player);
+        }
     }
 
     /**

@@ -36,6 +36,8 @@ public record GuiItem(Item item, Consumer<GuiClickEvent> clickHandler) {
      * Fires the click handler if one is registered.
      */
     public void handleClick(GuiClickEvent event) {
-        if (clickHandler != null) clickHandler.accept(event);
+        if (clickHandler != null) {
+            clickHandler.accept(event);
+        }
     }
 }

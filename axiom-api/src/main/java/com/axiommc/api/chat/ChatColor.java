@@ -93,7 +93,9 @@ public record ChatColor(int rgb, char legacyCode, boolean namedColor) {
      */
     @Override
     public char legacyCode() {
-        if (!namedColor) throw new IllegalStateException("RGB-only ChatColor has no legacy code");
+        if (!namedColor) {
+            throw new IllegalStateException("RGB-only ChatColor has no legacy code");
+        }
         return legacyCode;
     }
 }

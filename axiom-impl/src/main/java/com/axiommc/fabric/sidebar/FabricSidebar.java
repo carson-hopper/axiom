@@ -70,7 +70,9 @@ public class FabricSidebar implements Sidebar {
 
     @Override
     public void line(int index, ChatComponent text) {
-        if (index < 0 || index > 14) throw new IndexOutOfBoundsException("Line index must be 0-14");
+        if (index < 0 || index > 14) {
+            throw new IndexOutOfBoundsException("Line index must be 0-14");
+        }
         Component component = serializer.serialize(text);
         lines.put(index, component);
         for (ServerPlayer viewer : viewers) {
@@ -80,7 +82,9 @@ public class FabricSidebar implements Sidebar {
 
     @Override
     public void removeLine(int index) {
-        if (index < 0 || index > 14) throw new IndexOutOfBoundsException("Line index must be 0-14");
+        if (index < 0 || index > 14) {
+            throw new IndexOutOfBoundsException("Line index must be 0-14");
+        }
         lines.remove(index);
         for (ServerPlayer viewer : viewers) {
             viewer.connection.send(new ClientboundResetScorePacket(SCORE_HOLDERS[index], objectiveName));

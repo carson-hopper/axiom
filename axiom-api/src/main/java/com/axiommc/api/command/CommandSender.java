@@ -33,7 +33,9 @@ public interface CommandSender {
      * @param components the chat components to send (must not be null)
      */
     default void sendMessage(ChatComponent... components) {
-        for (ChatComponent c : components) sendMessage(c);
+        for (ChatComponent c : components) {
+            sendMessage(c);
+        }
     }
 
     /**

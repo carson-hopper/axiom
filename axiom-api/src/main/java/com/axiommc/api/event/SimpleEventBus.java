@@ -46,7 +46,9 @@ public class SimpleEventBus implements EventBus {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void publish(Event event) {
         List<PrioritizedHandler<?>> list = handlers.get(event.getClass());
-        if (list == null) return;
+        if (list == null) {
+            return;
+        }
 
         // Snapshot and sort by priority ordinal (LOWEST=0 fires first)
         List<PrioritizedHandler<?>> sorted = new ArrayList<>(list);

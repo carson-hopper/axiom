@@ -81,7 +81,9 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
         // ────────────────────────────────────────────────────────
 
         public Builder count(int count) {
-            if (count < 0) throw new IllegalArgumentException("count must be >= 0");
+            if (count < 0) {
+                throw new IllegalArgumentException("count must be >= 0");
+            }
             this.count = count;
             return this;
         }
@@ -122,8 +124,12 @@ public record ParticleEffect(ParticleType type, ParticleData data, int count, do
 
         private void validateParticleDataRequired() {
             Class<?> required = type.dataType();
-            if (required == null) return;
-            if (data != null) return;
+            if (required == null) {
+                return;
+            }
+            if (data != null) {
+                return;
+            }
             throw new IllegalArgumentException(
                     type.key() + " requires " + required.getSimpleName() + " data");
         }

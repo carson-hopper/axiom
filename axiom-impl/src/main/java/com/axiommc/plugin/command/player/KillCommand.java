@@ -199,7 +199,9 @@ public class KillCommand {
             
             // Positive filter keywords
             for (String filter : FILTER_OPTIONS) {
-                if (filter.startsWith("!")) continue;
+                if (filter.startsWith("!")) {
+                    continue;
+                }
                 if (filter.toLowerCase().startsWith(lowerPartial)) {
                     suggestions.add(prefix + filter);
                 }

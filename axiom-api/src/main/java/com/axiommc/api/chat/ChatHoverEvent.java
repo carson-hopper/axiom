@@ -22,7 +22,9 @@ public record ChatHoverEvent(Type type, ChatComponent text, Item item, UUID enti
      * @throws NullPointerException if text is null
      */
     public static ChatHoverEvent showText(ChatComponent text) {
-        if (text == null) throw new NullPointerException("text must not be null");
+        if (text == null) {
+            throw new NullPointerException("text must not be null");
+        }
         return new ChatHoverEvent(Type.SHOW_TEXT, text, null, null, null, null);
     }
 
@@ -34,7 +36,9 @@ public record ChatHoverEvent(Type type, ChatComponent text, Item item, UUID enti
      * @throws NullPointerException if item is null
      */
     public static ChatHoverEvent showItem(Item item) {
-        if (item == null) throw new NullPointerException("item must not be null");
+        if (item == null) {
+            throw new NullPointerException("item must not be null");
+        }
         return new ChatHoverEvent(Type.SHOW_ITEM, null, item, null, null, null);
     }
 

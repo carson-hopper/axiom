@@ -64,9 +64,15 @@ public record FabricWorld(ServerLevel level) implements World {
     }
 
     private String getDimensionName(ResourceKey<Level> dimension) {
-        if (dimension == Level.OVERWORLD) return "minecraft:overworld";
-        if (dimension == Level.NETHER) return "minecraft:the_nether";
-        if (dimension == Level.END) return "minecraft:the_end";
+        if (dimension == Level.OVERWORLD) {
+            return "minecraft:overworld";
+        }
+        if (dimension == Level.NETHER) {
+            return "minecraft:the_nether";
+        }
+        if (dimension == Level.END) {
+            return "minecraft:the_end";
+        }
         return "minecraft:custom";
     }
 
@@ -136,8 +142,12 @@ public record FabricWorld(ServerLevel level) implements World {
 
     @Override
     public Weather weather() {
-        if (level.isThundering()) return Weather.THUNDER;
-        if (level.isRaining()) return Weather.RAIN;
+        if (level.isThundering()) {
+            return Weather.THUNDER;
+        }
+        if (level.isRaining()) {
+            return Weather.RAIN;
+        }
         return Weather.CLEAR;
     }
 
@@ -374,7 +384,9 @@ public record FabricWorld(ServerLevel level) implements World {
     }
 
     private void scheduleRemovalIfTtl(Display entity, int ttl) {
-        if (ttl <= 0) return;
+        if (ttl <= 0) {
+            return;
+        }
         TaskScheduler.global().scheduleTask(ttl, () -> {
             if (!entity.isRemoved()) {
                 entity.discard();
@@ -387,9 +399,15 @@ public record FabricWorld(ServerLevel level) implements World {
     // ────────────────────────────────────────────────────────
 
     private DimensionType mapDimensionType(ResourceKey<Level> dimension) {
-        if (dimension == Level.OVERWORLD) return DimensionType.OVERWORLD;
-        if (dimension == Level.NETHER) return DimensionType.NETHER;
-        if (dimension == Level.END) return DimensionType.THE_END;
+        if (dimension == Level.OVERWORLD) {
+            return DimensionType.OVERWORLD;
+        }
+        if (dimension == Level.NETHER) {
+            return DimensionType.NETHER;
+        }
+        if (dimension == Level.END) {
+            return DimensionType.THE_END;
+        }
         return DimensionType.CUSTOM;
     }
 }

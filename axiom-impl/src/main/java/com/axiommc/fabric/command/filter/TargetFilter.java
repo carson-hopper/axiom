@@ -59,7 +59,9 @@ public class TargetFilter {
         String[] parts = filterStr.split("\\s+");
         for (String part : parts) {
             part = part.trim();
-            if (part.isEmpty()) continue;
+            if (part.isEmpty()) {
+                continue;
+            }
 
             if (part.startsWith("!")) {
                 // Negative filter

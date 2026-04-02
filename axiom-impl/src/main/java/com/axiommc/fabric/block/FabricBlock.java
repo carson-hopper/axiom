@@ -149,10 +149,14 @@ public class FabricBlock implements Block {
 
     private net.minecraft.world.level.block.state.BlockState parseBlockState(Material type) {
         Identifier identifier = Identifier.tryParse(type.id());
-        if (identifier == null) return null;
+        if (identifier == null) {
+            return null;
+        }
 
         java.util.Optional<? extends Holder<net.minecraft.world.level.block.Block>> blockHolderOptional = BuiltInRegistries.BLOCK.get(identifier);
-        if (blockHolderOptional.isEmpty()) return null;
+        if (blockHolderOptional.isEmpty()) {
+            return null;
+        }
 
         Holder<net.minecraft.world.level.block.Block> blockHolder = blockHolderOptional.get();
         net.minecraft.world.level.block.Block mcBlock = blockHolder.value();

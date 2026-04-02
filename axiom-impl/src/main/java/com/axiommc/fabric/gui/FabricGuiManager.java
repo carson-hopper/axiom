@@ -57,7 +57,9 @@ public class FabricGuiManager implements GuiManager {
     @Override
     public void update(UUID sessionId, Gui newGui) {
         GuiSession session = sessions.get(sessionId);
-        if (session == null) return;
+        if (session == null) {
+            return;
+        }
 
         Container container = session.menu().getContainer();
         fillContainer(container, newGui);
@@ -68,7 +70,9 @@ public class FabricGuiManager implements GuiManager {
     @Override
     public void close(UUID sessionId) {
         GuiSession session = sessions.get(sessionId);
-        if (session == null) return;
+        if (session == null) {
+            return;
+        }
 
         session.player().closeContainer();
         sessions.remove(sessionId);
