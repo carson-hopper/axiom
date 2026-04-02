@@ -15,8 +15,10 @@
     "net.minecraft.server.players.PlayerListMixin",
     "net.minecraft.world.level.chunk.LevelChunkSectionMixin",
     "net.minecraft.world.level.chunk.ChunkAccessMixin",
+    "net.minecraft.server.level.ServerLevelMixin",
     "net.minecraft.server.level.ServerPlayerMixin",
-    "net.minecraft.server.PlayerAdvancementsMixin"
+    "net.minecraft.server.PlayerAdvancementsMixin",
+    "net.minecraft.world.level.saveddata.WeatherDataMixin"
   ],
   "client": [],
   "injectors": {
