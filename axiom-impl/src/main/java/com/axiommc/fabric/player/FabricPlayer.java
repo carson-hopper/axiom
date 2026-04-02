@@ -152,7 +152,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
             Object packet = constructor.newInstance(server.host(), server.port());
             player.connection.send((net.minecraft.network.protocol.Packet<?>) packet);
         } catch (Exception e) {
-            Axiom.logger().error("Failed to transfer player %s to server %s:%s", name(), server.host(), server.port(), e);
+            Axiom.logger().error("Failed to transfer player {}} to server {}}:{}}", name(), server.host(), server.port(), e);
         }
     }
 
@@ -168,7 +168,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
         // } catch (Exception e) {
         //     logger.error("Failed to transfer player {}", name(), e);
         // }
-        Axiom.logger().warn("Player transfer not yet implemented for %s", name());
+        Axiom.logger().warn("Player transfer not yet implemented for {}", name());
     }
 
     // ============================================================

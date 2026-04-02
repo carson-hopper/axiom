@@ -105,7 +105,7 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new text component with the formatted string
      */
     public static ChatComponent textf(String format, Object... args) {
-        return text(String.format(format, args));
+        return text(format(format, args));
     }
 
     /**
@@ -1081,5 +1081,30 @@ public record ChatComponent(String type, String content, String translatableKey,
                 .color(ChatColor.GREEN)
                 .hoverText(ChatComponent.text("Click to copy: " + valueToCopy).color(ChatColor.GRAY))
                 .clickCopyToClipboard(valueToCopy);
+    }
+
+    private static String format(String message, Object... args) {
+        if (args == null || args.length == 0) {
+            return message;
+        }
+        StringBuilder sb = new StringBuilder();
+        int argIndex = 0;
+        int i = 0;
+        while (i < message.length()) {
+            if (i + 1 < message.length()
+                    && message.charAt(i) == '{'
+                    && message.charAt(i + 1) == '}') {
+                if (argIndex < args.length) {
+                    sb.append(args[argIndex++]);
+                } else {
+                    sb.append("{}");
+                }
+                i += 2;
+            } else {
+                sb.append(message.charAt(i));
+                i++;
+            }
+        }
+        return sb.toString();
     }
 }

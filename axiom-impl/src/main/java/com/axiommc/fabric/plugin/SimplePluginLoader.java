@@ -64,7 +64,7 @@ public class SimplePluginLoader {
             updateStatus(displayName, PluginState.LOADED);
         } catch (Exception e) {
             updateStatus(displayName, PluginState.FAILED);
-            Axiom.logger().error("Failed to load plugin: %s", displayName, e);
+            Axiom.logger().error("Failed to load plugin: {}", displayName, e);
         }
     }
 
@@ -74,6 +74,24 @@ public class SimplePluginLoader {
             updateStatus(pluginFile.getName(), PluginState.FAILED);
             return;
         }
+
+        // Detect Bukkit/Spigot/Paper plugins
+        try (ZipFile check = new ZipFile(pluginFile)) {
+            // Check for plugin.yml (required by all Bukkit plugins)
+            if (check.getEntry("plugin.yml") != null) {
+                Axiom.logger().warn("{} is a Bukkit/Spigot plugin and cannot be loaded by Axiom",
+                        pluginFile.getName());
+                return;
+            }
+            // Check for JavaPlugin class references
+            for (ZipEntry entry : Collections.list(check.entries())) {
+                if (entry.getName().equals("org/bukkit/plugin/java/JavaPlugin.class")) {
+                    Axiom.logger().warn("{} is a Bukkit/Spigot plugin and cannot be loaded by Axiom",
+                            pluginFile.getName());
+                    return;
+                }
+            }
+        } catch (Exception ignored) {}
 
         URLClassLoader loader = null;
         try {
@@ -93,21 +111,17 @@ public class SimplePluginLoader {
                             .replace("/", ".")
                             .replace(".class", "");
 
-                    try {
-                        Class<?> clazz = loader.loadClass(className);
-                        if (clazz.getAnnotation(Plugin.class) != null
-                                && AxiomPlugin.class.isAssignableFrom(clazz)) {
-                            loadPlugin(clazz);
-                        }
-                    } catch (ClassNotFoundException e) {
-
+                    Class<?> clazz = loader.loadClass(className);
+                    if (clazz.getAnnotation(Plugin.class) != null
+                            && AxiomPlugin.class.isAssignableFrom(clazz)) {
+                        loadPlugin(clazz);
                     }
                 }
             }
         } catch (Exception e) {
             entries.add(new PluginEntry(pluginFile.getName(), "?"));
             updateStatus(pluginFile.getName(), PluginState.FAILED);
-            Axiom.logger().error("Failed to load plugin JAR: %s", pluginFile.getName(), e);
+            Axiom.logger().error("Failed to load plugin JAR: {}", pluginFile.getName());
             if (loader != null) {
                 classLoaders.remove(loader);
                 try {
@@ -117,9 +131,6 @@ public class SimplePluginLoader {
         }
     }
 
-    /**
-     * Prints a formatted summary of all loaded plugins in Maven-style output.
-     */
     /**
      * Prints the opening separator before plugins start loading.
      */

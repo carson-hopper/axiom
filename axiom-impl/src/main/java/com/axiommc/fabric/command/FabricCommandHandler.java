@@ -44,7 +44,7 @@ public class FabricCommandHandler {
     public void registerCommand(Object command) {
         Command cmdAnnotation = command.getClass().getAnnotation(Command.class);
         if (cmdAnnotation == null) {
-            Axiom.logger().warn("Command %s has no @Command annotation, skipping", command.getClass().getSimpleName());
+            Axiom.logger().warn("Command {} has no @Command annotation, skipping", command.getClass().getSimpleName());
             return;
         }
 
@@ -66,7 +66,7 @@ public class FabricCommandHandler {
 
     public void register(Object dispatcherObj) {
         if (!(dispatcherObj instanceof CommandDispatcher)) {
-            Axiom.logger().warn("Expected CommandDispatcher, got %s", dispatcherObj.getClass().getName());
+            Axiom.logger().warn("Expected CommandDispatcher, got {}", dispatcherObj.getClass().getName());
             return;
         }
 
@@ -83,9 +83,9 @@ public class FabricCommandHandler {
                 FabricCommandAdapter adapter = new FabricCommandAdapter(entry.getKey(), invoker);
                 adapters.add(adapter);
                 dispatcher.register(adapter.buildNode());
-                Axiom.logger().debug("Registered Brigadier command: %s", entry.getKey());
+                Axiom.logger().debug("Registered Brigadier command: {}", entry.getKey());
             } catch (Exception e) {
-                Axiom.logger().error("Failed to register command: %s", entry.getKey(), e);
+                Axiom.logger().error("Failed to register command: {}", entry.getKey(), e);
             }
         }
     }
