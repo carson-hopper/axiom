@@ -3,7 +3,7 @@ package com.axiommc.fabric.event.adapter;
 import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerCommandEvent;
 import com.axiommc.api.event.player.PlayerInteractEntityEvent;
-import com.axiommc.api.event.player.PlayerMoveEvent;
+import com.axiommc.api.event.player.PlayerPositionEvent;
 import com.axiommc.api.event.player.PlayerSwapHandItemsEvent;
 import com.axiommc.api.event.player.PlayerToggleEvent;
 import com.axiommc.api.math.Vector3;
@@ -29,7 +29,7 @@ public class PlayerInputAdapter implements FabricEventAdapter {
     }
 
     /**
-     * Fires a {@link PlayerMoveEvent}.
+     * Fires a {@link PlayerPositionEvent.Move}.
      *
      * @return true if the event was cancelled
      */
@@ -43,11 +43,11 @@ public class PlayerInputAdapter implements FabricEventAdapter {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             Vector3 from = new Vector3(fromX, fromY, fromZ);
             Vector3 to = new Vector3(toX, toY, toZ);
-            PlayerMoveEvent event = new PlayerMoveEvent(player, from, to);
+            PlayerPositionEvent.Move event = new PlayerPositionEvent.Move(player, from, to);
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {
-            Axiom.logger().debug("Error firing PlayerMoveEvent", exception);
+            Axiom.logger().debug("Error firing PlayerPositionEvent.Move", exception);
             return false;
         }
     }

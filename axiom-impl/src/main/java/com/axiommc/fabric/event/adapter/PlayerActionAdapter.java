@@ -6,7 +6,7 @@ import com.axiommc.api.event.player.PlayerDeathEvent;
 import com.axiommc.api.event.player.PlayerGameModeChangeEvent;
 import com.axiommc.api.event.player.PlayerItemEvent;
 import com.axiommc.api.event.player.PlayerRideEvent;
-import com.axiommc.api.event.player.PlayerTeleportEvent;
+import com.axiommc.api.event.player.PlayerPositionEvent;
 import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
@@ -156,11 +156,11 @@ public class PlayerActionAdapter implements FabricEventAdapter {
             String worldName = transition.newLevel().dimension().identifier().toString();
             World toWorld = Axiom.world(worldName).orElse(null);
             Location to = new Location(toWorld, destination, new Vector2(0, 0));
-            PlayerTeleportEvent event = new PlayerTeleportEvent(player, from, to);
+            PlayerPositionEvent.Teleport event = new PlayerPositionEvent.Teleport(player, from, to);
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {
-            Axiom.logger().debug("Error firing PlayerTeleportEvent", exception);
+            Axiom.logger().debug("Error firing PlayerPositionEvent.Teleport", exception);
         }
         return false;
     }
