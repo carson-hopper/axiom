@@ -20,6 +20,7 @@ import com.axiommc.fabric.event.adapter.PlayerStateAdapter;
 import com.axiommc.fabric.event.adapter.PlayerTransferAdapter;
 import com.axiommc.fabric.event.adapter.ResourcePackAdapter;
 import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
+import com.axiommc.fabric.event.adapter.WorldEventAdapter;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,7 @@ public class FabricEventBus extends SimpleEventBus {
         adapters.add(new PlayerInventoryAdapter());
         adapters.add(new PlayerMiscAdapter());
         adapters.add(new PlayerStateAdapter());
+        adapters.add(new WorldEventAdapter());
     }
 
     /**
