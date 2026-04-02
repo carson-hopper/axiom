@@ -7,7 +7,7 @@ import com.axiommc.api.event.player.PlayerDeathEvent;
 import com.axiommc.api.event.player.PlayerGameModeChangeEvent;
 import com.axiommc.api.event.player.PlayerItemEvent;
 import com.axiommc.api.event.player.PlayerPositionEvent;
-import com.axiommc.api.event.player.PlayerRideEvent;
+import com.axiommc.api.event.vehicle.VehicleEvent;
 import com.axiommc.api.item.Item;
 import com.axiommc.api.item.ItemStack;
 import com.axiommc.api.math.Vector2;
@@ -215,11 +215,11 @@ public class PlayerActionAdapter implements FabricEventAdapter {
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             FabricEntity entity = new FabricEntity(mountEntity);
-            PlayerRideEvent.Mount event = new PlayerRideEvent.Mount(player, entity);
+            VehicleEvent.Enter event = new VehicleEvent.Enter(player, entity);
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {
-            Axiom.logger().debug("Error firing PlayerRideEvent.Mount", exception);
+            Axiom.logger().debug("Error firing VehicleEvent.Enter", exception);
         }
         return false;
     }
@@ -238,9 +238,9 @@ public class PlayerActionAdapter implements FabricEventAdapter {
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
             FabricEntity entity = new FabricEntity(vehicleEntity);
-            eventBus.publish(new PlayerRideEvent.Dismount(player, entity));
+            eventBus.publish(new VehicleEvent.Exit(player, entity));
         } catch (Exception exception) {
-            Axiom.logger().debug("Error firing PlayerRideEvent.Dismount", exception);
+            Axiom.logger().debug("Error firing VehicleEvent.Exit", exception);
         }
     }
 
