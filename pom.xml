@@ -51,6 +51,14 @@
                 <version>2.0.17</version>
             </dependency>
 
+            <!-- Log4j (provided at runtime by Fabric) -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>2.24.3</version>
+                <scope>provided</scope>
+            </dependency>
+
             <!-- Gson -->
             <dependency>
                 <groupId>com.google.code.gson</groupId>

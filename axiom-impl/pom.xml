@@ -108,6 +108,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Log4j - present in MC at runtime, needed for log filtering -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Gson - bundled in MC, available at runtime -->
         <dependency>
             <groupId>com.google.code.gson</groupId>

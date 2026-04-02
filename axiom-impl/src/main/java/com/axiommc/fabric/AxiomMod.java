@@ -61,6 +61,9 @@ public class AxiomMod implements ModInitializer {
     public void onInitialize() {
         instance = this;
 
+        // Suppress noisy vanilla join/UUID log messages
+        com.axiommc.fabric.console.VanillaLogFilter.install();
+
         // ────────────────────────────────────────────────────────
         // Event Bus Setup
         // ────────────────────────────────────────────────────────

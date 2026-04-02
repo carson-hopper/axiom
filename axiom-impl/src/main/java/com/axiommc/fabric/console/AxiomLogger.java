@@ -30,31 +30,26 @@ public class AxiomLogger {
     }
 
     public void info(String message, Object... args) {
-        String formatted = format(message, args);
-        logger.info(colorize(formatted, ChatColor.WHITE));
+        logger.info(colorize(format(message, args), ChatColor.WHITE));
     }
 
     public void warn(String message, Object... args) {
-        String formatted = format(message, args);
-        logger.warn(colorize(formatted, ChatColor.YELLOW));
+        logger.warn(colorize(format(message, args), ChatColor.YELLOW));
     }
 
     public void error(String message, Object... args) {
-        String formatted = format(message, args);
-        logger.error(colorize(formatted, ChatColor.RED));
+        logger.error(colorize(format(message, args), ChatColor.RED));
     }
 
     public void debug(String message, Object... args) {
         if (logger.isDebugEnabled()) {
-            String formatted = format(message, args);
-            logger.debug(colorize(formatted, ChatColor.GRAY));
+            logger.debug(colorize(format(message, args), ChatColor.GRAY));
         }
     }
 
     public void trace(String message, Object... args) {
         if (logger.isTraceEnabled()) {
-            String formatted = format(message, args);
-            logger.trace(colorize(formatted, ChatColor.DARK_GRAY));
+            logger.trace(colorize(format(message, args), ChatColor.DARK_GRAY));
         }
     }
 
