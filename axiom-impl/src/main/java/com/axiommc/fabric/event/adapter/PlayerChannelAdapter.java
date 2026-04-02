@@ -1,8 +1,7 @@
 package com.axiommc.fabric.event.adapter;
 
 import com.axiommc.api.event.SimpleEventBus;
-import com.axiommc.api.event.player.PlayerChannelRegisterEvent;
-import com.axiommc.api.event.player.PlayerChannelUnregisterEvent;
+import com.axiommc.api.event.player.PlayerPluginChannelEvent;
 import com.axiommc.api.event.player.PlayerClientBrandEvent;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayer;
@@ -10,8 +9,8 @@ import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Fires {@link PlayerClientBrandEvent}, {@link PlayerChannelRegisterEvent},
- * and {@link PlayerChannelUnregisterEvent}.
+ * Fires {@link PlayerClientBrandEvent}, {@link PlayerPluginChannelEvent.Register},
+ * and {@link PlayerPluginChannelEvent.Unregister}.
  * Called from {@code ServerCommonPacketListenerMixin}.
  */
 public class PlayerChannelAdapter implements FabricEventAdapter {
@@ -50,8 +49,7 @@ public class PlayerChannelAdapter implements FabricEventAdapter {
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            eventBus.publish(
-                    new PlayerChannelRegisterEvent(player, channel));
+            eventBus.publish(new PlayerPluginChannelEvent.Register(player, channel));
         } catch (Exception exception) {
             Axiom.logger().debug(
                     "Error firing PlayerChannelRegisterEvent", exception);
@@ -67,12 +65,9 @@ public class PlayerChannelAdapter implements FabricEventAdapter {
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            eventBus.publish(
-                    new PlayerChannelUnregisterEvent(player, channel));
+            eventBus.publish(new PlayerPluginChannelEvent.Unregister(player, channel));
         } catch (Exception exception) {
-            Axiom.logger().debug(
-                    "Error firing PlayerChannelUnregisterEvent",
-                    exception);
+            Axiom.logger().debug("Error firing PlayerPluginChannelEvent.Unregister", exception);
         }
     }
 }
