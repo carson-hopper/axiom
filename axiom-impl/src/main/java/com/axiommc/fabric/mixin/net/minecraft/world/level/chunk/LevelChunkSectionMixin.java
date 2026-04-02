@@ -22,8 +22,7 @@ public class LevelChunkSectionMixin implements BiomeWritable {
     @Override
     public void setBiome(int x, int y, int z, com.axiommc.api.world.Biome biome, Object registryAccess) {
         RegistryAccess access = (RegistryAccess) registryAccess;
-        Registry<Biome> biomeRegistry =
-                access.lookupOrThrow(Registries.BIOME);
+        Registry<Biome> biomeRegistry = access.lookupOrThrow(Registries.BIOME);
         Identifier location = Identifier.parse(biome.id());
         biomeRegistry.get(location)
                 .ifPresent(h -> ((PalettedContainer<Holder<net.minecraft.world.level.biome.Biome>>) this.biomes)

@@ -36,8 +36,7 @@ public class ResourcePackAdapter implements FabricEventAdapter {
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            PlayerResourcePackStatusEvent.Status status =
-                    mapAction(action);
+            PlayerResourcePackStatusEvent.Status status = mapAction(action);
             eventBus.publish(
                     new PlayerResourcePackStatusEvent(player, status));
         } catch (Exception exception) {

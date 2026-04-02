@@ -31,8 +31,7 @@ public class GameProfileAdapter implements FabricEventAdapter {
             return;
         }
         try {
-            PlayerJoinEvent.Init event =
-                    new PlayerJoinEvent.Init(playerName);
+            PlayerJoinEvent.Init event = new PlayerJoinEvent.Init(playerName);
             if (profileId != null) {
                 event.uuid(profileId);
             }

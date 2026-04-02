@@ -31,8 +31,7 @@ public abstract class ServerCommonPacketListenerMixin {
             ServerboundCustomPayloadPacket packet,
             CallbackInfo callbackInfo) {
         CustomPacketPayload payload = packet.payload();
-        ServerCommonPacketListenerImpl self =
-                (ServerCommonPacketListenerImpl) (Object) this;
+        ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
 
         if (payload instanceof BrandPayload brandPayload) {
             ServerPlayer player = getPlayerFromListener(self);
@@ -47,8 +46,7 @@ public abstract class ServerCommonPacketListenerMixin {
     private void onResourcePackResponse(
             ServerboundResourcePackPacket packet,
             CallbackInfo callbackInfo) {
-        ServerCommonPacketListenerImpl self =
-                (ServerCommonPacketListenerImpl) (Object) this;
+        ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
         ServerPlayer player = getPlayerFromListener(self);
         if (player != null) {
             ResourcePackAdapter.onResourcePackStatus(
@@ -59,8 +57,7 @@ public abstract class ServerCommonPacketListenerMixin {
     @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;)V",
             at = @At("HEAD"))
     private void onSendPacket(Packet<?> packet, CallbackInfo callbackInfo) {
-        ServerCommonPacketListenerImpl self =
-                (ServerCommonPacketListenerImpl) (Object) this;
+        ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
         ServerPlayer player = getPlayerFromListener(self);
         if (player == null) {
             return;

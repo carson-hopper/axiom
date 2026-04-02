@@ -10,8 +10,10 @@
     "net.minecraft.server.network.ServerCommonPacketListenerMixin",
     "net.minecraft.server.network.ServerGamePacketListenerMixin",
     "net.minecraft.server.network.ServerLoginPacketListenerMixin",
+    "net.minecraft.server.players.PlayerListMixin",
     "net.minecraft.world.level.chunk.LevelChunkSectionMixin",
-    "net.minecraft.world.level.chunk.ChunkAccessMixin"
+    "net.minecraft.world.level.chunk.ChunkAccessMixin",
+    "net.minecraft.server.level.ServerPlayerMixin"
   ],
   "client": [],
   "injectors": {

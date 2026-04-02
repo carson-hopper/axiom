@@ -44,8 +44,7 @@ public class PlayerChannelAdapter implements FabricEventAdapter {
     /**
      * Called when the client registers a plugin channel.
      */
-    public static void onChannelRegister(ServerPlayer serverPlayer,
-                                         String channel) {
+    public static void onChannelRegister(ServerPlayer serverPlayer, String channel) {
         if (eventBus == null) {
             return;
         }
@@ -62,8 +61,7 @@ public class PlayerChannelAdapter implements FabricEventAdapter {
     /**
      * Called when the client unregisters a plugin channel.
      */
-    public static void onChannelUnregister(ServerPlayer serverPlayer,
-                                           String channel) {
+    public static void onChannelUnregister(ServerPlayer serverPlayer, String channel) {
         if (eventBus == null) {
             return;
         }

@@ -30,10 +30,7 @@ public class PlayerSettingsAdapter implements FabricEventAdapter {
      * @param viewDistance  the client view distance
      * @param showCape     whether the cape skin layer is enabled
      */
-    public static void onSettingsChanged(ServerPlayer serverPlayer,
-                                         String language,
-                                         int viewDistance,
-                                         boolean showCape) {
+    public static void onSettingsChanged(ServerPlayer serverPlayer, String language, int viewDistance, boolean showCape) {
         if (eventBus == null) {
             return;
         }

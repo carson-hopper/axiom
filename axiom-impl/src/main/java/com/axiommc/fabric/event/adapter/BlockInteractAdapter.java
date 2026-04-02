@@ -34,8 +34,7 @@ public class BlockInteractAdapter implements FabricEventAdapter {
             }
 
             try {
-                Optional<FabricPlayer> axiomPlayer =
-                        playerProvider.player(serverPlayer.getUUID());
+                Optional<FabricPlayer> axiomPlayer = playerProvider.player(serverPlayer.getUUID());
                 if (axiomPlayer.isEmpty()) {
                     return InteractionResult.PASS;
                 }
@@ -47,17 +46,15 @@ public class BlockInteractAdapter implements FabricEventAdapter {
                         blockPos.getZ(), fabricWorld);
 
                 if (hand == InteractionHand.MAIN_HAND) {
-                    BlockInteractEvent.MainHand event =
-                            new BlockInteractEvent.MainHand(
-                                    axiomPlayer.get(), block);
+                    BlockInteractEvent.MainHand event = new BlockInteractEvent.MainHand(
+                            axiomPlayer.get(), block);
                     eventBus.publish(event);
                     if (event.isCancelled()) {
                         return InteractionResult.FAIL;
                     }
                 } else {
-                    BlockInteractEvent.OffHand event =
-                            new BlockInteractEvent.OffHand(
-                                    axiomPlayer.get(), block);
+                    BlockInteractEvent.OffHand event = new BlockInteractEvent.OffHand(
+                            axiomPlayer.get(), block);
                     eventBus.publish(event);
                     if (event.isCancelled()) {
                         return InteractionResult.FAIL;

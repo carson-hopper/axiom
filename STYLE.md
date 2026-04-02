@@ -369,7 +369,15 @@ Always use `@Override` when a method overrides a superclass method, implements a
 
 ### 7.2 Caught Exceptions
 
-Never silently swallow exceptions. At minimum, log a warning or rethrow. If ignoring is truly justified, use `_` as the catch variable name and add a comment explaining why.
+Never silently swallow exceptions. At minimum, log a warning or rethrow. Name the catch variable `ex` or `e` - never the full word `exception`. If ignoring is truly justified, use `_` as the catch variable name and add a comment explaining why.
+
+```java
+try {
+    int parsed = Integer.parseInt(input);
+} catch (NumberFormatException ex) {
+    logger.warn("Invalid input: {}", input, ex);
+}
+```
 
 ```java
 try {
