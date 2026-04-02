@@ -92,4 +92,18 @@ public interface Player extends LivingEntity, CommandSender {
      */
     void openGui(Gui gui);
 
+    /**
+     * Returns this player's current game mode.
+     *
+     * @return the game mode
+     */
+    GameMode gameMode();
+
+    /**
+     * Sets this player's game mode.
+     *
+     * @param gameMode the game mode to set
+     */
+    void gameMode(GameMode gameMode);
+
 }

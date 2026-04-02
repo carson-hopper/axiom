@@ -4,6 +4,7 @@ import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.gui.Gui;
 import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
+import com.axiommc.api.player.GameMode;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.sound.Sound;
@@ -30,6 +31,7 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.sounds.SoundEvent;
 
 import java.util.Optional;
@@ -272,5 +274,25 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
     @Override
     public void openGui(Gui gui) {
         Axiom.guiManager().open(this, gui);
+    }
+
+    // ============================================================
+    // Game Mode
+    // ============================================================
+
+    @Override
+    public GameMode gameMode() {
+        return GameMode.fromName(player.gameMode.getGameModeForPlayer().getName());
+    }
+
+    @Override
+    public void gameMode(GameMode gameMode) {
+        GameType gameType = switch (gameMode) {
+            case SURVIVAL -> GameType.SURVIVAL;
+            case CREATIVE -> GameType.CREATIVE;
+            case ADVENTURE -> GameType.ADVENTURE;
+            case SPECTATOR -> GameType.SPECTATOR;
+        };
+        player.setGameMode(gameType);
     }
 }
