@@ -183,6 +183,42 @@ public class InventoryEventAdapter implements FabricEventAdapter {
         }
     }
 
+    /**
+     * Called when a player enchants an item.
+     *
+     * @return true if the event was cancelled
+     */
+    public static boolean onEnchant(
+        ServerPlayer serverPlayer, net.minecraft.world.item.ItemStack item, int level) {
+        if (eventBus == null) {
+            return false;
+        }
+        try {
+            FabricPlayer player = new FabricPlayer(serverPlayer);
+            InventoryEvent.Enchant event =
+                new InventoryEvent.Enchant(player, toItemStack(item), level);
+            eventBus.publish(event);
+            return event.isCancelled();
+        } catch (Exception exception) {
+            Axiom.logger().debug("Error firing InventoryEvent.Enchant", exception);
+            return false;
+        }
+    }
+
+    /** Called when a player places an item in an enchantment table. */
+    public static void onEnchantPrepare(
+        ServerPlayer serverPlayer, net.minecraft.world.item.ItemStack item) {
+        if (eventBus == null) {
+            return;
+        }
+        try {
+            FabricPlayer player = new FabricPlayer(serverPlayer);
+            eventBus.publish(new InventoryEvent.EnchantPrepare(player, toItemStack(item)));
+        } catch (Exception exception) {
+            Axiom.logger().debug("Error firing InventoryEvent.EnchantPrepare", exception);
+        }
+    }
+
     // ── Helpers ─────────────────────────────────────────────────────────
 
     private static ItemStack toItemStack(net.minecraft.world.item.ItemStack mcStack) {

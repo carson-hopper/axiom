@@ -19,6 +19,8 @@ import com.axiommc.api.world.World;
  *   <li>{@link Brew} — brewing stand completes brewing; cancellable
  *   <li>{@link AnvilPrepare} — anvil result is previewed
  *   <li>{@link Smith} — player uses a smithing table
+ *   <li>{@link Enchant} — item enchanted at an enchantment table; cancellable
+ *   <li>{@link EnchantPrepare} — item placed in an enchantment table
  * </ul>
  */
 public final class InventoryEvent {
@@ -245,6 +247,63 @@ public final class InventoryEvent {
 
         public ItemStack result() {
             return result;
+        }
+    }
+
+    /** Fired when an item is enchanted at an enchantment table. */
+    public static class Enchant extends Event implements Cancellable {
+
+        private final Player player;
+        private final ItemStack item;
+        private final int level;
+        private boolean cancelled = false;
+
+        public Enchant(Player player, ItemStack item, int level) {
+            this.player = player;
+            this.item = item;
+            this.level = level;
+        }
+
+        public Player player() {
+            return player;
+        }
+
+        public ItemStack item() {
+            return item;
+        }
+
+        public int level() {
+            return level;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public void cancelled(boolean cancelled) {
+            this.cancelled = cancelled;
+        }
+    }
+
+    /** Fired when an item is placed in an enchantment table. */
+    public static class EnchantPrepare extends Event {
+
+        private final Player player;
+        private final ItemStack item;
+
+        public EnchantPrepare(Player player, ItemStack item) {
+            this.player = player;
+            this.item = item;
+        }
+
+        public Player player() {
+            return player;
+        }
+
+        public ItemStack item() {
+            return item;
         }
     }
 }

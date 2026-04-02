@@ -21,7 +21,8 @@
     "net.minecraft.world.level.saveddata.WeatherDataMixin",
     "net.minecraft.world.inventory.ResultSlotMixin",
     "net.minecraft.world.inventory.AnvilMenuMixin",
-    "net.minecraft.world.inventory.SmithingMenuMixin"
+    "net.minecraft.world.inventory.SmithingMenuMixin",
+    "net.minecraft.world.inventory.EnchantmentMenuMixin"
   ],
   "client": [],
   "injectors": {
