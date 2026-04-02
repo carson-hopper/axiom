@@ -3,6 +3,8 @@ package com.axiommc.api.event.player;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
 
+import java.net.URI;
+
 /**
  * Events fired during the server resource pack lifecycle.
  *
@@ -22,9 +24,9 @@ public final class ServerResourcePackEvent {
     public static class Send extends Event {
 
         private final Player player;
-        private final String packUrl;
+        private final URI packUrl;
 
-        public Send(Player player, String packUrl) {
+        public Send(Player player, URI packUrl) {
             this.player = player;
             this.packUrl = packUrl;
         }
@@ -33,7 +35,7 @@ public final class ServerResourcePackEvent {
             return player;
         }
 
-        public String packUrl() {
+        public URI packUrl() {
             return packUrl;
         }
     }
@@ -44,11 +46,11 @@ public final class ServerResourcePackEvent {
     public static class Request extends Event {
 
         private final Player player;
-        private final String packUrl;
+        private final URI packUrl;
         private final String packHash;
         private final boolean required;
 
-        public Request(Player player, String packUrl, String packHash, boolean required) {
+        public Request(Player player, URI packUrl, String packHash, boolean required) {
             this.player = player;
             this.packUrl = packUrl;
             this.packHash = packHash;
@@ -59,7 +61,7 @@ public final class ServerResourcePackEvent {
             return player;
         }
 
-        public String packUrl() {
+        public URI packUrl() {
             return packUrl;
         }
 

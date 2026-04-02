@@ -4,6 +4,7 @@ import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerCommandEvent;
 import com.axiommc.api.event.player.PlayerInteractEntityEvent;
 import com.axiommc.api.event.player.PlayerPositionEvent;
+import com.axiommc.fabric.entity.FabricEntity;
 import com.axiommc.api.event.player.PlayerSwapHandItemsEvent;
 import com.axiommc.api.event.player.PlayerToggleEvent;
 import com.axiommc.api.math.Vector3;
@@ -82,9 +83,15 @@ public class PlayerInputAdapter implements FabricEventAdapter {
             return false;
         }
         try {
+            net.minecraft.world.entity.Entity target =
+                    serverPlayer.level().getEntity(entityId);
+            if (target == null) {
+                return false;
+            }
             FabricPlayer player = new FabricPlayer(serverPlayer);
+            FabricEntity entity = new FabricEntity(target);
             PlayerInteractEntityEvent event = new PlayerInteractEntityEvent(
-                    player, entityId, mainHand);
+                    player, entity, mainHand);
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {

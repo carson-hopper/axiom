@@ -1,5 +1,6 @@
 package com.axiommc.api.event.player;
 
+import com.axiommc.api.entity.Entity;
 import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
@@ -7,9 +8,12 @@ import com.axiommc.api.player.Player;
 /**
  * Events fired when a player mounts or dismounts an entity.
  *
- * <p>Subtypes: {@link Mount}, {@link Dismount}.
+ * <ul>
+ *   <li>{@link Mount} — player starts riding; cancellable
+ *   <li>{@link Dismount} — player stops riding
+ * </ul>
  */
-public class PlayerRideEvent {
+public final class PlayerRideEvent {
 
     private PlayerRideEvent() {}
 
@@ -17,20 +21,20 @@ public class PlayerRideEvent {
     public static class Mount extends Event implements Cancellable {
 
         private final Player player;
-        private final int entityId;
+        private final Entity entity;
         private boolean cancelled = false;
 
-        public Mount(Player player, int entityId) {
+        public Mount(Player player, Entity entity) {
             this.player = player;
-            this.entityId = entityId;
+            this.entity = entity;
         }
 
         public Player player() {
             return player;
         }
 
-        public int entityId() {
-            return entityId;
+        public Entity entity() {
+            return entity;
         }
 
         @Override
@@ -48,19 +52,19 @@ public class PlayerRideEvent {
     public static class Dismount extends Event {
 
         private final Player player;
-        private final int entityId;
+        private final Entity entity;
 
-        public Dismount(Player player, int entityId) {
+        public Dismount(Player player, Entity entity) {
             this.player = player;
-            this.entityId = entityId;
+            this.entity = entity;
         }
 
         public Player player() {
             return player;
         }
 
-        public int entityId() {
-            return entityId;
+        public Entity entity() {
+            return entity;
         }
     }
 }

@@ -83,7 +83,7 @@ public abstract class ServerPlayerMixin {
                                boolean suppressEvent,
                                CallbackInfoReturnable<Boolean> callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
-        if (PlayerActionAdapter.onMount(self, entity.getId())) {
+        if (PlayerActionAdapter.onMount(self, entity)) {
             callbackInfo.setReturnValue(false);
         }
     }
@@ -93,7 +93,7 @@ public abstract class ServerPlayerMixin {
         Entity vehicle = ((Entity) (Object) this).getVehicle();
         if (vehicle != null) {
             ServerPlayer self = (ServerPlayer) (Object) this;
-            PlayerActionAdapter.onDismount(self, vehicle.getId());
+            PlayerActionAdapter.onDismount(self, vehicle);
         }
     }
 }

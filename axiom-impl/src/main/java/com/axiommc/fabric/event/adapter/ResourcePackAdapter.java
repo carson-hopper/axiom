@@ -4,6 +4,8 @@ import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerResourcePackStatusEvent;
 import com.axiommc.api.event.player.ServerResourcePackEvent;
 import com.axiommc.fabric.Axiom;
+
+import java.net.URI;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
@@ -57,10 +59,10 @@ public class ResourcePackAdapter implements FabricEventAdapter {
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            eventBus.publish(
-                    new ServerResourcePackEvent.Send(player, packUrl));
+            URI uri = URI.create(packUrl);
+            eventBus.publish(new ServerResourcePackEvent.Send(player, uri));
             eventBus.publish(new ServerResourcePackEvent.Request(
-                    player, packUrl, packHash, required));
+                    player, uri, packHash, required));
         } catch (Exception exception) {
             Axiom.logger().debug(
                     "Error firing ServerResourcePackSendEvent",

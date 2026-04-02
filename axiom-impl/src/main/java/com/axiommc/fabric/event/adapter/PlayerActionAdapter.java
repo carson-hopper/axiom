@@ -13,6 +13,7 @@ import com.axiommc.api.math.Vector3;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.world.World;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.entity.FabricEntity;
 import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.minecraft.server.level.ServerPlayer;
@@ -171,20 +172,22 @@ public class PlayerActionAdapter implements FabricEventAdapter {
      * Called when a player starts riding an entity.
      *
      * @param serverPlayer the player mounting
-     * @param entityId     the id of the entity being mounted
+     * @param mountEntity  the entity being mounted
      * @return true if the event was cancelled
      */
-    public static boolean onMount(ServerPlayer serverPlayer, int entityId) {
+    public static boolean onMount(ServerPlayer serverPlayer,
+                                  net.minecraft.world.entity.Entity mountEntity) {
         if (eventBus == null) {
             return false;
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            PlayerRideEvent.Mount event = new PlayerRideEvent.Mount(player, entityId);
+            FabricEntity entity = new FabricEntity(mountEntity);
+            PlayerRideEvent.Mount event = new PlayerRideEvent.Mount(player, entity);
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {
-            Axiom.logger().debug("Error firing PlayerMountEvent", exception);
+            Axiom.logger().debug("Error firing PlayerRideEvent.Mount", exception);
         }
         return false;
     }
@@ -192,18 +195,20 @@ public class PlayerActionAdapter implements FabricEventAdapter {
     /**
      * Called when a player stops riding an entity.
      *
-     * @param serverPlayer the player dismounting
-     * @param entityId     the id of the entity being dismounted
+     * @param serverPlayer  the player dismounting
+     * @param vehicleEntity the entity being dismounted
      */
-    public static void onDismount(ServerPlayer serverPlayer, int entityId) {
+    public static void onDismount(ServerPlayer serverPlayer,
+                                  net.minecraft.world.entity.Entity vehicleEntity) {
         if (eventBus == null) {
             return;
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            eventBus.publish(new PlayerRideEvent.Dismount(player, entityId));
+            FabricEntity entity = new FabricEntity(vehicleEntity);
+            eventBus.publish(new PlayerRideEvent.Dismount(player, entity));
         } catch (Exception exception) {
-            Axiom.logger().debug("Error firing PlayerDismountEvent", exception);
+            Axiom.logger().debug("Error firing PlayerRideEvent.Dismount", exception);
         }
     }
 }

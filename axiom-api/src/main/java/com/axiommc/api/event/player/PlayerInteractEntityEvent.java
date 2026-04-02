@@ -1,5 +1,6 @@
 package com.axiommc.api.event.player;
 
+import com.axiommc.api.entity.Entity;
 import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Player;
@@ -10,13 +11,13 @@ import com.axiommc.api.player.Player;
 public class PlayerInteractEntityEvent extends Event implements Cancellable {
 
     private final Player player;
-    private final int entityId;
+    private final Entity entity;
     private final boolean mainHand;
     private boolean cancelled = false;
 
-    public PlayerInteractEntityEvent(Player player, int entityId, boolean mainHand) {
+    public PlayerInteractEntityEvent(Player player, Entity entity, boolean mainHand) {
         this.player = player;
-        this.entityId = entityId;
+        this.entity = entity;
         this.mainHand = mainHand;
     }
 
@@ -24,11 +25,11 @@ public class PlayerInteractEntityEvent extends Event implements Cancellable {
         return player;
     }
 
-    public int entityId() {
-        return entityId;
+    public Entity entity() {
+        return entity;
     }
 
-    public boolean mainHand() {
+    public boolean isMainHand() {
         return mainHand;
     }
 
