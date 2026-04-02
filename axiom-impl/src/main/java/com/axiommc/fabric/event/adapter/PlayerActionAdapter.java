@@ -1,6 +1,7 @@
 package com.axiommc.fabric.event.adapter;
 
 import com.axiommc.api.event.SimpleEventBus;
+import com.axiommc.api.event.player.PlayerAdvancementEvent;
 import com.axiommc.api.event.player.PlayerDamageEvent;
 import com.axiommc.api.event.player.PlayerDeathEvent;
 import com.axiommc.api.event.player.PlayerGameModeChangeEvent;
@@ -33,6 +34,24 @@ public class PlayerActionAdapter implements FabricEventAdapter {
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
         PlayerActionAdapter.eventBus = eventBus;
         PlayerActionAdapter.playerProvider = playerProvider;
+    }
+
+    /**
+     * Called when a player earns an advancement.
+     *
+     * @param serverPlayer the player earning the advancement
+     * @param advancement  the advancement resource identifier
+     */
+    public static void onAdvancement(ServerPlayer serverPlayer, String advancement) {
+        if (eventBus == null) {
+            return;
+        }
+        try {
+            FabricPlayer player = new FabricPlayer(serverPlayer);
+            eventBus.publish(new PlayerAdvancementEvent(player, advancement));
+        } catch (Exception exception) {
+            Axiom.logger().debug("Error firing PlayerAdvancementEvent", exception);
+        }
     }
 
     /**
@@ -164,6 +183,16 @@ public class PlayerActionAdapter implements FabricEventAdapter {
             Location to = new Location(toWorld, destination, new Vector2(0, 0));
             PlayerPositionEvent.Teleport event = new PlayerPositionEvent.Teleport(player, from, to);
             eventBus.publish(event);
+
+            // Fire WorldChange if the world changed
+            String currentWorld = serverPlayer.level().dimension().identifier().toString();
+            if (!currentWorld.equals(worldName)) {
+                World fromWorld = Axiom.world(currentWorld).orElse(null);
+                Location fromLoc = player.location();
+                Location toLoc = new Location(toWorld, destination, new Vector2(0, 0));
+                eventBus.publish(new PlayerPositionEvent.WorldChange(player, fromLoc, toLoc));
+            }
+
             return event.isCancelled();
         } catch (Exception exception) {
             Axiom.logger().debug("Error firing PlayerPositionEvent.Teleport", exception);

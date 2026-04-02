@@ -1,8 +1,10 @@
 package com.axiommc.fabric.mixin.net.minecraft.server.level;
 
 import com.axiommc.fabric.event.adapter.PlayerActionAdapter;
+import com.axiommc.fabric.event.adapter.PlayerInventoryAdapter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -102,5 +104,12 @@ public abstract class ServerPlayerMixin {
             ServerPlayer self = (ServerPlayer) (Object) this;
             PlayerActionAdapter.onDismount(self, vehicle);
         }
+    }
+
+    @Inject(method = "openMenu", at = @At("HEAD"))
+    private void onOpenMenu(
+        MenuProvider menuProvider, CallbackInfoReturnable<java.util.OptionalInt> callbackInfo) {
+        ServerPlayer self = (ServerPlayer) (Object) this;
+        PlayerInventoryAdapter.onOpen(self);
     }
 }

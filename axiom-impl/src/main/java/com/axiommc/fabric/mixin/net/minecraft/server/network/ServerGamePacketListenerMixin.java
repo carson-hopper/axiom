@@ -1,14 +1,19 @@
 package com.axiommc.fabric.mixin.net.minecraft.server.network;
 
 import com.axiommc.fabric.event.adapter.PlayerInputAdapter;
+import com.axiommc.fabric.event.adapter.PlayerInventoryAdapter;
 import com.axiommc.fabric.event.adapter.PlayerSettingsAdapter;
 import net.minecraft.network.protocol.common.ServerboundClientInformationPacket;
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -92,6 +97,36 @@ public abstract class ServerGamePacketListenerMixin {
             if (PlayerInputAdapter.onSwapHandItems(getPlayer())) {
                 callbackInfo.cancel();
             }
+        }
+    }
+
+    @Inject(method = "handleContainerClick", at = @At("HEAD"), cancellable = true)
+    private void onContainerClick(
+        ServerboundContainerClickPacket packet, CallbackInfo callbackInfo) {
+        net.minecraft.world.item.ItemStack carried = getPlayer().containerMenu.getCarried();
+        if (PlayerInventoryAdapter.onClick(getPlayer(), packet.slotNum(), carried)) {
+            callbackInfo.cancel();
+        }
+    }
+
+    @Inject(method = "handleContainerClose", at = @At("HEAD"))
+    private void onContainerClose(
+        ServerboundContainerClosePacket packet, CallbackInfo callbackInfo) {
+        PlayerInventoryAdapter.onClose(getPlayer());
+    }
+
+    @Inject(method = "handleSetCarriedItem", at = @At("HEAD"))
+    private void onSetCarriedItem(
+        ServerboundSetCarriedItemPacket packet, CallbackInfo callbackInfo) {
+        PlayerInventoryAdapter.onHeldItemChange(getPlayer(), packet.getSlot());
+    }
+
+    @Inject(method = "handleSetCreativeModeSlot", at = @At("HEAD"), cancellable = true)
+    private void onSetCreativeModeSlot(
+        ServerboundSetCreativeModeSlotPacket packet, CallbackInfo callbackInfo) {
+        if (PlayerInventoryAdapter.onCreativeSlot(
+            getPlayer(), packet.slotNum(), packet.itemStack())) {
+            callbackInfo.cancel();
         }
     }
 }

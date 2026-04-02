@@ -2,10 +2,12 @@ package com.axiommc.fabric.mixin.net.minecraft.server.network;
 
 import com.axiommc.fabric.event.adapter.ClientBrandTracker;
 import com.axiommc.fabric.event.adapter.PlayerChannelAdapter;
+import com.axiommc.fabric.event.adapter.PlayerTransferAdapter;
 import com.axiommc.fabric.event.adapter.ResourcePackAdapter;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket;
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
+import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
 import net.minecraft.network.protocol.common.custom.BrandPayload;
@@ -50,7 +52,10 @@ public abstract class ServerCommonPacketListenerMixin {
         }
     }
 
-    @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;)V", at = @At("HEAD"))
+    @Inject(
+        method = "send(Lnet/minecraft/network/protocol/Packet;)V",
+        at = @At("HEAD"),
+        cancellable = true)
     private void onSendPacket(Packet<?> packet, CallbackInfo callbackInfo) {
         ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
         ServerPlayer player = getPlayerFromListener(self);
@@ -63,6 +68,14 @@ public abstract class ServerCommonPacketListenerMixin {
                 player, pushPacket.url(), pushPacket.hash(), pushPacket.required());
         } else if (packet instanceof ClientboundResourcePackPopPacket popPacket) {
             ResourcePackAdapter.onResourcePackRemove(player);
+        } else if (packet instanceof ClientboundTransferPacket transferPacket) {
+            if (PlayerTransferAdapter.onPreTransfer(
+                player, transferPacket.host(), transferPacket.port())) {
+                callbackInfo.cancel();
+                return;
+            }
+            PlayerTransferAdapter.onPostTransfer(
+                player, transferPacket.host(), transferPacket.port());
         }
     }
 

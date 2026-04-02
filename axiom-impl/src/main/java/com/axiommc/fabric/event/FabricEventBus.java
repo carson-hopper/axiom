@@ -12,8 +12,10 @@ import com.axiommc.fabric.event.adapter.PlayerChannelAdapter;
 import com.axiommc.fabric.event.adapter.PlayerChatAdapter;
 import com.axiommc.fabric.event.adapter.PlayerConnectionAdapter;
 import com.axiommc.fabric.event.adapter.PlayerInputAdapter;
+import com.axiommc.fabric.event.adapter.PlayerInventoryAdapter;
 import com.axiommc.fabric.event.adapter.PlayerLifecycleAdapter;
 import com.axiommc.fabric.event.adapter.PlayerSettingsAdapter;
+import com.axiommc.fabric.event.adapter.PlayerTransferAdapter;
 import com.axiommc.fabric.event.adapter.ResourcePackAdapter;
 import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
 import com.axiommc.fabric.player.FabricPlayerProvider;
@@ -42,6 +44,8 @@ public class FabricEventBus extends SimpleEventBus {
         adapters.add(new PlayerActionAdapter());
         adapters.add(new PlayerInputAdapter());
         adapters.add(new PlayerLifecycleAdapter());
+        adapters.add(new PlayerTransferAdapter());
+        adapters.add(new PlayerInventoryAdapter());
     }
 
     /**
