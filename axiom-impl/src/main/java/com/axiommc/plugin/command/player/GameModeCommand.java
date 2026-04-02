@@ -22,8 +22,7 @@ public class GameModeCommand {
     @Usage("<mode>")
     public void setOwnGameMode(Player sender, @Arg("mode") GameMode gameMode) {
         sender.gameMode(gameMode);
-        sender.sendMessage(ChatComponent.text(
-                "Game mode set to " + gameMode.name().toLowerCase())
+        sender.sendMessage(ChatComponent.textf("Game mode set to {}", gameMode.name().toLowerCase())
                 .color(ChatColor.GREEN));
     }
 
@@ -34,8 +33,7 @@ public class GameModeCommand {
                                  @Arg("mode") GameMode gameMode,
                                  @Arg("target") Player target) {
         target.gameMode(gameMode);
-        sender.sendMessage(ChatComponent.text(
-                "Set " + target.name() + "'s game mode to " + gameMode.name().toLowerCase())
+        sender.sendMessage(ChatComponent.textf("Set {}'s game mode to {}", target.name(), gameMode.name().toLowerCase())
                 .color(ChatColor.GREEN));
     }
 }

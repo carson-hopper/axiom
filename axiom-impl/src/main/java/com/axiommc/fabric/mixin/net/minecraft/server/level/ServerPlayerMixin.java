@@ -88,8 +88,8 @@ public abstract class ServerPlayerMixin {
         }
     }
 
-    @Inject(method = "stopRiding", at = @At("HEAD"))
-    private void onStopRiding(CallbackInfo callbackInfo) {
+    @Inject(method = "removeVehicle", at = @At("HEAD"))
+    private void onRemoveVehicle(CallbackInfo callbackInfo) {
         Entity vehicle = ((Entity) (Object) this).getVehicle();
         if (vehicle != null) {
             ServerPlayer self = (ServerPlayer) (Object) this;
