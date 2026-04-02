@@ -93,29 +93,29 @@ public final class ConsoleColorFormatter {
             return "";
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < legacyText.length(); i++) {
-            char c = legacyText.charAt(i);
+            char character = legacyText.charAt(i);
 
-            if (c == '§' && i + 1 < legacyText.length()) {
+            if (character == '§' && i + 1 < legacyText.length()) {
                 char code = legacyText.charAt(i + 1);
                 String ansiCode = legacyCodeToAnsi(code);
                 if (ansiCode != null) {
-                    sb.append(ansiCode);
+                    result.append(ansiCode);
                     i++;
                 } else {
-                    sb.append(c);
+                    result.append(character);
                 }
             } else {
-                sb.append(c);
+                result.append(character);
             }
         }
 
-        if (sb.toString().contains("\033[")) {
-            sb.append(ANSI_RESET);
+        if (result.toString().contains("\033[")) {
+            result.append(ANSI_RESET);
         }
 
-        return sb.toString();
+        return result.toString();
     }
 
     /**

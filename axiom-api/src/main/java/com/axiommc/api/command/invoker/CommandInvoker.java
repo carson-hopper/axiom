@@ -277,20 +277,20 @@ public class CommandInvoker {
                     }
                     Object parsed = parser.parse(flagValue);
                     Range range = param.getAnnotation(Range.class);
-                    if (range != null && parsed instanceof Number num) {
-                        double val = num.doubleValue();
-                        if (val < range.min() || val > range.max()) {
+                    if (range != null && parsed instanceof Number numberValue) {
+                        double doubleValue = numberValue.doubleValue();
+                        if (doubleValue < range.min() || doubleValue > range.max()) {
                             throw new ArgParseException("Flag --" + flagName + " value out of range [" + range.min() + ", " + range.max() + "]");
                         }
                     }
                     result[i] = parsed;
                 } else {
                     // Use @Default if available, otherwise use primitive default for optional flags
-                    Default def = param.getAnnotation(Default.class);
-                    if (def != null) {
+                    Default defaultAnnotation = param.getAnnotation(Default.class);
+                    if (defaultAnnotation != null) {
                         ArgParser<?> parser = parserRegistry.get(param.getType());
                         if (parser != null) {
-                            result[i] = parser.parse(def.value());
+                            result[i] = parser.parse(defaultAnnotation.value());
                         } else {
                             result[i] = null;
                         }
@@ -310,11 +310,11 @@ public class CommandInvoker {
             if (isGreedy && param.getType() == String.class) {
                 if (argIdx >= positionalArgs.size()) {
                     if (isOptional) {
-                        Default def = param.getAnnotation(Default.class);
-                        result[i] = def != null ? def.value() : null;
+                        Default defaultAnnotation = param.getAnnotation(Default.class);
+                        result[i] = defaultAnnotation != null ? defaultAnnotation.value() : null;
                     } else {
-                        Arg arg = param.getAnnotation(Arg.class);
-                        String name = arg != null ? arg.value() : param.getName();
+                        Arg argAnnotation = param.getAnnotation(Arg.class);
+                        String name = argAnnotation != null ? argAnnotation.value() : param.getName();
                         sender.sendMessage("Missing required argument: <" + name + ">");
                         return null;
                     }
@@ -327,17 +327,17 @@ public class CommandInvoker {
 
             if (argIdx >= positionalArgs.size()) {
                 if (isOptional) {
-                    Default def = param.getAnnotation(Default.class);
-                    if (def != null) {
+                    Default defaultAnnotation = param.getAnnotation(Default.class);
+                    if (defaultAnnotation != null) {
                         ArgParser<?> parser = parserRegistry.get(param.getType());
                         if (parser != null) {
-                            Object parsed = parser.parse(def.value());
+                            Object parsed = parser.parse(defaultAnnotation.value());
                             // Apply @Range check to default value too
                             Range range = param.getAnnotation(Range.class);
-                            if (range != null && parsed instanceof Number num) {
-                                double val = num.doubleValue();
-                                if (val < range.min() || val > range.max()) {
-                                    throw new ArgParseException("Default value " + def.value() + " is out of range [" + range.min() + ", " + range.max() + "]");
+                            if (range != null && parsed instanceof Number numberValue) {
+                                double doubleValue = numberValue.doubleValue();
+                                if (doubleValue < range.min() || doubleValue > range.max()) {
+                                    throw new ArgParseException("Default value " + defaultAnnotation.value() + " is out of range [" + range.min() + ", " + range.max() + "]");
                                 }
                             }
                             result[i] = parsed;
@@ -348,8 +348,8 @@ public class CommandInvoker {
                         result[i] = null;
                     }
                 } else {
-                    Arg arg = param.getAnnotation(Arg.class);
-                    String name = arg != null ? arg.value() : param.getName();
+                    Arg argAnnotation = param.getAnnotation(Arg.class);
+                    String name = argAnnotation != null ? argAnnotation.value() : param.getName();
                     sender.sendMessage("Missing required argument: <" + name + ">");
                     return null;
                 }
@@ -365,9 +365,9 @@ public class CommandInvoker {
             Object parsed = parser.parse(raw);
 
             Range range = param.getAnnotation(Range.class);
-            if (range != null && parsed instanceof Number num) {
-                double val = num.doubleValue();
-                if (val < range.min() || val > range.max()) {
+            if (range != null && parsed instanceof Number numberValue) {
+                double doubleValue = numberValue.doubleValue();
+                if (doubleValue < range.min() || doubleValue > range.max()) {
                     throw new ArgParseException("Value " + raw + " is out of range [" + range.min() + ", " + range.max() + "]");
                 }
             }
@@ -714,8 +714,8 @@ public class CommandInvoker {
                     List<String> suggestions = parser.suggest(partial);
                     // If parser has no suggestions, use the parameter name as guidance
                     if (suggestions.isEmpty()) {
-                        Arg arg = param.getAnnotation(Arg.class);
-                        String paramName = arg != null ? arg.value() : param.getName();
+                        Arg argAnnotation = param.getAnnotation(Arg.class);
+                        String paramName = argAnnotation != null ? argAnnotation.value() : param.getName();
                         return Arrays.asList("<" + paramName + ">");
                     }
                     return suggestions;

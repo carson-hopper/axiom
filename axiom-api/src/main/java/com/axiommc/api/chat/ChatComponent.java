@@ -69,18 +69,18 @@ public record ChatComponent(String type, String content, String translatableKey,
     // ── Internal copy-with ─────────────────────────────────────────────────
 
     private BuilderImpl copyToBuilder() {
-        BuilderImpl b = new BuilderImpl(type, content, translatableKey, translatableArgs, keybind);
-        b.color = this.color;
-        b.bold = this.bold;
-        b.italic = this.italic;
-        b.underlined = this.underlined;
-        b.strikethrough = this.strikethrough;
-        b.obfuscated = this.obfuscated;
-        b.insertion = this.insertion;
-        b.clickEvent = this.clickEvent;
-        b.hoverEvent = this.hoverEvent;
-        b.children.addAll(this.children);
-        return b;
+        BuilderImpl builder = new BuilderImpl(type, content, translatableKey, translatableArgs, keybind);
+        builder.color = this.color;
+        builder.bold = this.bold;
+        builder.italic = this.italic;
+        builder.underlined = this.underlined;
+        builder.strikethrough = this.strikethrough;
+        builder.obfuscated = this.obfuscated;
+        builder.insertion = this.insertion;
+        builder.clickEvent = this.clickEvent;
+        builder.hoverEvent = this.hoverEvent;
+        builder.children.addAll(this.children);
+        return builder;
     }
 
     // ── Static factories ───────────────────────────────────────────────────
@@ -130,11 +130,11 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new text component with the specified color and decorations
      */
     public static ChatComponent text(String content, ChatColor color, ChatDecoration... decorations) {
-        ChatComponent c = text(content).color(color);
-        for (ChatDecoration d : decorations) {
-            c = c.decoration(d, true);
+        ChatComponent component = text(content).color(color);
+        for (ChatDecoration decoration : decorations) {
+            component = component.decoration(decoration, true);
         }
-        return c;
+        return component;
     }
 
     /**
@@ -182,9 +182,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the specified color
      */
     public ChatComponent color(ChatColor color) {
-        BuilderImpl b = copyToBuilder();
-        b.color = color;
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.color = color;
+        return builder.build();
     }
 
     /**
@@ -195,15 +195,15 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the updated decoration
      */
     public ChatComponent decoration(ChatDecoration decoration, boolean active) {
-        BuilderImpl b = copyToBuilder();
+        BuilderImpl builder = copyToBuilder();
         switch (decoration) {
-            case BOLD -> b.bold = active;
-            case ITALIC -> b.italic = active;
-            case UNDERLINED -> b.underlined = active;
-            case STRIKETHROUGH -> b.strikethrough = active;
-            case OBFUSCATED -> b.obfuscated = active;
+            case BOLD -> builder.bold = active;
+            case ITALIC -> builder.italic = active;
+            case UNDERLINED -> builder.underlined = active;
+            case STRIKETHROUGH -> builder.strikethrough = active;
+            case OBFUSCATED -> builder.obfuscated = active;
         }
-        return b.build();
+        return builder.build();
     }
 
     /**
@@ -266,9 +266,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the specified insertion text
      */
     public ChatComponent insertion(String insertion) {
-        BuilderImpl b = copyToBuilder();
-        b.insertion = insertion;
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.insertion = insertion;
+        return builder.build();
     }
 
     // ── Composition ────────────────────────────────────────────────────────
@@ -280,9 +280,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the appended child
      */
     public ChatComponent append(ChatComponent other) {
-        BuilderImpl b = copyToBuilder();
-        b.children.add(other);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.children.add(other);
+        return builder.build();
     }
 
     /**
@@ -335,9 +335,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the click event
      */
     public ChatComponent clickRunCommand(String command) {
-        BuilderImpl b = copyToBuilder();
-        b.clickEvent = ChatClickEvent.runCommand(command);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.clickEvent = ChatClickEvent.runCommand(command);
+        return builder.build();
     }
 
     /**
@@ -350,9 +350,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the click event
      */
     public ChatComponent clickSuggestCommand(String command) {
-        BuilderImpl b = copyToBuilder();
-        b.clickEvent = ChatClickEvent.suggestCommand(command);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.clickEvent = ChatClickEvent.suggestCommand(command);
+        return builder.build();
     }
 
     /**
@@ -364,9 +364,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the click event
      */
     public ChatComponent clickOpenUrl(String url) {
-        BuilderImpl b = copyToBuilder();
-        b.clickEvent = ChatClickEvent.openUrl(url);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.clickEvent = ChatClickEvent.openUrl(url);
+        return builder.build();
     }
 
     /**
@@ -378,9 +378,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the click event
      */
     public ChatComponent clickCopyToClipboard(String text) {
-        BuilderImpl b = copyToBuilder();
-        b.clickEvent = ChatClickEvent.copyToClipboard(text);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.clickEvent = ChatClickEvent.copyToClipboard(text);
+        return builder.build();
     }
 
     // ── Hover events ───────────────────────────────────────────────────────
@@ -395,9 +395,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the hover event
      */
     public ChatComponent hoverText(ChatComponent text) {
-        BuilderImpl b = copyToBuilder();
-        b.hoverEvent = ChatHoverEvent.showText(text);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.hoverEvent = ChatHoverEvent.showText(text);
+        return builder.build();
     }
 
     /**
@@ -410,9 +410,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the hover event
      */
     public ChatComponent hoverShowItem(Item item) {
-        BuilderImpl b = copyToBuilder();
-        b.hoverEvent = ChatHoverEvent.showItem(item);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.hoverEvent = ChatHoverEvent.showItem(item);
+        return builder.build();
     }
 
     /**
@@ -427,9 +427,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a new component with the hover event
      */
     public ChatComponent hoverShowEntity(UUID uuid, String entityType, ChatComponent name) {
-        BuilderImpl b = copyToBuilder();
-        b.hoverEvent = ChatHoverEvent.showEntity(uuid, entityType, name);
-        return b.build();
+        BuilderImpl builder = copyToBuilder();
+        builder.hoverEvent = ChatHoverEvent.showEntity(uuid, entityType, name);
+        return builder.build();
     }
 
     // ── Accessors ──────────────────────────────────────────────────────────
@@ -449,33 +449,33 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a string with legacy color codes
      */
     public String toLegacy() {
-        StringBuilder sb = new StringBuilder();
-        appendLegacy(sb);
-        return sb.toString();
+        StringBuilder result = new StringBuilder();
+        appendLegacy(result);
+        return result.toString();
     }
 
-    private void appendLegacy(StringBuilder sb) {
+    private void appendLegacy(StringBuilder output) {
         if (color != null && color.hasLegacyCode()) {
-            sb.append('§').append(color.legacyCode());
+            output.append('§').append(color.legacyCode());
         }
         if (bold) {
-            sb.append("§l");
+            output.append("§l");
         }
         if (italic) {
-            sb.append("§o");
+            output.append("§o");
         }
         if (underlined) {
-            sb.append("§n");
+            output.append("§n");
         }
         if (strikethrough) {
-            sb.append("§m");
+            output.append("§m");
         }
         if (obfuscated) {
-            sb.append("§k");
+            output.append("§k");
         }
-        sb.append(content);
+        output.append(content);
         for (ChatComponent child : children) {
-            child.appendLegacy(sb);
+            child.appendLegacy(output);
         }
     }
 
@@ -485,11 +485,11 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return the plain text content
      */
     public String toPlainText() {
-        StringBuilder sb = new StringBuilder(content);
+        StringBuilder result = new StringBuilder(content);
         for (ChatComponent child : children) {
-            sb.append(child.toPlainText());
+            result.append(child.toPlainText());
         }
-        return sb.toString();
+        return result.toString();
     }
 
     /**
@@ -498,38 +498,38 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a string in MiniMessage format
      */
     public String toMiniMessage() {
-        StringBuilder sb = new StringBuilder();
-        appendMiniMessage(sb);
-        return sb.toString();
+        StringBuilder result = new StringBuilder();
+        appendMiniMessage(result);
+        return result.toString();
     }
 
-    private void appendMiniMessage(StringBuilder sb) {
+    private void appendMiniMessage(StringBuilder output) {
         List<String> openTags = new ArrayList<>();
         if (color != null) {
             String tag = color.hasLegacyCode()
                     ? colorNameForMiniMessage(color)
                     : color.asHexString();
-            sb.append('<').append(tag).append('>');
+            output.append('<').append(tag).append('>');
             openTags.add(tag);
         }
         if (bold) {
-            sb.append("<bold>");
+            output.append("<bold>");
             openTags.add("bold");
         }
         if (italic) {
-            sb.append("<italic>");
+            output.append("<italic>");
             openTags.add("italic");
         }
         if (underlined) {
-            sb.append("<underlined>");
+            output.append("<underlined>");
             openTags.add("underlined");
         }
         if (strikethrough) {
-            sb.append("<strikethrough>");
+            output.append("<strikethrough>");
             openTags.add("strikethrough");
         }
         if (obfuscated) {
-            sb.append("<obfuscated>");
+            output.append("<obfuscated>");
             openTags.add("obfuscated");
         }
         if (clickEvent != null) {
@@ -539,16 +539,16 @@ public record ChatComponent(String type, String content, String translatableKey,
                 case OPEN_URL -> "open_url";
                 case COPY_TO_CLIPBOARD -> "copy_to_clipboard";
             };
-            sb.append("<click:").append(action).append(":\"").append(sanitizeMiniMessageValue(clickEvent.value())).append("\">");
+            output.append("<click:").append(action).append(":\"").append(sanitizeMiniMessageValue(clickEvent.value())).append("\">");
             openTags.add("click");
         }
         // Note: hover events are not serialized to MiniMessage format (complex nested structure)
-        sb.append(stripLegacyCodes(content));
+        output.append(stripLegacyCodes(content));
         for (ChatComponent child : children) {
-            child.appendMiniMessage(sb);
+            child.appendMiniMessage(output);
         }
         for (int i = openTags.size() - 1; i >= 0; i--) {
-            sb.append("</").append(openTags.get(i)).append('>');
+            output.append("</").append(openTags.get(i)).append('>');
         }
     }
 
@@ -560,9 +560,9 @@ public record ChatComponent(String type, String content, String translatableKey,
      * @return a string in HTML format
      */
     public String toHtml() {
-        StringBuilder sb = new StringBuilder();
-        appendHtml(sb);
-        return sb.toString();
+        StringBuilder result = new StringBuilder();
+        appendHtml(result);
+        return result.toString();
     }
 
     private static String htmlEscape(String text) {
@@ -574,11 +574,11 @@ public record ChatComponent(String type, String content, String translatableKey,
                 .replace("'", "&#x27;");
     }
 
-    private void appendHtml(StringBuilder sb) {
+    private void appendHtml(StringBuilder output) {
         if (TYPE_NEWLINE.equals(type)) {
-            sb.append("<br>");
+            output.append("<br>");
             for (ChatComponent child : children) {
-                child.appendHtml(sb);
+                child.appendHtml(output);
             }
             return;
         }
@@ -668,15 +668,15 @@ public record ChatComponent(String type, String content, String translatableKey,
             closeTags.addFirst("</s>");
         }
 
-        for (String t : openTags) {
-            sb.append(t);
+        for (String tag : openTags) {
+            output.append(tag);
         }
-        sb.append(htmlEscape(content));
+        output.append(htmlEscape(content));
         for (ChatComponent child : children) {
-            child.appendHtml(sb);
+            child.appendHtml(output);
         }
-        for (String t : closeTags) {
-            sb.append(t);
+        for (String tag : closeTags) {
+            output.append(tag);
         }
     }
 
@@ -984,8 +984,8 @@ public record ChatComponent(String type, String content, String translatableKey,
         }
 
         @Override
-        public Builder append(ChatComponent c) {
-            children.add(c);
+        public Builder append(ChatComponent component) {
+            children.add(component);
             return this;
         }
 
@@ -1123,7 +1123,7 @@ public record ChatComponent(String type, String content, String translatableKey,
         if (args == null || args.length == 0) {
             return message;
         }
-        StringBuilder sb = new StringBuilder();
+        StringBuilder result = new StringBuilder();
         int argIndex = 0;
         int i = 0;
         while (i < message.length()) {
@@ -1131,16 +1131,16 @@ public record ChatComponent(String type, String content, String translatableKey,
                     && message.charAt(i) == '{'
                     && message.charAt(i + 1) == '}') {
                 if (argIndex < args.length) {
-                    sb.append(args[argIndex++]);
+                    result.append(args[argIndex++]);
                 } else {
-                    sb.append("{}");
+                    result.append("{}");
                 }
                 i += 2;
             } else {
-                sb.append(message.charAt(i));
+                result.append(message.charAt(i));
                 i++;
             }
         }
-        return sb.toString();
+        return result.toString();
     }
 }

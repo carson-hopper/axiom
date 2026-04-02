@@ -7,8 +7,8 @@ import com.axiommc.fabric.player.FabricPlayer;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.level.ServerPlayer;
 import com.axiommc.fabric.Axiom;
 
 /**
@@ -21,22 +21,22 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             try {
-                var serverPlayer = handler.getPlayer();
-                var player = playerProvider.player(serverPlayer.getUUID())
+                ServerPlayer serverPlayer = handler.getPlayer();
+                FabricPlayer player = playerProvider.player(serverPlayer.getUUID())
                         .orElseGet(() -> new FabricPlayer(serverPlayer));
                 eventBus.publish(new PlayerJoinEvent(player));
-            } catch (Exception e) {
+            } catch (Exception exception) {
 
             }
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             try {
-                var serverPlayer = handler.getPlayer();
-                var player = new FabricPlayer(serverPlayer);
+                ServerPlayer serverPlayer = handler.getPlayer();
+                FabricPlayer player = new FabricPlayer(serverPlayer);
                 Axiom.logger().debug("Firing PlayerLeaveEvent for {}", player.name());
                 eventBus.publish(new PlayerLeaveEvent(player));
-            } catch (Exception e) {
+            } catch (Exception exception) {
 
             }
         });

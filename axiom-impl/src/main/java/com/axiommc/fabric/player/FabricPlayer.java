@@ -20,6 +20,7 @@ import com.axiommc.fabric.world.FabricWorld;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.network.protocol.game.ClientboundClearTitlesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
@@ -158,17 +159,7 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
 
     @Override
     public void transfer(Server server) {
-        // TODO: Implement server transfer using Minecraft 1.20.5+ TransitionPacket
-        // Example (Minecraft 1.20.5+):
-        // try {
-        //     Class<?> transitionPacketClass = Class.forName("net.minecraft.network.protocol.game.ClientboundTransitionPacket");
-        //     Constructor<?> constructor = transitionPacketClass.getConstructor(String.class, int.class);
-        //     Object packet = constructor.newInstance(server.host(), server.port());
-        //     player.connection.send(packet);
-        // } catch (Exception e) {
-        //     logger.error("Failed to transfer player {}", name(), e);
-        // }
-        Axiom.logger().warn("Player transfer not yet implemented for {}", name());
+        player.connection.send(new ClientboundTransferPacket(server.host(), server.port()));
     }
 
     // ============================================================

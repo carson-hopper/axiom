@@ -110,10 +110,10 @@ public final class ScreenEntitySpawner {
         return new SpawnResult(entityIds, interactionMap, cursorId);
     }
 
-    public static void moveCursor(ServerPlayer player, int cursorEntityId, Vec3 pos) {
+    public static void moveCursor(ServerPlayer player, int cursorEntityId, Vec3 position) {
         player.connection.send(ClientboundTeleportEntityPacket.teleport(
                 cursorEntityId,
-                new PositionMoveRotation(pos, Vec3.ZERO, 0f, 0f),
+                new PositionMoveRotation(position, Vec3.ZERO, 0f, 0f),
                 Set.of(),
                 false
         ));
@@ -139,8 +139,8 @@ public final class ScreenEntitySpawner {
         entity.setId(id);
 
         // Position panel at its top-left corner since TextDisplay renders downward-right
-        Vec3 pos = elementPosition(center, right, up, panel.x(), panel.y(), screen);
-        entity.setPos(pos.x, pos.y, pos.z);
+        Vec3 position = elementPosition(center, right, up, panel.x(), panel.y(), screen);
+        entity.setPos(position.x, position.y, position.z);
         entity.setYRot(yaw + 180f);
 
         int argb = panelStyleToArgb(panel.style());
@@ -186,8 +186,8 @@ public final class ScreenEntitySpawner {
         int id = nextId();
         entity.setId(id);
 
-        Vec3 pos = elementPosition(center, right, up, label.x(), label.y(), screen);
-        entity.setPos(pos.x, pos.y, pos.z);
+        Vec3 position = elementPosition(center, right, up, label.x(), label.y(), screen);
+        entity.setPos(position.x, position.y, position.z);
         entity.setYRot(yaw + 180f);
 
         invokeMethod(entity, Display.TextDisplay.class, "setText",
@@ -218,10 +218,11 @@ public final class ScreenEntitySpawner {
         int id = nextId();
         entity.setId(id);
 
-        float cx = button.x() + button.width() / 2f;
-        float cy = button.y() + button.height() / 2f;
-        Vec3 pos = elementPosition(center, right, up, cx, cy, screen);
-        entity.setPos(pos.x, pos.y, pos.z);
+        float centerX = button.x() + button.width() / 2f;
+        float centerY = button.y() + button.height() / 2f;
+        Vec3 position = elementPosition(
+                center, right, up, centerX, centerY, screen);
+        entity.setPos(position.x, position.y, position.z);
         entity.setYRot(yaw + 180f);
 
         invokeMethod(entity, Display.TextDisplay.class, "setText",
@@ -252,10 +253,11 @@ public final class ScreenEntitySpawner {
         int id = nextId();
         entity.setId(id);
 
-        float cx = button.x() + button.width() / 2f;
-        float cy = button.y() + button.height() / 2f;
-        Vec3 pos = elementPosition(center, right, up, cx, cy, screen);
-        entity.setPos(pos.x, pos.y, pos.z);
+        float centerX = button.x() + button.width() / 2f;
+        float centerY = button.y() + button.height() / 2f;
+        Vec3 position = elementPosition(
+                center, right, up, centerX, centerY, screen);
+        entity.setPos(position.x, position.y, position.z);
 
         float w = button.width() * screen.width();
         float h = button.height() * screen.height();
@@ -274,8 +276,8 @@ public final class ScreenEntitySpawner {
         int id = nextId();
         entity.setId(id);
 
-        Vec3 pos = elementPosition(center, right, up, slot.x(), slot.y(), screen);
-        entity.setPos(pos.x, pos.y, pos.z);
+        Vec3 position = elementPosition(center, right, up, slot.x(), slot.y(), screen);
+        entity.setPos(position.x, position.y, position.z);
 
         float size = slot.size() * Math.min(screen.width(), screen.height());
         setData(entity, Interaction.class, "DATA_WIDTH_ID",  Float.class, size);
@@ -293,11 +295,12 @@ public final class ScreenEntitySpawner {
         int id = nextId();
         entity.setId(id);
 
-        Vec3 pos = elementPosition(center, right, up, slot.x(), slot.y(), screen);
-        entity.setPos(pos.x, pos.y, pos.z);
+        Vec3 position = elementPosition(center, right, up, slot.x(), slot.y(), screen);
+        entity.setPos(position.x, position.y, position.z);
         entity.setYRot(yaw + 180f);
 
-        var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(slot.item()));
+        net.minecraft.world.item.Item item =
+                BuiltInRegistries.ITEM.getValue(Identifier.parse(slot.item()));
         invokeMethod(entity, Display.ItemDisplay.class, "setItemStack",
                 ItemStack.class, new ItemStack(item));
 
@@ -313,12 +316,12 @@ public final class ScreenEntitySpawner {
         return id;
     }
 
-    private static int spawnCursor(ServerPlayer player, ServerLevel level, Vec3 pos) {
+    private static int spawnCursor(ServerPlayer player, ServerLevel level, Vec3 position) {
         Display.TextDisplay entity = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
         int id = nextId();
         entity.setId(id);
 
-        entity.setPos(pos.x, pos.y, pos.z);
+        entity.setPos(position.x, position.y, position.z);
 
         invokeMethod(entity, Display.TextDisplay.class, "setText",
                 net.minecraft.network.chat.Component.class,
@@ -383,9 +386,11 @@ public final class ScreenEntitySpawner {
                                     Class<?> holderClass, String fieldName,
                                     Class<T> type, T value) {
         try {
-            var field = holderClass.getDeclaredField(fieldName);
+            java.lang.reflect.Field field =
+                    holderClass.getDeclaredField(fieldName);
             field.setAccessible(true);
-            var accessor = (net.minecraft.network.syncher.EntityDataAccessor) field.get(null);
+            net.minecraft.network.syncher.EntityDataAccessor accessor =
+                    (net.minecraft.network.syncher.EntityDataAccessor) field.get(null);
             entity.getEntityData().set(accessor, value);
         } catch (Exception e) {
             Axiom.logger().debug("setData({}.{}) failed: {}", holderClass.getSimpleName(), fieldName, e.getMessage());
@@ -426,7 +431,8 @@ public final class ScreenEntitySpawner {
             }
         } catch (Exception e) {
             // Fallback to getNonDefaultValues if packAll is renamed/unavailable
-            var packed = entity.getEntityData().getNonDefaultValues();
+            List<net.minecraft.network.syncher.SynchedEntityData.DataValue<?>> packed =
+                    entity.getEntityData().getNonDefaultValues();
             if (packed != null) {
                 player.connection.send(new ClientboundSetEntityDataPacket(id, packed));
             }

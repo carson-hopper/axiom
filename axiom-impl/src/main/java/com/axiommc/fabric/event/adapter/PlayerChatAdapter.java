@@ -2,9 +2,11 @@ package com.axiommc.fabric.event.adapter;
 
 import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerChatEvent;
-import com.axiommc.fabric.player.FabricPlayerProvider;
-import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.player.FabricPlayer;
+import com.axiommc.fabric.player.FabricPlayerProvider;
+import java.util.Optional;
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 
 /**
  * Fires PlayerChatEvent using Fabric's message callbacks.
@@ -16,15 +18,15 @@ public class PlayerChatAdapter implements FabricEventAdapter {
     public void register(SimpleEventBus eventBus, FabricPlayerProvider playerProvider) {
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
             try {
-                var player = playerProvider.player(sender.getUUID());
+                Optional<FabricPlayer> player = playerProvider.player(sender.getUUID());
                 if (player.isPresent()) {
                     String content = message.signedContent();
                     PlayerChatEvent event = new PlayerChatEvent(player.get(), content);
                     eventBus.publish(event);
                     return !event.isCancelled();
                 }
-            } catch (Exception e) {
-                Axiom.logger().debug("Error firing PlayerChatEvent", e);
+            } catch (Exception exception) {
+                Axiom.logger().debug("Error firing PlayerChatEvent", exception);
             }
             return true;
         });

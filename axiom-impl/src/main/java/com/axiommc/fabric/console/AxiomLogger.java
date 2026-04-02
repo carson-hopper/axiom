@@ -89,7 +89,7 @@ public class AxiomLogger {
         if (args == null || args.length == 0) {
             return message;
         }
-        StringBuilder sb = new StringBuilder();
+        StringBuilder result = new StringBuilder();
         int argIndex = 0;
         int i = 0;
         while (i < message.length()) {
@@ -97,16 +97,16 @@ public class AxiomLogger {
                     && message.charAt(i) == '{'
                     && message.charAt(i + 1) == '}') {
                 if (argIndex < args.length) {
-                    sb.append(args[argIndex++]);
+                    result.append(args[argIndex++]);
                 } else {
-                    sb.append("{}");
+                    result.append("{}");
                 }
                 i += 2;
             } else {
-                sb.append(message.charAt(i));
+                result.append(message.charAt(i));
                 i++;
             }
         }
-        return sb.toString();
+        return result.toString();
     }
 }
