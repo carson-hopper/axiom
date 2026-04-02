@@ -46,7 +46,7 @@ public abstract class ServerPlayerMixin {
                         boolean retainOwnership,
                         CallbackInfoReturnable<ItemEntity> callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
-        if (PlayerActionAdapter.onDropItem(self, itemStack.getItem().toString())) {
+        if (PlayerActionAdapter.onDropItem(self, itemStack)) {
             callbackInfo.setReturnValue(null);
         }
     }
@@ -54,10 +54,7 @@ public abstract class ServerPlayerMixin {
     @Inject(method = "onItemPickup", at = @At("HEAD"))
     private void onItemPickup(ItemEntity itemEntity, CallbackInfo callbackInfo) {
         ServerPlayer self = (ServerPlayer) (Object) this;
-        PlayerActionAdapter.onPickupItem(
-                self,
-                itemEntity.getItem().getItem().toString(),
-                itemEntity.getItem().getCount());
+        PlayerActionAdapter.onPickupItem(self, itemEntity.getItem());
     }
 
     @Inject(method = "setGameMode", at = @At("HEAD"), cancellable = true)

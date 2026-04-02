@@ -32,8 +32,8 @@
 
 ## About
 
-Axiom is an open-source plugin framework for Minecraft servers that provides a structured, opinionated foundation for building server plugins. 
-Rather than wiring together boilerplate for every project, Axiom gives you the primitives commands, events, permissions, configuration, GUIs, 
+Axiom is an open-source plugin framework for Minecraft servers that provides a structured, opinionated foundation for building server plugins.
+Rather than wiring together boilerplate for every project, Axiom gives you the primitives commands, events, permissions, configuration, GUIs,
 and more wrapped in a modern Java API that feels like it belongs in 2025, not 2013.
 
 Axiom follows **record-style accessor conventions** (`name()` instead of `getName()`), enforces clean architecture patterns, and targets **Java 25+** on **Fabric 0.18.5+** as its baseline.
@@ -58,7 +58,19 @@ Axiom follows **record-style accessor conventions** (`name()` instead of `getNam
 
 ### Installation
 
-Add Axiom as a dependency in your project:
+**Server Setup** - downloads Fabric and sets up Axiom:
+
+```bash
+curl -fsSL https://installer.axiomms.sh | sh
+```
+
+**Scaffold a Plugin Project** - creates a new Axiom plugin project:
+
+```bash
+curl -fsSL https://installer.axiomms.sh/project | sh
+```
+
+**Manual Setup** - add Axiom as a dependency directly:
 
 **Gradle (Kotlin DSL)**
 
@@ -81,10 +93,10 @@ dependencies {
 </repository>
 
 <dependency>
-<groupId>com.axiommc</groupId>
-<artifactId>axiom-api</artifactId>
-<version>1.0.0</version>
-<scope>provided</scope>
+    <groupId>com.axiommc</groupId>
+    <artifactId>axiom-api</artifactId>
+    <version>1.0.0</version>
+    <scope>provided</scope>
 </dependency>
 ```
 
@@ -95,14 +107,9 @@ dependencies {
 public class ExamplePlugin extends AxiomPlugin {
 
     @Override
-    public void onEnable(PluginContext context) {
-        commands().register(new GreetCommand());
-        events().listen(PlayerJoinEvent.class, this::onJoin);
-        logger().info("ExamplePlugin enabled!");
-    }
-
-    private void onJoin(PlayerJoinEvent event) {
-        event.player().sendMessage("Welcome to the server!");
+    protected void onEnable(PluginContext context) {
+        context.registerCommand(new GreetCommand());
+        context.logger().info("ExamplePlugin enabled!");
     }
 }
 ```
@@ -127,7 +134,7 @@ Contributions are welcome and appreciated! Before opening a PR, please read the 
 This project enforces a strict code style based on the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) with **record-style accessor naming**. See [`STYLE.md`](STYLE.md) for the full guide. The key points:
 
 - **No `get`/`set` prefixes** — use `name()`, not `getName()`. The `is` prefix is retained for booleans.
-- **2-space indentation**, 100-character column limit.
+- **4-space indentation**, 100-character column limit.
 - **Format with `google-java-format`** before committing.
 - **Commits must follow [Conventional Commits](https://www.conventionalcommits.org/)** with module-scoped prefixes (e.g., `feat(commands): add tab completion`).
 

@@ -7,6 +7,8 @@ import com.axiommc.api.event.player.PlayerGameModeChangeEvent;
 import com.axiommc.api.player.GameMode;
 import com.axiommc.api.event.player.PlayerItemEvent;
 import com.axiommc.api.event.player.PlayerRideEvent;
+import com.axiommc.api.item.Item;
+import com.axiommc.api.item.ItemStack;
 import com.axiommc.api.event.player.PlayerPositionEvent;
 import com.axiommc.api.math.Vector2;
 import com.axiommc.api.math.Vector3;
@@ -77,17 +79,19 @@ public class PlayerActionAdapter implements FabricEventAdapter {
     /**
      * Called when a player drops an item.
      *
-     * @param serverPlayer the player dropping the item
-     * @param item         the item being dropped
+     * @param serverPlayer   the player dropping the item
+     * @param droppedStack   the Minecraft item stack being dropped
      * @return true if the event was cancelled
      */
-    public static boolean onDropItem(ServerPlayer serverPlayer, String item) {
+    public static boolean onDropItem(ServerPlayer serverPlayer,
+                                     net.minecraft.world.item.ItemStack droppedStack) {
         if (eventBus == null) {
             return false;
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            PlayerItemEvent.Drop event = new PlayerItemEvent.Drop(player, item);
+            ItemStack itemStack = toItemStack(droppedStack);
+            PlayerItemEvent.Drop event = new PlayerItemEvent.Drop(player, itemStack);
             eventBus.publish(event);
             return event.isCancelled();
         } catch (Exception exception) {
@@ -100,16 +104,17 @@ public class PlayerActionAdapter implements FabricEventAdapter {
      * Called when a player picks up an item.
      *
      * @param serverPlayer the player picking up the item
-     * @param item         the item being picked up
-     * @param amount       the stack count
+     * @param pickedStack  the Minecraft item stack being picked up
      */
-    public static void onPickupItem(ServerPlayer serverPlayer, String item, int amount) {
+    public static void onPickupItem(ServerPlayer serverPlayer,
+                                    net.minecraft.world.item.ItemStack pickedStack) {
         if (eventBus == null) {
             return;
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
-            eventBus.publish(new PlayerItemEvent.Pickup(player, item, amount));
+            ItemStack itemStack = toItemStack(pickedStack);
+            eventBus.publish(new PlayerItemEvent.Pickup(player, itemStack));
         } catch (Exception exception) {
             Axiom.logger().debug("Error firing PlayerPickupItemEvent", exception);
         }
@@ -210,5 +215,10 @@ public class PlayerActionAdapter implements FabricEventAdapter {
         } catch (Exception exception) {
             Axiom.logger().debug("Error firing PlayerRideEvent.Dismount", exception);
         }
+    }
+
+    private static ItemStack toItemStack(net.minecraft.world.item.ItemStack mcStack) {
+        String key = mcStack.getItem().builtInRegistryHolder().key().identifier().toString();
+        return ItemStack.of(Item.of(key), mcStack.getCount());
     }
 }
