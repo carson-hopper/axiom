@@ -17,7 +17,7 @@
   <a href="https://github.com/carson-hopper/axiom/actions"><img src="https://img.shields.io/github/actions/workflow/status/carson-hopper/axiom/build.yml?style=flat-square&label=build" alt="Build Status"></a>
   <img src="https://img.shields.io/badge/java-25%2B-7c6caf?style=flat-square&logo=openjdk&logoColor=white" alt="Java 25+">
   <img src="https://img.shields.io/badge/fabric_loader-0.18.5%2B-7c6caf?style=flat-square" alt="Fabric Loader 0.18.5+">
-  <a href="STYLE.md"><img src="https://img.shields.io/badge/style-google--java--format-7c6caf?style=flat-square" alt="Code Style"></a>
+  <a href="STYLE.md"><img src="https://img.shields.io/badge/style-axiom--java--format-7c6caf?style=flat-square" alt="Code Style"></a>
 </p>
 
 <p align="center">
@@ -32,9 +32,7 @@
 
 ## About
 
-Axiom is an open-source plugin framework for Minecraft servers that provides a structured, opinionated foundation for building server plugins.
-Rather than wiring together boilerplate for every project, Axiom gives you the primitives commands, events, permissions, configuration, GUIs,
-and more wrapped in a modern Java API that feels like it belongs in 2025, not 2013.
+Axiom is an open-source plugin framework for Minecraft servers that provides a structured, opinionated foundation for building server plugins. Rather than wiring together boilerplate for every project, Axiom gives you the primitives — commands, events, permissions, configuration, GUIs, and more — wrapped in a modern Java API that feels like it belongs in 2025, not 2013.
 
 Axiom follows **record-style accessor conventions** (`name()` instead of `getName()`), enforces clean architecture patterns, and targets **Java 25+** on **Fabric 0.18.5+** as its baseline.
 
@@ -124,6 +122,7 @@ Full documentation is available at **[docs.axiommc.com](https://docs.axiommc.com
 | [Guides](https://docs.axiommc.com/guides) | Step-by-step tutorials for common tasks |
 | [Examples](examples/) | Runnable example plugins in this repository |
 | [Style Guide](STYLE.md) | Java coding standards enforced in this project |
+| [Formatter](https://github.com/carson-hopper/axiom-java-format) | Custom Java formatter for the Axiom style |
 
 ## Contributing
 
@@ -133,19 +132,20 @@ Contributions are welcome and appreciated! Before opening a PR, please read the 
 
 This project enforces a strict code style based on the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) with **record-style accessor naming**. See [`STYLE.md`](STYLE.md) for the full guide. The key points:
 
-- **No `get`/`set` prefixes** — use `name()`, not `getName()`. The `is` prefix is retained for booleans.
+- **No `get`/`set` prefixes** - use `name()`, not `getName()`. The `is` prefix is retained for booleans.
+- **No `var`** - always declare explicit types.
 - **4-space indentation**, 100-character column limit.
-- **Format with `google-java-format`** before committing.
+- **Format with [`axiom-java-format`](https://github.com/carson-hopper/axiom-java-format)** before committing - our custom fork of [palantir-java-format](https://github.com/palantir/palantir-java-format) tuned to the Axiom style (4-space indent, 100-char limit, annotation-aware parameter splitting).
 - **Commits must follow [Conventional Commits](https://www.conventionalcommits.org/)** with module-scoped prefixes (e.g., `feat(commands): add tab completion`).
 
-> **Pull requests that do not follow the style guide will be rejected.** Run the formatter and linter before pushing — CI will catch violations anyway.
+> **Pull requests that do not follow the style guide will be rejected.** Run the formatter and linter before pushing - CI will catch violations anyway.
 
 ### How to Contribute
 
 1. **Fork** the repository.
 2. **Create a branch** from `main` for your feature or fix.
 3. **Write code** following the style guide and add tests where applicable.
-4. **Format** your code: `java -jar google-java-format.jar --replace src/**/*.java`
+4. **Format** your code: `java -jar axiom-java-format.jar --style=AXIOM --replace src/**/*.java`
 5. **Commit** using Conventional Commits: `feat(gui): add pagination support`
 6. **Open a PR** against `main` with a clear description of the change.
 
@@ -165,3 +165,7 @@ This means:
 - You **must include the original license** and copyright notice in any distribution.
 
 ---
+
+<p align="center">
+  <sub>Built with care by the Axiom community.</sub>
+</p>

@@ -128,23 +128,6 @@ Bad - annotation present, not split:
 public void teleportToPlayer(Player sender, @Arg("source") Player target) {
 ```
 
-#### 2.5.2 Assignments and Constructor Calls
-
-**Do not break assignments or constructor calls to a new line if they fit within the column limit.** The `=` and the right-hand side stay on the same line whenever possible.
-
-Good - fits on one line:
-
-```java
-PlayerJoinEvent.Init event = new PlayerJoinEvent.Init(playerName);
-```
-
-Bad - unnecessary break after `=`:
-
-```java
-PlayerJoinEvent.Init event =
-        new PlayerJoinEvent.Init(playerName);
-```
-
 ### 2.6 Vertical Whitespace
 
 A single blank line appears between consecutive class members (fields, methods, constructors, nested classes). Multiple consecutive blank lines are permitted but never required.
@@ -381,10 +364,10 @@ try {
 
 ```java
 try {
-int parsed = Integer.parseInt(input);
+    int parsed = Integer.parseInt(input);
 } catch (NumberFormatException _) {
-        // Expected for user-typed input; fallback to default.
-        }
+    // Expected for user-typed input; fallback to default.
+}
 ```
 
 ### 7.3 Static Members
@@ -421,21 +404,40 @@ Never use `finalize()`. Use try-with-resources or `Cleaner` instead.
 
 ### 8.1 Formatter
 
-Use `google-java-format` to auto-format all code. Integrate it as a pre-commit hook or CI step. There is no configurability by design - this eliminates style debates.
+Use [`axiom-java-format`](https://github.com/carson-hopper/axiom-java-format) to auto-format all code. This is a custom fork of [palantir-java-format](https://github.com/palantir/palantir-java-format) tuned to the Axiom style (4-space indent, 100-char column limit, annotation-aware parameter splitting). Integrate it as a pre-commit hook or CI step.
 
 ```bash
-java -jar google-java-format.jar --replace src/**/*.java
+java -jar axiom-java-format.jar --style=AXIOM --replace src/**/*.java
 ```
 
 ### 8.2 IDE Setup
 
-- **IntelliJ:** Install the google-java-format plugin. Enable it in Settings → google-java-format Settings.
-- **Eclipse:** Import the `eclipse-java-google-style.xml` under Preferences → Java → Code Style → Formatter.
+- **IntelliJ:** Install the axiom-java-format plugin from disk (build artifacts in `idea-plugin/build/distributions/`). Enable it in Settings → axiom-java-format Settings.
 - Enable format-on-save in your IDE to enforce automatically.
 
 ### 8.3 Checkstyle
 
-Use the Google Checkstyle configuration as a baseline, then add custom checks for the accessor naming convention (no `get`/`set` prefixes). Run Checkstyle in CI to catch violations before merge.
+Use the Google Checkstyle configuration as a baseline, with the following additions for Axiom-specific rules:
+
+```xml
+<!-- Block var usage -->
+<module name="IllegalToken">
+    <property name="tokens" value="LITERAL_VAR"/>
+    <message key="illegal.token" value="Do not use var. Always declare explicit types."/>
+</module>
+
+<!-- No get/set prefixes -->
+<module name="RegexpMultiline">
+    <property name="format" value="public\s+\w+\s+get[A-Z]\w*\s*\("/>
+    <property name="message" value="Use record-style accessors: name() not getName()"/>
+</module>
+<module name="RegexpMultiline">
+    <property name="format" value="public\s+void\s+set[A-Z]\w*\s*\("/>
+    <property name="message" value="Use record-style mutators: name(x) not setName(x)"/>
+</module>
+```
+
+Run Checkstyle in CI to catch violations before merge.
 
 ### 8.4 Code Review
 
