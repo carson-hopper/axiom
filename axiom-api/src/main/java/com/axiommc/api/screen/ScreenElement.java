@@ -113,8 +113,7 @@ public sealed interface ScreenElement
      * @param item    the item to display (material key, e.g. {@code "minecraft:diamond"})
      * @param onClick click callback, or null for a non-interactive display
      */
-    record ItemSlot(float x, float y, float size, String item,
-                    ScreenClickHandler onClick)
+    record ItemSlot(float x, float y, float size, String item, ScreenClickHandler onClick)
         implements ScreenElement {
 
         public static ItemSlot display(float x, float y, float size, String item) {

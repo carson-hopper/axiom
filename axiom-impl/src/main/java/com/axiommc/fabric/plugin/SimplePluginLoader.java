@@ -92,7 +92,7 @@ public class SimplePluginLoader {
                     return;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception _) {}
 
         URLClassLoader loader = null;
         try {
@@ -127,7 +127,7 @@ public class SimplePluginLoader {
                 classLoaders.remove(loader);
                 try {
                     loader.close();
-                } catch (Exception ignored) {}
+                } catch (Exception _) {}
             }
         }
     }

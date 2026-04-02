@@ -7,6 +7,9 @@
     "net.minecraft.world.entity.player.PlayerAccessor"
   ],
   "server": [
+    "net.minecraft.server.network.ServerCommonPacketListenerMixin",
+    "net.minecraft.server.network.ServerGamePacketListenerMixin",
+    "net.minecraft.server.network.ServerLoginPacketListenerMixin",
     "net.minecraft.world.level.chunk.LevelChunkSectionMixin",
     "net.minecraft.world.level.chunk.ChunkAccessMixin"
   ],

@@ -111,8 +111,7 @@ public class FabricGuiManager implements GuiManager {
             List<Component> loreComponents = item.lore().stream()
                 .map(l -> (Component) Component.literal(l).withStyle(s -> s.withItalic(false)))
                 .toList();
-            stack.set(DataComponents.LORE,
-                new ItemLore(loreComponents));
+            stack.set(DataComponents.LORE, new ItemLore(loreComponents));
         }
 
         return stack;

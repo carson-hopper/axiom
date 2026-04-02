@@ -57,19 +57,19 @@ Follow Kernighan & Ritchie ("Egyptian brackets") style:
 
 ```java
 return new MyClass() {
-  @Override public void method() {
-    if (condition()) {
-      try {
-        something();
-      } catch (ProblemException e) {
-        recover();
-      }
-    } else if (otherCondition()) {
-      somethingElse();
-    } else {
-      lastThing();
+    @Override public void method() {
+        if (condition()) {
+            try {
+                something();
+            } catch (ProblemException e) {
+                recover();
+            }
+        } else if (otherCondition()) {
+            somethingElse();
+        } else {
+            lastThing();
+        }
     }
-  }
 };
 ```
 
@@ -95,6 +95,55 @@ Lines must not exceed 100 characters. Exceptions: long URLs in Javadoc, `package
 - A method/constructor name stays attached to its opening `(`.
 - Commas stay attached to the token before them.
 - Continuation lines are indented at least **+4 spaces** from the original line.
+
+#### 2.5.1 Parameter Lists
+
+**Keep parameters on one line if they fit within the 100-character column limit.** Do not split parameters across lines unless the line would exceed the limit. When parameters must wrap, align each parameter with the first parameter after the opening `(`.
+
+**Exception: If any parameter has an annotation, always split parameters onto separate lines** - even if they would fit on one line. Annotations add visual noise, and splitting keeps each parameter and its annotation clearly distinct.
+
+Good - no annotations, fits on one line:
+
+```java
+public static void onGameProfileRequest(String playerName, UUID profileId) {
+```
+
+Bad - no annotations, unnecessary split:
+
+```java
+public static void onGameProfileRequest(String playerName,
+                                        UUID profileId) {
+```
+
+Good - annotation present, always split:
+
+```java
+public void teleportToPlayer(Player sender,
+                             @Arg("source") Player target) {
+```
+
+Bad - annotation present, not split:
+
+```java
+public void teleportToPlayer(Player sender, @Arg("source") Player target) {
+```
+
+#### 2.5.2 Assignments and Constructor Calls
+
+**Do not break assignments or constructor calls to a new line if they fit within the column limit.** The `=` and the right-hand side stay on the same line whenever possible.
+
+Good - fits on one line:
+
+```java
+PlayerJoinEvent.Init event = new PlayerJoinEvent.Init(playerName);
+```
+
+Bad - unnecessary break after `=`:
+
+```java
+PlayerJoinEvent.Init event =
+        new PlayerJoinEvent.Init(playerName);
+```
 
 ### 2.6 Vertical Whitespace
 
@@ -222,10 +271,10 @@ Always Java-style type brackets: `String[] args`, never `String args[]`.
 
 ```java
 return switch (state) {
-        case READY -> handleReady();
+  case READY -> handleReady();
   case RUNNING -> handleRunning();
   case STOPPED -> handleStopped();
-default -> throw new IllegalStateException("Unexpected: " + state);
+  default -> throw new IllegalStateException("Unexpected: " + state);
 };
 ```
 
@@ -257,12 +306,12 @@ Records already follow our accessor convention naturally. Prefer records for sim
 ```java
 public record Position(int x, int y, int z) {
 
-    public double distanceTo(Position other) {
-        int dx = x - other.x();
-        int dy = y - other.y();
-        int dz = z - other.z();
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
-    }
+  public double distanceTo(Position other) {
+    int dx = x - other.x();
+    int dy = y - other.y();
+    int dz = z - other.z();
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  }
 }
 ```
 
@@ -320,12 +369,12 @@ Always use `@Override` when a method overrides a superclass method, implements a
 
 ### 7.2 Caught Exceptions
 
-Never silently swallow exceptions. At minimum, log a warning or rethrow. If ignoring is truly justified, name the catch variable `ignored` and add a comment explaining why.
+Never silently swallow exceptions. At minimum, log a warning or rethrow. If ignoring is truly justified, use `_` as the catch variable name and add a comment explaining why.
 
 ```java
 try {
 int parsed = Integer.parseInt(input);
-} catch (NumberFormatException ignored) {
+} catch (NumberFormatException _) {
         // Expected for user-typed input; fallback to default.
         }
 ```

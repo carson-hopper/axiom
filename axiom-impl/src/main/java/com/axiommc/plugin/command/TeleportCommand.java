@@ -24,7 +24,8 @@ public class TeleportCommand {
     @Execute(type = SenderType.PLAYER)
     @Permission("axiom.teleport")
     @Usage("<player>")
-    public void teleportToPlayer(Player sender, @Arg("source") Player target) {
+    public void teleportToPlayer(Player sender,
+                                 @Arg("source") Player target) {
         sender.teleport(target.location());
         sender.sendMessage(ChatComponent.text("Teleported to " + target.name()).color(ChatColor.GREEN));
     }
