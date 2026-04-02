@@ -1,4 +1,4 @@
-package com.axiommc.plugin.command;
+package com.axiommc.plugin.command.player;
 
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;

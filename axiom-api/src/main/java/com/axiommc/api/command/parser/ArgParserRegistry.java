@@ -27,9 +27,24 @@ public class ArgParserRegistry {
         parsers.put(type, parser);
     }
 
+    /**
+     * Returns the parser for the given type. If no parser is registered
+     * and the type is an enum, an {@link EnumArgParser} is created and
+     * cached automatically.
+     */
     @SuppressWarnings("unchecked")
     public <T> ArgParser<T> get(Class<T> type) {
-        return (ArgParser<T>) parsers.get(type);
+        ArgParser<T> parser = (ArgParser<T>) parsers.get(type);
+        if (parser == null && type.isEnum()) {
+            parser = createEnumParser(type);
+            parsers.put(type, parser);
+        }
+        return parser;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> ArgParser<T> createEnumParser(Class<T> type) {
+        return (ArgParser<T>) new EnumArgParser<>((Class<Enum>) type);
     }
 
     public boolean has(Class<?> type) {
