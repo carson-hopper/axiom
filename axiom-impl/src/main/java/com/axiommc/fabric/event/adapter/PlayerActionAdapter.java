@@ -4,6 +4,7 @@ import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.api.event.player.PlayerDamageEvent;
 import com.axiommc.api.event.player.PlayerDeathEvent;
 import com.axiommc.api.event.player.PlayerGameModeChangeEvent;
+import com.axiommc.api.player.GameMode;
 import com.axiommc.api.event.player.PlayerItemEvent;
 import com.axiommc.api.event.player.PlayerRideEvent;
 import com.axiommc.api.event.player.PlayerPositionEvent;
@@ -117,15 +118,16 @@ public class PlayerActionAdapter implements FabricEventAdapter {
      * Called when a player's game mode changes.
      *
      * @param serverPlayer the player whose game mode is changing
-     * @param gameMode     the new game mode name
+     * @param gameModeName the new game mode name
      * @return true if the event was cancelled
      */
-    public static boolean onGameModeChange(ServerPlayer serverPlayer, String gameMode) {
+    public static boolean onGameModeChange(ServerPlayer serverPlayer, String gameModeName) {
         if (eventBus == null) {
             return false;
         }
         try {
             FabricPlayer player = new FabricPlayer(serverPlayer);
+            GameMode gameMode = GameMode.fromName(gameModeName);
             PlayerGameModeChangeEvent event = new PlayerGameModeChangeEvent(player, gameMode);
             eventBus.publish(event);
             return event.isCancelled();

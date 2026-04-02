@@ -2,6 +2,7 @@ package com.axiommc.api.event.player;
 
 import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
+import com.axiommc.api.player.GameMode;
 import com.axiommc.api.player.Player;
 
 /**
@@ -10,10 +11,10 @@ import com.axiommc.api.player.Player;
 public class PlayerGameModeChangeEvent extends Event implements Cancellable {
 
     private final Player player;
-    private final String gameMode;
+    private final GameMode gameMode;
     private boolean cancelled = false;
 
-    public PlayerGameModeChangeEvent(Player player, String gameMode) {
+    public PlayerGameModeChangeEvent(Player player, GameMode gameMode) {
         this.player = player;
         this.gameMode = gameMode;
     }
@@ -22,7 +23,7 @@ public class PlayerGameModeChangeEvent extends Event implements Cancellable {
         return player;
     }
 
-    public String gameMode() {
+    public GameMode gameMode() {
         return gameMode;
     }
 
