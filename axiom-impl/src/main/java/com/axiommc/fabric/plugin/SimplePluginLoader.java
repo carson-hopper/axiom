@@ -77,16 +77,17 @@ public class SimplePluginLoader {
 
         // Detect Bukkit/Spigot/Paper plugins
         try (ZipFile check = new ZipFile(pluginFile)) {
-            // Check for plugin.yml (required by all Bukkit plugins)
-            if (check.getEntry("plugin.yml") != null) {
-                Axiom.logger().warn("{} is a Bukkit/Spigot plugin and cannot be loaded by Axiom",
+            if (check.getEntry("plugin.yml") != null
+                    || check.getEntry("paper-plugin.yml") != null) {
+                Axiom.logger().warn("{} is a Bukkit/Paper plugin and cannot be loaded by Axiom",
                         pluginFile.getName());
                 return;
             }
-            // Check for JavaPlugin class references
             for (ZipEntry entry : Collections.list(check.entries())) {
-                if (entry.getName().equals("org/bukkit/plugin/java/JavaPlugin.class")) {
-                    Axiom.logger().warn("{} is a Bukkit/Spigot plugin and cannot be loaded by Axiom",
+                String name = entry.getName();
+                if (name.equals("org/bukkit/plugin/java/JavaPlugin.class")
+                        || name.equals("io/papermc/paper/plugin/bootstrap/PluginBootstrap.class")) {
+                    Axiom.logger().warn("{} is a Bukkit/Paper plugin and cannot be loaded by Axiom",
                             pluginFile.getName());
                     return;
                 }
