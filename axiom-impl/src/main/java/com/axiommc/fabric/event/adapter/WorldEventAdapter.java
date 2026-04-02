@@ -30,14 +30,14 @@ public class WorldEventAdapter implements FabricEventAdapter {
 
         ServerChunkEvents.CHUNK_LOAD.register((serverLevel, chunk, isNewChunk) -> {
             ChunkPos pos = chunk.getPos();
-            eventBus.publish(
-                new WorldChunkEvent.Load(new FabricWorld(serverLevel), pos.x(), pos.z()));
+            FabricWorld world = new FabricWorld(serverLevel);
+            eventBus.publish(new WorldChunkEvent.PostLoad(world, pos.x(), pos.z()));
         });
 
         ServerChunkEvents.CHUNK_UNLOAD.register((serverLevel, chunk) -> {
             ChunkPos pos = chunk.getPos();
-            eventBus.publish(
-                new WorldChunkEvent.Unload(new FabricWorld(serverLevel), pos.x(), pos.z()));
+            FabricWorld world = new FabricWorld(serverLevel);
+            eventBus.publish(new WorldChunkEvent.PostUnload(world, pos.x(), pos.z()));
         });
 
         ServerLevelEvents.LOAD.register((server, serverLevel) -> {
@@ -56,6 +56,28 @@ public class WorldEventAdapter implements FabricEventAdapter {
     }
 
     // ── Static mixin hooks ──────────────────────────────────────────────
+
+    /** Called before a chunk is loaded. Returns true if loading should proceed. */
+    public static boolean onPreChunkLoad(ServerLevel serverLevel, int chunkX, int chunkZ) {
+        if (bus == null) {
+            return true;
+        }
+        WorldChunkEvent.PreLoad event =
+            new WorldChunkEvent.PreLoad(new FabricWorld(serverLevel), chunkX, chunkZ);
+        bus.publish(event);
+        return !event.isCancelled();
+    }
+
+    /** Called before a chunk is unloaded. Returns true if unloading should proceed. */
+    public static boolean onPreChunkUnload(ServerLevel serverLevel, int chunkX, int chunkZ) {
+        if (bus == null) {
+            return true;
+        }
+        WorldChunkEvent.PreUnload event =
+            new WorldChunkEvent.PreUnload(new FabricWorld(serverLevel), chunkX, chunkZ);
+        bus.publish(event);
+        return !event.isCancelled();
+    }
 
     /**
      * Called from a mixin when rain state changes. Returns true if the change should proceed.
@@ -117,5 +139,31 @@ public class WorldEventAdapter implements FabricEventAdapter {
             return;
         }
         bus.publish(new WorldSpawnChangeEvent(new FabricWorld(serverLevel), oldSpawn, newSpawn));
+    }
+
+    /** Called when a portal is created in the world. */
+    public static boolean onPortalCreate(
+        ServerLevel serverLevel, com.axiommc.api.player.Location location, String reason) {
+        if (bus == null) {
+            return true;
+        }
+        com.axiommc.api.event.world.WorldPortalCreateEvent event =
+            new com.axiommc.api.event.world.WorldPortalCreateEvent(
+                new FabricWorld(serverLevel), location, reason);
+        bus.publish(event);
+        return !event.isCancelled();
+    }
+
+    /** Called when an organic structure grows (e.g. sapling to tree). */
+    public static boolean onStructureGrow(
+        ServerLevel serverLevel, com.axiommc.api.player.Location location, String structureType) {
+        if (bus == null) {
+            return true;
+        }
+        com.axiommc.api.event.world.WorldStructureGrowEvent event =
+            new com.axiommc.api.event.world.WorldStructureGrowEvent(
+                new FabricWorld(serverLevel), location, structureType);
+        bus.publish(event);
+        return !event.isCancelled();
     }
 }

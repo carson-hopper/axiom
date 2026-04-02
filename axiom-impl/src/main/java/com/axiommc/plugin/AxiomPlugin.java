@@ -3,13 +3,14 @@ package com.axiommc.plugin;
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.event.EventBus;
-import com.axiommc.api.event.EventPriority;
 import com.axiommc.api.event.player.PlayerJoinEvent;
 import com.axiommc.api.plugin.Plugin;
 import com.axiommc.api.plugin.PluginContext;
 import com.axiommc.api.plugin.PluginSide;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.plugin.command.AxiomCommand;
+import com.axiommc.plugin.command.EventDebugCommand;
+import com.axiommc.plugin.command.EventDebugListener;
 import com.axiommc.plugin.command.RandomTeleportCommand;
 import com.axiommc.plugin.command.ScreenCommand;
 import com.axiommc.plugin.command.TestConfigCommand;
@@ -20,6 +21,7 @@ import com.axiommc.plugin.command.TestWorldCommand;
 import com.axiommc.plugin.command.player.GameModeCommand;
 import com.axiommc.plugin.command.player.KillCommand;
 import com.axiommc.plugin.command.player.TeleportCommand;
+import com.axiommc.plugin.listener.PlayerEventListener;
 
 @Plugin(id = "axiom", name = "Axiom", version = "1.0.0", side = PluginSide.SERVER)
 public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
@@ -37,6 +39,8 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         context.registerCommand(new GameModeCommand());
         context.registerCommand(new ScreenCommand());
 
+        context.registerCommand(new EventDebugCommand());
+
         context.registerCommand(new TestConfigCommand(context));
         context.registerCommand(new TestGuiCommand());
         context.registerCommand(new TestPlayerCommand());
@@ -44,48 +48,24 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         context.registerCommand(new TestWorldCommand());
 
         EventBus eventBus = context.eventBus();
+        EventDebugListener.registerAll(eventBus);
 
-        eventBus.subscribe(
-            PlayerJoinEvent.Init.class,
-            event -> {
-                Axiom.logger()
-                    .info(ChatComponent.textf("{} <{}> init!", event.username(), event.uuid())
-                        .color(ChatColor.BLUE));
-            },
-            EventPriority.NORMAL);
-        eventBus.subscribe(
-            PlayerJoinEvent.Pre.class,
-            event -> {
-                Axiom.logger()
-                    .info(
-                        ChatComponent.textf("{} pre connecting!", event.player().name())
-                            .color(ChatColor.BLUE));
-            },
-            EventPriority.NORMAL);
-        eventBus.subscribe(
-            PlayerJoinEvent.Connecting.class,
-            event -> {
-                event.player()
-                    .sendMessage(
-                        ChatComponent.textf("{} connecting!", event.player().name())
-                            .color(ChatColor.BLUE));
-                Axiom.logger()
-                    .info(ChatComponent.textf("{} connecting!", event.player().name())
-                        .color(ChatColor.BLUE));
-            },
-            EventPriority.NORMAL);
-        eventBus.subscribe(
-            PlayerJoinEvent.Post.class,
-            event -> {
-                event.player()
-                    .sendMessage(
-                        ChatComponent.textf("{} joined!", event.player().name())
-                            .color(ChatColor.BLUE));
-                Axiom.logger()
-                    .info(ChatComponent.textf("{} joined!", event.player().name())
-                        .color(ChatColor.BLUE));
-            },
-            EventPriority.NORMAL);
+        eventBus.registerListener(new PlayerEventListener());
+        eventBus.listen(PlayerJoinEvent.Init.class).handler(event -> {
+            Axiom.logger()
+                .info(ChatComponent.textf("{} <{}> init!", event.username(), event.uuid())
+                    .color(ChatColor.BLUE));
+        });
+        eventBus.listen(PlayerJoinEvent.Pre.class).handler(event -> {
+            Axiom.logger()
+                .info(ChatComponent.textf("{} pre connecting!", event.player().name())
+                    .color(ChatColor.BLUE));
+        });
+        eventBus.listen(PlayerJoinEvent.Connecting.class).handler(event -> {
+            Axiom.logger()
+                .info(ChatComponent.textf("{} connecting!", event.player().name())
+                    .color(ChatColor.BLUE));
+        });
     }
 
     @Override

@@ -100,4 +100,9 @@ public class FabricEntity implements Entity {
     public boolean alive() {
         return entity.isAlive();
     }
+
+    @Override
+    public String toString() {
+        return name() + "[" + id() + "]";
+    }
 }

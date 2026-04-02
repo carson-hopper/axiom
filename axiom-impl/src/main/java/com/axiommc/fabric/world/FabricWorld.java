@@ -411,4 +411,9 @@ public record FabricWorld(ServerLevel level) implements World {
         }
         return DimensionType.CUSTOM;
     }
+
+    @Override
+    public String toString() {
+        return name();
+    }
 }

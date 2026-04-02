@@ -101,20 +101,17 @@ public final class EventHandlerScanner {
         EventPriority priority,
         SimpleEventBus eventBus)
         throws Exception {
-        eventBus.subscribe(
-            (Class<? extends Event>) eventType,
-            event -> {
-                try {
-                    method.invoke(listener, event);
-                } catch (Exception e) {
-                    Axiom.logger()
-                        .warn(
-                            "Error invoking event handler {}.{}",
-                            listener.getClass().getSimpleName(),
-                            method.getName(),
-                            e);
-                }
-            },
-            priority);
+        eventBus.listen((Class<? extends Event>) eventType).priority(priority).handler(event -> {
+            try {
+                method.invoke(listener, event);
+            } catch (Exception e) {
+                Axiom.logger()
+                    .warn(
+                        "Error invoking event handler {}.{}",
+                        listener.getClass().getSimpleName(),
+                        method.getName(),
+                        e);
+            }
+        });
     }
 }

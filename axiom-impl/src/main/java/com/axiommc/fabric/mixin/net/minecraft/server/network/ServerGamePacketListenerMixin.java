@@ -51,7 +51,9 @@ public abstract class ServerGamePacketListenerMixin {
 
     @Inject(method = "handleAnimate", at = @At("HEAD"))
     private void onAnimate(ServerboundSwingPacket packet, CallbackInfo callbackInfo) {
-        PlayerMiscAdapter.onAnimation(getPlayer(), "ARM_SWING");
+        if (packet.getHand() == InteractionHand.MAIN_HAND) {
+            PlayerMiscAdapter.onAnimation(getPlayer(), "ARM_SWING");
+        }
     }
 
     @Inject(method = "handleEditBook", at = @At("HEAD"), cancellable = true)

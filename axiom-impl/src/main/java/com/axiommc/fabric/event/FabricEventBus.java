@@ -3,8 +3,10 @@ package com.axiommc.fabric.event;
 import com.axiommc.api.event.EventListener;
 import com.axiommc.api.event.SimpleEventBus;
 import com.axiommc.fabric.Axiom;
+import com.axiommc.fabric.event.adapter.BlockEventAdapter;
 import com.axiommc.fabric.event.adapter.BlockInteractAdapter;
 import com.axiommc.fabric.event.adapter.CommandExecuteAdapter;
+import com.axiommc.fabric.event.adapter.EntityEventAdapter;
 import com.axiommc.fabric.event.adapter.FabricEventAdapter;
 import com.axiommc.fabric.event.adapter.GameProfileAdapter;
 import com.axiommc.fabric.event.adapter.InventoryEventAdapter;
@@ -19,7 +21,9 @@ import com.axiommc.fabric.event.adapter.PlayerMiscAdapter;
 import com.axiommc.fabric.event.adapter.PlayerSettingsAdapter;
 import com.axiommc.fabric.event.adapter.PlayerStateAdapter;
 import com.axiommc.fabric.event.adapter.PlayerTransferAdapter;
+import com.axiommc.fabric.event.adapter.RedstoneEventAdapter;
 import com.axiommc.fabric.event.adapter.ResourcePackAdapter;
+import com.axiommc.fabric.event.adapter.ServerEventAdapter;
 import com.axiommc.fabric.event.adapter.ServerLifecycleAdapter;
 import com.axiommc.fabric.event.adapter.WorldEventAdapter;
 import com.axiommc.fabric.player.FabricPlayerProvider;
@@ -41,6 +45,7 @@ public class FabricEventBus extends SimpleEventBus {
         adapters.add(new PlayerChatAdapter());
         adapters.add(new CommandExecuteAdapter());
         adapters.add(new BlockInteractAdapter());
+        adapters.add(new BlockEventAdapter());
         adapters.add(new PlayerSettingsAdapter());
         adapters.add(new PlayerChannelAdapter());
         adapters.add(new ResourcePackAdapter());
@@ -54,6 +59,9 @@ public class FabricEventBus extends SimpleEventBus {
         adapters.add(new PlayerStateAdapter());
         adapters.add(new WorldEventAdapter());
         adapters.add(new InventoryEventAdapter());
+        adapters.add(new EntityEventAdapter());
+        adapters.add(new ServerEventAdapter());
+        adapters.add(new RedstoneEventAdapter());
     }
 
     /**

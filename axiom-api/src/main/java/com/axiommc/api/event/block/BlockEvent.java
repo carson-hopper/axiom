@@ -1,11 +1,10 @@
 package com.axiommc.api.event.block;
 
+import com.axiommc.api.block.Block;
 import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.item.ItemStack;
-import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
-import com.axiommc.api.world.World;
 
 public class BlockEvent {
 
@@ -15,26 +14,20 @@ public class BlockEvent {
     public static class Break extends Event implements Cancellable {
 
         private final Player player;
-        private final Location blockLocation;
-        private final String blockType;
+        private final Block block;
         private boolean cancelled = false;
 
-        public Break(Player player, Location blockLocation, String blockType) {
+        public Break(Player player, Block block) {
             this.player = player;
-            this.blockLocation = blockLocation;
-            this.blockType = blockType;
+            this.block = block;
         }
 
         public Player player() {
             return player;
         }
 
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public String blockType() {
-            return blockType;
+        public Block block() {
+            return block;
         }
 
         @Override
@@ -54,26 +47,20 @@ public class BlockEvent {
     public static class Place extends Event implements Cancellable {
 
         private final Player player;
-        private final Location blockLocation;
-        private final String blockType;
+        private final Block block;
         private boolean cancelled = false;
 
-        public Place(Player player, Location blockLocation, String blockType) {
+        public Place(Player player, Block block) {
             this.player = player;
-            this.blockLocation = blockLocation;
-            this.blockType = blockType;
+            this.block = block;
         }
 
         public Player player() {
             return player;
         }
 
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public String blockType() {
-            return blockType;
+        public Block block() {
+            return block;
         }
 
         @Override
@@ -92,21 +79,15 @@ public class BlockEvent {
      */
     public static class Explode extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private boolean cancelled = false;
 
-        public Explode(World world, Location blockLocation) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public Explode(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         @Override
@@ -125,21 +106,15 @@ public class BlockEvent {
      */
     public static class Burn extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private boolean cancelled = false;
 
-        public Burn(World world, Location blockLocation) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public Burn(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         @Override
@@ -158,23 +133,17 @@ public class BlockEvent {
      */
     public static class Ignite extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final String cause;
         private boolean cancelled = false;
 
-        public Ignite(World world, Location blockLocation, String cause) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public Ignite(Block block, String cause) {
+            this.block = block;
             this.cause = cause;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public String cause() {
@@ -197,27 +166,15 @@ public class BlockEvent {
      */
     public static class Grow extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
-        private final String blockType;
+        private final Block block;
         private boolean cancelled = false;
 
-        public Grow(World world, Location blockLocation, String blockType) {
-            this.world = world;
-            this.blockLocation = blockLocation;
-            this.blockType = blockType;
+        public Grow(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public String blockType() {
-            return blockType;
+        public Block block() {
+            return block;
         }
 
         @Override
@@ -236,20 +193,14 @@ public class BlockEvent {
      */
     public static class Fade extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
 
-        public Fade(World world, Location blockLocation) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public Fade(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
     }
 
@@ -258,23 +209,17 @@ public class BlockEvent {
      */
     public static class Dispense extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final ItemStack item;
         private boolean cancelled = false;
 
-        public Dispense(World world, Location blockLocation, ItemStack item) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public Dispense(Block block, ItemStack item) {
+            this.block = block;
             this.item = item;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public ItemStack item() {
@@ -298,13 +243,13 @@ public class BlockEvent {
     public static class SignChange extends Event implements Cancellable {
 
         private final Player player;
-        private final Location blockLocation;
+        private final Block block;
         private final String[] lines;
         private boolean cancelled = false;
 
-        public SignChange(Player player, Location blockLocation, String[] lines) {
+        public SignChange(Player player, Block block, String[] lines) {
             this.player = player;
-            this.blockLocation = blockLocation;
+            this.block = block;
             this.lines = lines;
         }
 
@@ -312,8 +257,8 @@ public class BlockEvent {
             return player;
         }
 
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public String[] lines() {
@@ -336,24 +281,18 @@ public class BlockEvent {
      */
     public static class Redstone extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final int oldCurrent;
         private final int newCurrent;
 
-        public Redstone(World world, Location blockLocation, int oldCurrent, int newCurrent) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public Redstone(Block block, int oldCurrent, int newCurrent) {
+            this.block = block;
             this.oldCurrent = oldCurrent;
             this.newCurrent = newCurrent;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public int oldCurrent() {

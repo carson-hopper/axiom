@@ -108,4 +108,16 @@ public class FabricLivingEntity implements LivingEntity {
     public boolean alive() {
         return entity.isAlive();
     }
+
+    @Override
+    public void kill() {
+        if (entity.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            entity.kill(serverLevel);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return name() + "[" + id() + "]";
+    }
 }

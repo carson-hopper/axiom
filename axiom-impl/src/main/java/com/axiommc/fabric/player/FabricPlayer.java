@@ -314,4 +314,9 @@ public class FabricPlayer extends FabricLivingEntity implements Player {
             };
         player.setGameMode(gameType);
     }
+
+    @Override
+    public String toString() {
+        return name() + "[" + id() + "]";
+    }
 }

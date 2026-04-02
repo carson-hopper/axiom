@@ -35,4 +35,9 @@ public interface LivingEntity extends Entity {
      * @param amount the amount of damage to deal (in half-hearts)
      */
     void damage(double amount);
+
+    /**
+     * Kills this entity immediately, bypassing invulnerability and armor.
+     */
+    void kill();
 }

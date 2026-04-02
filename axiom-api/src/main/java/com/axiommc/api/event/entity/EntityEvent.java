@@ -3,8 +3,8 @@ package com.axiommc.api.event.entity;
 import com.axiommc.api.entity.Entity;
 import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
-import com.axiommc.api.player.Player;
 import com.axiommc.api.player.Location;
+import com.axiommc.api.player.Player;
 import com.axiommc.api.world.World;
 
 public class EntityEvent {

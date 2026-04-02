@@ -5,33 +5,25 @@ import java.util.function.Consumer;
 /**
  * Manages event subscriptions and publishing.
  *
- * <p>The event bus allows plugins to subscribe to events and react when they
- * occur. Handlers are called with a specified priority to control execution
- * order.
+ * <p>Use {@link #listen(Class)} to subscribe to events with optional
+ * filtering and priority:
+ *
+ * <pre>{@code
+ * eventBus.listen(BlockEvent.Break.class)
+ *     .filter(event -> event.block().type() == Material.STONE)
+ *     .handler(event -> { ... });
+ * }</pre>
  */
 public interface EventBus {
 
     /**
-     * Subscribes a handler to an event type with default priority.
-     *
-     * <p>The handler will be called with {@link EventPriority#NORMAL} priority.
+     * Creates a subscription builder for the given event type.
      *
      * @param <T> the event type
      * @param eventType the event class
-     * @param handler the handler to call when the event fires
+     * @return a subscription builder
      */
-    <T extends Event> void subscribe(Class<T> eventType, Consumer<T> handler);
-
-    /**
-     * Subscribes a handler to an event type with a specified priority.
-     *
-     * @param <T> the event type
-     * @param eventType the event class
-     * @param handler the handler to call when the event fires
-     * @param priority the priority at which this handler executes
-     */
-    <T extends Event> void subscribe(
-        Class<T> eventType, Consumer<T> handler, EventPriority priority);
+    <T extends Event> EventSubscription<T> listen(Class<T> eventType);
 
     /**
      * Unsubscribes a handler from an event type.
@@ -43,10 +35,14 @@ public interface EventBus {
     <T extends Event> void unsubscribe(Class<T> eventType, Consumer<T> handler);
 
     /**
-     * Publishes an event to all subscribed handlers.
+     * Registers all {@code @EventHandler} methods from a class-based listener.
      *
-     * <p>Handlers are called in priority order, with LOWEST priority handlers
-     * firing first.
+     * @param listener the event listener instance
+     */
+    void registerListener(EventListener listener);
+
+    /**
+     * Publishes an event to all subscribed handlers.
      *
      * @param event the event to publish
      */

@@ -69,6 +69,9 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
         String[] args = input.isEmpty() ? new String[0] : input.split("\\s+", -1);
         List<String> suggestions = invoker.suggest(sender, args);
 
+        String buffer = commandName + (input.isEmpty() ? "" : " " + input);
+        suggestions = CommandExecuteAdapter.fireTabComplete(sender, buffer, suggestions);
+
         String prefix = input.contains(" ") ? input.substring(input.lastIndexOf(' ') + 1) : input;
         for (String s : suggestions) {
             if (s.toLowerCase().startsWith(prefix.toLowerCase())) {

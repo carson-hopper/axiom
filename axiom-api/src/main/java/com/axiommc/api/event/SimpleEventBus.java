@@ -10,9 +10,6 @@ import java.util.function.Consumer;
 /**
  * Thread-safe priority-aware event bus implementation.
  * Platform event buses (FabricEventBus, VelocityEventBus) extend this class.
- *
- * <p>Subclasses can override {@link #registerListener} to scan and register
- * @EventHandler methods on EventListener instances.
  */
 public class SimpleEventBus implements EventBus {
 
@@ -23,13 +20,14 @@ public class SimpleEventBus implements EventBus {
         new ConcurrentHashMap<>();
 
     @Override
-    public <T extends Event> void subscribe(Class<T> eventType, Consumer<T> handler) {
-        subscribe(eventType, handler, EventPriority.NORMAL);
+    public <T extends Event> EventSubscription<T> listen(Class<T> eventType) {
+        return new EventSubscription<>(this, eventType);
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends Event> void subscribe(
+    /**
+     * Registers a handler directly. Used internally by {@link EventSubscription}.
+     */
+    public <T extends Event> void addHandler(
         Class<T> eventType, Consumer<T> handler, EventPriority priority) {
         handlers.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>())
             .add(new PrioritizedHandler<>(handler, priority));
@@ -51,7 +49,6 @@ public class SimpleEventBus implements EventBus {
             return;
         }
 
-        // Snapshot and sort by priority ordinal (LOWEST=0 fires first)
         List<PrioritizedHandler<?>> sorted = new ArrayList<>(list);
         sorted.sort(Comparator.comparingInt(ph -> ph.priority().ordinal()));
 
@@ -67,9 +64,7 @@ public class SimpleEventBus implements EventBus {
 
     /**
      * Registers all @EventHandler methods from an event listener.
-     * Default implementation does nothing; subclasses should override to use EventHandlerScanner.
-     *
-     * @param listener the event listener to register
+     * Default implementation does nothing; subclasses should override.
      */
     public void registerListener(EventListener listener) {
         // Default implementation - subclasses should override

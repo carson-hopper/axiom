@@ -1,9 +1,8 @@
 package com.axiommc.api.event.block;
 
+import com.axiommc.api.block.Block;
 import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
-import com.axiommc.api.player.Location;
-import com.axiommc.api.world.World;
 import java.util.List;
 
 /**
@@ -16,7 +15,7 @@ import java.util.List;
  *   <li>{@link PressurePlateActivate} — a pressure plate is activated
  *   <li>{@link PressurePlateDeactivate} — a pressure plate is deactivated
  *   <li>{@link TripwireActivate} — a tripwire is activated
- *   <li>{@link NoteBlockPlay} — a note block plays a note
+ *   <li>{@link NoteBlockPlay} — a note block plays a note; cancellable
  *   <li>{@link ComparatorUpdate} — a comparator output changes
  *   <li>{@link RepeaterUpdate} — a repeater state changes
  *   <li>{@link PistonExtend} — a piston extends; cancellable
@@ -30,24 +29,18 @@ public final class RedstoneEvent {
     /** Fired when a block's redstone power level changes. */
     public static class PowerChange extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final int oldPower;
         private final int newPower;
 
-        public PowerChange(World world, Location blockLocation, int oldPower, int newPower) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public PowerChange(Block block, int oldPower, int newPower) {
+            this.block = block;
             this.oldPower = oldPower;
             this.newPower = newPower;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public int oldPower() {
@@ -62,48 +55,30 @@ public final class RedstoneEvent {
     /** Fired when a button is pressed. */
     public static class ButtonPress extends Event {
 
-        private final World world;
-        private final Location blockLocation;
-        private final String blockType;
+        private final Block block;
 
-        public ButtonPress(World world, Location blockLocation, String blockType) {
-            this.world = world;
-            this.blockLocation = blockLocation;
-            this.blockType = blockType;
+        public ButtonPress(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public String blockType() {
-            return blockType;
+        public Block block() {
+            return block;
         }
     }
 
     /** Fired when a lever is toggled. */
     public static class LeverToggle extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final boolean powered;
 
-        public LeverToggle(World world, Location blockLocation, boolean powered) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public LeverToggle(Block block, boolean powered) {
+            this.block = block;
             this.powered = powered;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public boolean isPowered() {
@@ -114,85 +89,61 @@ public final class RedstoneEvent {
     /** Fired when a pressure plate is activated. */
     public static class PressurePlateActivate extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
 
-        public PressurePlateActivate(World world, Location blockLocation) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public PressurePlateActivate(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
     }
 
     /** Fired when a pressure plate is deactivated. */
     public static class PressurePlateDeactivate extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
 
-        public PressurePlateDeactivate(World world, Location blockLocation) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public PressurePlateDeactivate(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
     }
 
     /** Fired when a tripwire is activated. */
     public static class TripwireActivate extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
 
-        public TripwireActivate(World world, Location blockLocation) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public TripwireActivate(Block block) {
+            this.block = block;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
     }
 
     /** Fired when a note block plays a note. */
     public static class NoteBlockPlay extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final int note;
         private final int instrument;
         private boolean cancelled = false;
 
-        public NoteBlockPlay(World world, Location blockLocation, int note, int instrument) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public NoteBlockPlay(Block block, int note, int instrument) {
+            this.block = block;
             this.note = note;
             this.instrument = instrument;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public int note() {
@@ -217,24 +168,18 @@ public final class RedstoneEvent {
     /** Fired when a comparator output changes. */
     public static class ComparatorUpdate extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final int oldOutput;
         private final int newOutput;
 
-        public ComparatorUpdate(World world, Location blockLocation, int oldOutput, int newOutput) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public ComparatorUpdate(Block block, int oldOutput, int newOutput) {
+            this.block = block;
             this.oldOutput = oldOutput;
             this.newOutput = newOutput;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public int oldOutput() {
@@ -249,24 +194,18 @@ public final class RedstoneEvent {
     /** Fired when a repeater state changes. */
     public static class RepeaterUpdate extends Event {
 
-        private final World world;
-        private final Location blockLocation;
+        private final Block block;
         private final boolean powered;
         private final int delay;
 
-        public RepeaterUpdate(World world, Location blockLocation, boolean powered, int delay) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public RepeaterUpdate(Block block, boolean powered, int delay) {
+            this.block = block;
             this.powered = powered;
             this.delay = delay;
         }
 
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
+        public Block block() {
+            return block;
         }
 
         public boolean isPowered() {
@@ -281,26 +220,20 @@ public final class RedstoneEvent {
     /** Fired when a piston extends and pushes blocks. */
     public static class PistonExtend extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
-        private final List<Location> affectedBlocks;
+        private final Block block;
+        private final List<Block> affectedBlocks;
         private boolean cancelled = false;
 
-        public PistonExtend(World world, Location blockLocation, List<Location> affectedBlocks) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public PistonExtend(Block block, List<Block> affectedBlocks) {
+            this.block = block;
             this.affectedBlocks = List.copyOf(affectedBlocks);
         }
 
-        public World world() {
-            return world;
+        public Block block() {
+            return block;
         }
 
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public List<Location> affectedBlocks() {
+        public List<Block> affectedBlocks() {
             return affectedBlocks;
         }
 
@@ -318,26 +251,20 @@ public final class RedstoneEvent {
     /** Fired when a piston retracts and pulls blocks. */
     public static class PistonRetract extends Event implements Cancellable {
 
-        private final World world;
-        private final Location blockLocation;
-        private final List<Location> affectedBlocks;
+        private final Block block;
+        private final List<Block> affectedBlocks;
         private boolean cancelled = false;
 
-        public PistonRetract(World world, Location blockLocation, List<Location> affectedBlocks) {
-            this.world = world;
-            this.blockLocation = blockLocation;
+        public PistonRetract(Block block, List<Block> affectedBlocks) {
+            this.block = block;
             this.affectedBlocks = List.copyOf(affectedBlocks);
         }
 
-        public World world() {
-            return world;
+        public Block block() {
+            return block;
         }
 
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public List<Location> affectedBlocks() {
+        public List<Block> affectedBlocks() {
             return affectedBlocks;
         }
 

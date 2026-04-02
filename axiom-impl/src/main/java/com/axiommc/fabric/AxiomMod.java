@@ -152,7 +152,7 @@ public class AxiomMod implements ModInitializer {
             }
         });
 
-        eventBus.subscribe(ServerStartEvent.class, event -> {
+        eventBus.listen(ServerStartEvent.class).handler(event -> {
             this.minecraftServer = ServerLifecycleAdapter.minecraftServer();
             this.guiManager = new FabricGuiManager();
             this.sidebarManager = new FabricSidebarManager(minecraftServer);
@@ -168,7 +168,7 @@ public class AxiomMod implements ModInitializer {
             loadPluginsFromDirectory();
         });
 
-        eventBus.subscribe(ServerStopEvent.class, event -> {
+        eventBus.listen(ServerStopEvent.class).handler(event -> {
             pluginLoader.disableAllPlugins();
         });
     }

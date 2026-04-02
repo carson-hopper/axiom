@@ -51,7 +51,7 @@ public class KillCommand {
     @Execute(type = SenderType.PLAYER)
     @Permission("axiom.kill")
     public void execute(Player player) {
-        player.damage(player.health());
+        player.kill();
         player.sendMessage(ChatComponent.text("You have been killed").color(ChatColor.RED));
     }
 
@@ -80,11 +80,7 @@ public class KillCommand {
         }
 
         for (LivingEntity entity : allTargets) {
-            if (entity instanceof Player) {
-                entity.damage(entity.health());
-            } else {
-                entity.health(0);
-            }
+            entity.kill();
         }
 
         if (allTargets.size() == 1) {

@@ -5,7 +5,11 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "net.minecraft.world.entity.item.ItemEntityAccessor",
-    "net.minecraft.world.entity.player.PlayerAccessor"
+    "net.minecraft.world.entity.player.PlayerAccessor",
+    "net.minecraft.world.level.block.NoteBlockMixin",
+    "net.minecraft.world.level.block.ButtonBlockMixin",
+    "net.minecraft.world.level.block.LeverBlockMixin",
+    "net.minecraft.world.level.block.piston.PistonBaseBlockMixin"
   ],
   "server": [
     "net.minecraft.server.network.ServerCommonPacketListenerAccessor",
@@ -15,6 +19,7 @@
     "net.minecraft.server.players.PlayerListMixin",
     "net.minecraft.world.level.chunk.LevelChunkSectionMixin",
     "net.minecraft.world.level.chunk.ChunkAccessMixin",
+    "net.minecraft.server.level.ChunkMapMixin",
     "net.minecraft.server.level.ServerLevelMixin",
     "net.minecraft.server.level.ServerPlayerMixin",
     "net.minecraft.server.PlayerAdvancementsMixin",
@@ -22,7 +27,12 @@
     "net.minecraft.world.inventory.ResultSlotMixin",
     "net.minecraft.world.inventory.AnvilMenuMixin",
     "net.minecraft.world.inventory.SmithingMenuMixin",
-    "net.minecraft.world.inventory.EnchantmentMenuMixin"
+    "net.minecraft.world.inventory.EnchantmentMenuMixin",
+    "net.minecraft.world.entity.LivingEntityMixin",
+    "net.minecraft.server.MinecraftServerMixin",
+    "net.minecraft.world.clock.ServerClockManagerMixin",
+    "net.minecraft.world.level.storage.PrimaryLevelDataMixin",
+    "net.minecraft.server.network.ServerStatusPacketListenerMixin"
   ],
   "client": [],
   "injectors": {

@@ -172,4 +172,10 @@ public class FabricBlock implements Block {
     public boolean breakNaturally() {
         return serverLevel.destroyBlock(blockPos, true);
     }
+
+    @Override
+    public String toString() {
+        return type().name().toLowerCase() + "@" + blockPos.getX() + "," + blockPos.getY() + ","
+            + blockPos.getZ();
+    }
 }
