@@ -4,6 +4,7 @@ import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.world.World;
+import java.util.List;
 
 /**
  * Events fired for redstone-related block interactions.
@@ -18,6 +19,8 @@ import com.axiommc.api.world.World;
  *   <li>{@link NoteBlockPlay} — a note block plays a note
  *   <li>{@link ComparatorUpdate} — a comparator output changes
  *   <li>{@link RepeaterUpdate} — a repeater state changes
+ *   <li>{@link PistonExtend} — a piston extends; cancellable
+ *   <li>{@link PistonRetract} — a piston retracts; cancellable
  * </ul>
  */
 public final class RedstoneEvent {
@@ -272,6 +275,80 @@ public final class RedstoneEvent {
 
         public int delay() {
             return delay;
+        }
+    }
+
+    /** Fired when a piston extends and pushes blocks. */
+    public static class PistonExtend extends Event implements Cancellable {
+
+        private final World world;
+        private final Location blockLocation;
+        private final List<Location> affectedBlocks;
+        private boolean cancelled = false;
+
+        public PistonExtend(World world, Location blockLocation, List<Location> affectedBlocks) {
+            this.world = world;
+            this.blockLocation = blockLocation;
+            this.affectedBlocks = List.copyOf(affectedBlocks);
+        }
+
+        public World world() {
+            return world;
+        }
+
+        public Location blockLocation() {
+            return blockLocation;
+        }
+
+        public List<Location> affectedBlocks() {
+            return affectedBlocks;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public void cancelled(boolean cancelled) {
+            this.cancelled = cancelled;
+        }
+    }
+
+    /** Fired when a piston retracts and pulls blocks. */
+    public static class PistonRetract extends Event implements Cancellable {
+
+        private final World world;
+        private final Location blockLocation;
+        private final List<Location> affectedBlocks;
+        private boolean cancelled = false;
+
+        public PistonRetract(World world, Location blockLocation, List<Location> affectedBlocks) {
+            this.world = world;
+            this.blockLocation = blockLocation;
+            this.affectedBlocks = List.copyOf(affectedBlocks);
+        }
+
+        public World world() {
+            return world;
+        }
+
+        public Location blockLocation() {
+            return blockLocation;
+        }
+
+        public List<Location> affectedBlocks() {
+            return affectedBlocks;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public void cancelled(boolean cancelled) {
+            this.cancelled = cancelled;
         }
     }
 }

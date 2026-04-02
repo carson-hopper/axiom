@@ -6,7 +6,6 @@ import com.axiommc.api.item.ItemStack;
 import com.axiommc.api.player.Location;
 import com.axiommc.api.player.Player;
 import com.axiommc.api.world.World;
-import java.util.List;
 
 public class BlockEvent {
 
@@ -363,80 +362,6 @@ public class BlockEvent {
 
         public int newCurrent() {
             return newCurrent;
-        }
-    }
-
-    /** Fired when a piston extends and pushes blocks. */
-    public static class PistonExtend extends Event implements Cancellable {
-
-        private final World world;
-        private final Location blockLocation;
-        private final List<Location> affectedBlocks;
-        private boolean cancelled = false;
-
-        public PistonExtend(World world, Location blockLocation, List<Location> affectedBlocks) {
-            this.world = world;
-            this.blockLocation = blockLocation;
-            this.affectedBlocks = List.copyOf(affectedBlocks);
-        }
-
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public List<Location> affectedBlocks() {
-            return affectedBlocks;
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return cancelled;
-        }
-
-        @Override
-        public void cancelled(boolean cancelled) {
-            this.cancelled = cancelled;
-        }
-    }
-
-    /** Fired when a piston retracts and pulls blocks. */
-    public static class PistonRetract extends Event implements Cancellable {
-
-        private final World world;
-        private final Location blockLocation;
-        private final List<Location> affectedBlocks;
-        private boolean cancelled = false;
-
-        public PistonRetract(World world, Location blockLocation, List<Location> affectedBlocks) {
-            this.world = world;
-            this.blockLocation = blockLocation;
-            this.affectedBlocks = List.copyOf(affectedBlocks);
-        }
-
-        public World world() {
-            return world;
-        }
-
-        public Location blockLocation() {
-            return blockLocation;
-        }
-
-        public List<Location> affectedBlocks() {
-            return affectedBlocks;
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return cancelled;
-        }
-
-        @Override
-        public void cancelled(boolean cancelled) {
-            this.cancelled = cancelled;
         }
     }
 }
