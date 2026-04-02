@@ -18,7 +18,10 @@
     "net.minecraft.server.level.ServerLevelMixin",
     "net.minecraft.server.level.ServerPlayerMixin",
     "net.minecraft.server.PlayerAdvancementsMixin",
-    "net.minecraft.world.level.saveddata.WeatherDataMixin"
+    "net.minecraft.world.level.saveddata.WeatherDataMixin",
+    "net.minecraft.world.inventory.ResultSlotMixin",
+    "net.minecraft.world.inventory.AnvilMenuMixin",
+    "net.minecraft.world.inventory.SmithingMenuMixin"
   ],
   "client": [],
   "injectors": {

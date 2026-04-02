@@ -14,6 +14,7 @@ import com.axiommc.api.player.Player;
  *   <li>{@link Open} — player opens an inventory
  *   <li>{@link HeldItemChange} — player changes their held hotbar slot
  *   <li>{@link CreativeSlot} — player sets a slot in creative mode; cancellable
+ *   <li>{@link Drag} — player drags items across inventory slots; cancellable
  * </ul>
  */
 public final class PlayerInventoryEvent {
@@ -129,6 +130,31 @@ public final class PlayerInventoryEvent {
 
         public ItemStack itemStack() {
             return itemStack;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public void cancelled(boolean cancelled) {
+            this.cancelled = cancelled;
+        }
+    }
+
+    /** Fired when a player drags items across inventory slots. */
+    public static class Drag extends Event implements Cancellable {
+
+        private final Player player;
+        private boolean cancelled = false;
+
+        public Drag(Player player) {
+            this.player = player;
+        }
+
+        public Player player() {
+            return player;
         }
 
         @Override
