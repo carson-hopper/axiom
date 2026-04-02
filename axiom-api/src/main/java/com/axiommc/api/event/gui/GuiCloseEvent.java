@@ -16,6 +16,11 @@ public final class GuiCloseEvent extends Event {
         this.sessionId = Objects.requireNonNull(sessionId, "sessionId must not be null");
     }
 
-    public Player player()  { return player; }
-    public UUID sessionId()      { return sessionId; }
+    public Player player() {
+        return player;
+    }
+
+    public UUID sessionId() {
+        return sessionId;
+    }
 }

@@ -1,6 +1,8 @@
 package com.axiommc.fabric;
 
+import com.axiommc.api.event.EventBus;
 import com.axiommc.api.gui.GuiManager;
+import net.minecraft.SharedConstants;
 import com.axiommc.api.screen.ScreenManager;
 import com.axiommc.api.sidebar.SidebarManager;
 import com.axiommc.api.world.Server;
@@ -29,6 +31,16 @@ public class Axiom {
 
     public static TaskScheduler scheduler() {
         return TaskScheduler.global();
+    }
+
+    /** Returns the Minecraft server version string (e.g. {@code "26.1"}). */
+    public static String serverVersion() {
+        return SharedConstants.getCurrentVersion().name();
+    }
+
+    /** Returns the network protocol version number. */
+    public static int protocolVersion() {
+        return SharedConstants.getProtocolVersion();
     }
 
     public static Collection<FabricPlayer> players() {
@@ -77,6 +89,14 @@ public class Axiom {
             throw new IllegalStateException("Axiom is not initialized");
         }
         return mod.world(name);
+    }
+
+    public static EventBus eventBus() {
+        AxiomMod mod = AxiomMod.instance();
+        if (mod == null) {
+            throw new IllegalStateException("Axiom is not initialized");
+        }
+        return mod.eventBus();
     }
 
     public static GuiManager guiManager() {

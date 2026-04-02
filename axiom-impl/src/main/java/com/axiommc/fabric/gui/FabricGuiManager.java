@@ -1,9 +1,12 @@
 package com.axiommc.fabric.gui;
 
+import com.axiommc.api.event.gui.GuiCloseEvent;
+import com.axiommc.api.event.gui.GuiOpenEvent;
 import com.axiommc.api.gui.Gui;
 import com.axiommc.api.gui.GuiItem;
 import com.axiommc.api.gui.GuiManager;
 import com.axiommc.api.player.Player;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.chat.FabricComponentSerializer;
 import com.axiommc.fabric.player.FabricPlayer;
 import net.minecraft.core.Holder;
@@ -51,6 +54,7 @@ public class FabricGuiManager implements GuiManager {
         GuiSession session = new GuiSession(sessionId, sp, menu, gui);
         sessions.put(sessionId, session);
 
+        Axiom.eventBus().publish(new GuiOpenEvent(player, sessionId, gui));
         return sessionId;
     }
 
@@ -74,8 +78,10 @@ public class FabricGuiManager implements GuiManager {
             return;
         }
 
+        FabricPlayer fabricPlayer = new FabricPlayer(session.player());
         session.player().closeContainer();
         sessions.remove(sessionId);
+        Axiom.eventBus().publish(new GuiCloseEvent(fabricPlayer, sessionId));
     }
 
     @Override

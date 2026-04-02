@@ -1,7 +1,6 @@
 package com.axiommc.fabric.event.adapter;
 
 import com.axiommc.api.event.SimpleEventBus;
-import com.axiommc.api.event.player.PlayerCommandEvent;
 import com.axiommc.api.event.player.PlayerInteractEntityEvent;
 import com.axiommc.api.event.player.PlayerPositionEvent;
 import com.axiommc.fabric.entity.FabricEntity;
@@ -54,23 +53,14 @@ public class PlayerInputAdapter implements FabricEventAdapter {
     }
 
     /**
-     * Fires a {@link PlayerCommandEvent}.
+     * Fires a {@link com.axiommc.api.event.command.CommandExecuteEvent.Pre}
+     * for a player-issued command.
      *
      * @return true if the event was cancelled
      */
     public static boolean onCommand(ServerPlayer serverPlayer, String command) {
-        if (eventBus == null) {
-            return false;
-        }
-        try {
-            FabricPlayer player = new FabricPlayer(serverPlayer);
-            PlayerCommandEvent event = new PlayerCommandEvent(player, command);
-            eventBus.publish(event);
-            return event.isCancelled();
-        } catch (Exception exception) {
-            Axiom.logger().debug("Error firing PlayerCommandEvent", exception);
-            return false;
-        }
+        FabricPlayer player = new FabricPlayer(serverPlayer);
+        return !CommandExecuteAdapter.firePreEvent(player, command);
     }
 
     /**
@@ -83,8 +73,7 @@ public class PlayerInputAdapter implements FabricEventAdapter {
             return false;
         }
         try {
-            net.minecraft.world.entity.Entity target =
-                    serverPlayer.level().getEntity(entityId);
+            net.minecraft.world.entity.Entity target = serverPlayer.level().getEntity(entityId);
             if (target == null) {
                 return false;
             }

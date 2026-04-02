@@ -5,34 +5,69 @@ import com.axiommc.api.event.Cancellable;
 import com.axiommc.api.event.Event;
 
 /**
- * Fired when a command is executed.
+ * Events fired when a command is executed.
+ *
+ * <ul>
+ *   <li>{@link Pre} — before the command runs; cancellable
+ *   <li>{@link Post} — after the command has executed
+ * </ul>
  */
-public class CommandExecuteEvent extends Event implements Cancellable {
+public final class CommandExecuteEvent {
 
-    private final CommandSender sender;
-    private final String command;
-    private boolean cancelled = false;
+    private CommandExecuteEvent() {}
 
-    public CommandExecuteEvent(CommandSender sender, String command) {
-        this.sender = sender;
-        this.command = command;
+    /**
+     * Fired before a command is executed. Cancel to prevent execution.
+     */
+    public static class Pre extends Event implements Cancellable {
+
+        private final CommandSender sender;
+        private final String command;
+        private boolean cancelled = false;
+
+        public Pre(CommandSender sender, String command) {
+            this.sender = sender;
+            this.command = command;
+        }
+
+        public CommandSender sender() {
+            return sender;
+        }
+
+        public String command() {
+            return command;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public void cancelled(boolean cancelled) {
+            this.cancelled = cancelled;
+        }
     }
 
-    public CommandSender sender() {
-        return sender;
-    }
+    /**
+     * Fired after a command has executed.
+     */
+    public static class Post extends Event {
 
-    public String command() {
-        return command;
-    }
+        private final CommandSender sender;
+        private final String command;
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
+        public Post(CommandSender sender, String command) {
+            this.sender = sender;
+            this.command = command;
+        }
 
-    @Override
-    public void cancelled(boolean cancelled) {
-        this.cancelled = cancelled;
+        public CommandSender sender() {
+            return sender;
+        }
+
+        public String command() {
+            return command;
+        }
     }
 }

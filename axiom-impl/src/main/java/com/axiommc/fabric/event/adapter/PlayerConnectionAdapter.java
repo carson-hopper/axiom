@@ -6,6 +6,7 @@ import com.axiommc.api.event.player.PlayerLeaveEvent;
 import com.axiommc.api.world.Server;
 import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayer;
+import com.axiommc.fabric.event.adapter.ClientBrandTracker;
 import com.axiommc.fabric.player.FabricPlayerProvider;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -36,6 +37,13 @@ public class PlayerConnectionAdapter implements FabricEventAdapter {
                         new PlayerJoinEvent.Connecting(player));
                 eventBus.publish(
                         new PlayerJoinEvent.Post(player, serverInfo));
+
+                // Fire brand event if it was received during config phase
+                String brand = ClientBrandTracker.consume(
+                        serverPlayer.connection);
+                if (brand != null) {
+                    PlayerChannelAdapter.onClientBrand(serverPlayer, brand);
+                }
             } catch (Exception exception) {
                 Axiom.logger().debug(
                         "Error firing PlayerJoinEvent", exception);

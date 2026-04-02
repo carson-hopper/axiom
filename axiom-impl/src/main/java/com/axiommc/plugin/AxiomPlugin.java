@@ -44,6 +44,7 @@ public class AxiomPlugin extends com.axiommc.api.plugin.AxiomPlugin {
         context.registerCommand(new TestWorldCommand());
 
         EventBus eventBus = context.eventBus();
+
         eventBus.subscribe(PlayerJoinEvent.Init.class, event -> {
             Axiom.logger().info(ChatComponent.textf("{} <{}> init!", event.username(), event.uuid()).color(ChatColor.BLUE));
         }, EventPriority.NORMAL);

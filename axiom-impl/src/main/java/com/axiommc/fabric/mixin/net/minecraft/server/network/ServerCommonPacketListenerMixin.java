@@ -1,5 +1,6 @@
 package com.axiommc.fabric.mixin.net.minecraft.server.network;
 
+import com.axiommc.fabric.event.adapter.ClientBrandTracker;
 import com.axiommc.fabric.event.adapter.PlayerChannelAdapter;
 import com.axiommc.fabric.event.adapter.ResourcePackAdapter;
 import net.minecraft.network.protocol.Packet;
@@ -12,50 +13,43 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Intercepts custom payload, resource pack response, and outgoing
- * resource pack push/pop packets. Fires PlayerClientBrandEvent,
- * PlayerChannelRegister/UnregisterEvent, PlayerResourcePackStatusEvent,
- * ServerResourcePackSendEvent, ServerResourcePackRequestEvent,
- * and ServerResourcePackRemoveEvent.
+ * resource pack push/pop packets.
  */
 @Mixin(value = ServerCommonPacketListenerImpl.class, remap = false)
 public abstract class ServerCommonPacketListenerMixin {
 
     @Inject(method = "handleCustomPayload", at = @At("HEAD"))
-    private void onCustomPayload(
-            ServerboundCustomPayloadPacket packet,
-            CallbackInfo callbackInfo) {
+    private void onCustomPayload(ServerboundCustomPayloadPacket packet, CallbackInfo callbackInfo) {
         CustomPacketPayload payload = packet.payload();
         ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
 
-        if (payload instanceof BrandPayload brandPayload) {
+        if (payload instanceof BrandPayload(String brand)) {
             ServerPlayer player = getPlayerFromListener(self);
             if (player != null) {
-                PlayerChannelAdapter.onClientBrand(
-                        player, brandPayload.brand());
+                PlayerChannelAdapter.onClientBrand(player, brand);
+            } else {
+                ClientBrandTracker.store(self, brand);
             }
         }
     }
 
     @Inject(method = "handleResourcePackResponse", at = @At("HEAD"))
-    private void onResourcePackResponse(
-            ServerboundResourcePackPacket packet,
-            CallbackInfo callbackInfo) {
+    private void onResourcePackResponse(ServerboundResourcePackPacket packet, CallbackInfo callbackInfo) {
         ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
         ServerPlayer player = getPlayerFromListener(self);
         if (player != null) {
-            ResourcePackAdapter.onResourcePackStatus(
-                    player, packet.action());
+            ResourcePackAdapter.onResourcePackStatus(player, packet.action());
         }
     }
 
-    @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;)V",
-            at = @At("HEAD"))
+    @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;)V", at = @At("HEAD"))
     private void onSendPacket(Packet<?> packet, CallbackInfo callbackInfo) {
         ServerCommonPacketListenerImpl self = (ServerCommonPacketListenerImpl) (Object) this;
         ServerPlayer player = getPlayerFromListener(self);
@@ -72,19 +66,10 @@ public abstract class ServerCommonPacketListenerMixin {
         }
     }
 
-    /**
-     * Extracts the ServerPlayer from the listener via reflection or casting.
-     * ServerGamePacketListenerImpl has getPlayer(), but the common
-     * superclass does not — try casting first.
-     */
-    private static ServerPlayer getPlayerFromListener(
-            ServerCommonPacketListenerImpl listener) {
-        try {
-            if (listener instanceof net.minecraft.server.network.ServerGamePacketListenerImpl gameListener) {
-                return gameListener.getPlayer();
-            }
-        } catch (Exception _) {
-            // Not a game listener
+    @Unique
+    private static ServerPlayer getPlayerFromListener(ServerCommonPacketListenerImpl listener) {
+        if (listener instanceof net.minecraft.server.network.ServerGamePacketListenerImpl gameListener) {
+            return gameListener.getPlayer();
         }
         return null;
     }

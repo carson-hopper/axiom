@@ -4,9 +4,11 @@
   "package": "com.axiommc.fabric.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
+    "net.minecraft.world.entity.item.ItemEntityAccessor",
     "net.minecraft.world.entity.player.PlayerAccessor"
   ],
   "server": [
+    "net.minecraft.server.network.ServerCommonPacketListenerAccessor",
     "net.minecraft.server.network.ServerCommonPacketListenerMixin",
     "net.minecraft.server.network.ServerGamePacketListenerMixin",
     "net.minecraft.server.network.ServerLoginPacketListenerMixin",

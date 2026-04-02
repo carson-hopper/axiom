@@ -3,6 +3,7 @@ package com.axiommc.fabric.plugin;
 import com.axiommc.api.chat.ChatColor;
 import com.axiommc.api.chat.ChatComponent;
 import com.axiommc.api.event.EventBus;
+import com.axiommc.api.event.plugin.PluginStateEvent;
 import com.axiommc.api.plugin.AxiomPlugin;
 import com.axiommc.api.plugin.Plugin;
 import com.axiommc.fabric.Axiom;
@@ -62,8 +63,10 @@ public class SimplePluginLoader {
             enabledStatus.put(plugin, true);
 
             updateStatus(displayName, PluginState.LOADED);
+            eventBus.publish(new PluginStateEvent(annotation.id(), PluginStateEvent.State.ENABLED));
         } catch (Exception e) {
             updateStatus(displayName, PluginState.FAILED);
+            eventBus.publish(new PluginStateEvent(annotation.id(), PluginStateEvent.State.DISABLED, e.getMessage()));
             Axiom.logger().error("Failed to load plugin: {}", displayName, e);
         }
     }
@@ -187,9 +190,15 @@ public class SimplePluginLoader {
         if (!enabledStatus.getOrDefault(plugin, false)) {
             return;
         }
+        String pluginId = plugins.entrySet().stream()
+                .filter(entry -> entry.getValue() == plugin)
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse("unknown");
         try {
             plugin.onDisable();
             enabledStatus.put(plugin, false);
+            eventBus.publish(new PluginStateEvent(pluginId, PluginStateEvent.State.DISABLED));
         } catch (Exception e) {
             Axiom.logger().error("Failed to disable plugin", e);
         }

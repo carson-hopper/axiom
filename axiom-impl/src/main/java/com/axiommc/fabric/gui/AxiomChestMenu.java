@@ -1,8 +1,10 @@
 package com.axiommc.fabric.gui;
 
+import com.axiommc.api.event.gui.GuiCloseEvent;
 import com.axiommc.api.gui.Gui;
 import com.axiommc.api.gui.GuiItem;
 import com.axiommc.api.gui.GuiSize;
+import com.axiommc.fabric.Axiom;
 import com.axiommc.fabric.player.FabricPlayer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -67,6 +69,7 @@ public class AxiomChestMenu extends AbstractContainerMenu {
         super.removed(player);
         FabricPlayer fabricPlayer = new FabricPlayer((ServerPlayer) player);
         gui.handleClose(fabricPlayer);
+        Axiom.eventBus().publish(new GuiCloseEvent(fabricPlayer, sessionId));
         manager.removeSession(sessionId);
     }
 

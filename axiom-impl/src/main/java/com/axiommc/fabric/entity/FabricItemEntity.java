@@ -3,6 +3,7 @@ package com.axiommc.fabric.entity;
 import com.axiommc.api.entity.ItemEntity;
 import com.axiommc.api.item.Item;
 import com.axiommc.api.item.ItemStack;
+import com.axiommc.fabric.mixin.net.minecraft.world.entity.item.ItemEntityAccessor;
 
 /**
  * Wraps a Minecraft {@link net.minecraft.world.entity.item.ItemEntity}
@@ -26,16 +27,7 @@ public class FabricItemEntity extends FabricEntity implements ItemEntity {
 
     @Override
     public int pickupDelay() {
-        // No public getter in MC — access the private field
-        try {
-            java.lang.reflect.Field field =
-                    net.minecraft.world.entity.item.ItemEntity.class
-                            .getDeclaredField("pickupDelay");
-            field.setAccessible(true);
-            return field.getInt(itemEntity);
-        } catch (Exception _) {
-            return 0;
-        }
+        return ((ItemEntityAccessor) itemEntity).pickupDelay();
     }
 
     @Override

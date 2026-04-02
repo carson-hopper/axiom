@@ -19,7 +19,15 @@ public final class GuiOpenEvent extends Event {
         this.gui = Objects.requireNonNull(gui, "gui must not be null");
     }
 
-    public Player player()  { return player; }
-    public UUID sessionId()      { return sessionId; }
-    public Gui gui()             { return gui; }
+    public Player player() {
+        return player;
+    }
+
+    public UUID sessionId() {
+        return sessionId;
+    }
+
+    public Gui gui() {
+        return gui; }
+
 }

@@ -32,10 +32,11 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
     private int executeNoArgs(CommandContext<CommandSourceStack> ctx) {
         try {
             FabricCommandSender sender = new FabricCommandSender(ctx.getSource());
-            if (!CommandExecuteAdapter.fireEvent(sender, commandName)) {
+            if (!CommandExecuteAdapter.firePreEvent(sender, commandName)) {
                 return Command.SINGLE_SUCCESS;
             }
             invoker.execute(sender, new String[0]);
+            CommandExecuteAdapter.firePostEvent(sender, commandName);
         } catch (Exception e) {
             Axiom.logger().error("Error executing command: /{}", commandName, e);
         }
@@ -48,10 +49,11 @@ public record FabricCommandAdapter(String commandName, CommandInvoker invoker) {
             String[] args = rawArgs.trim().isEmpty() ? new String[0] : rawArgs.trim().split("\\s+");
             FabricCommandSender sender = new FabricCommandSender(ctx.getSource());
             String fullCommand = commandName + (rawArgs.trim().isEmpty() ? "" : " " + rawArgs);
-            if (!CommandExecuteAdapter.fireEvent(sender, fullCommand)) {
+            if (!CommandExecuteAdapter.firePreEvent(sender, fullCommand)) {
                 return Command.SINGLE_SUCCESS;
             }
             invoker.execute(sender, args);
+            CommandExecuteAdapter.firePostEvent(sender, fullCommand);
         } catch (Exception e) {
             Axiom.logger().error("Error executing command: /{}", commandName, e);
         }
