@@ -1,0 +1,43 @@
+#pragma once
+
+#include "Axiom/Core/Base.h"
+#include "Axiom/Event/EventBus.h"
+#include "Axiom/Plugin/PluginManager.h"
+#include "Axiom/Plugin/PluginContext.h"
+#include "Axiom/Command/CommandRegistry.h"
+#include "Axiom/Config/ServerConfig.h"
+
+namespace Axiom {
+
+	class Application {
+	public:
+		Application() = default;
+		~Application() = default;
+
+		Application(const Application&) = delete;
+		Application& operator=(const Application&) = delete;
+
+		void Init();
+		void Run();
+		void Shutdown();
+		void Stop() { m_Running = false; }
+
+		EventBus& Events() { return *m_EventBus; }
+		PluginManager& Plugins() { return *m_PluginManager; }
+		CommandRegistry& Commands() { return *m_CommandRegistry; }
+		ServerConfig& Config() { return *m_Config; }
+
+		static Application& Instance() { return *s_Instance; }
+
+	private:
+		Scope<EventBus> m_EventBus;
+		Scope<PluginManager> m_PluginManager;
+		Scope<CommandRegistry> m_CommandRegistry;
+		Scope<ServerConfig> m_Config;
+		Scope<PluginContext> m_PluginContext;
+		bool m_Running = false;
+
+		static Application* s_Instance;
+	};
+
+}
