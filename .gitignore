@@ -2,6 +2,8 @@
 build/
 out/
 cmake-build-*/
+*.log
+logs
 
 # IDE
 .idea/
@@ -24,6 +26,3 @@ cmake-build-*/
 
 # OS
 Thumbs.db
-
-# Specs and plans (not committed)
-docs/superpowers/
