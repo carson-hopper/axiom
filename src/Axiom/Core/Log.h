@@ -2,10 +2,16 @@
 
 #include "Axiom/Core/Base.h"
 
-#pragma warning(push, 0)
+#if defined(_MSC_VER)
+	#pragma warning(push, 0)
+#endif
+
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
-#pragma warning(pop)
+
+#if defined(_MSC_VER)
+	#pragma warning(pop)
+#endif
 
 namespace Axiom {
 

@@ -21,7 +21,7 @@ namespace Axiom {
 		void SendMessage(const std::string& message) override;
 		const std::string& Name() const override { return s_Name; }
 		bool IsPlayer() const override { return false; }
-		bool HasPermission(const std::string& permission) const override { return true; }
+		bool HasPermission(const std::string& /*permission*/) const override { return true; }
 
 	private:
 		static const std::string s_Name;

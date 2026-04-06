@@ -16,7 +16,9 @@
 	#else
 		#error "AX_DEBUGBREAK not supported on this platform"
 	#endif
-	#define AX_ENABLE_ASSERTS
+	#ifndef AX_ENABLE_ASSERTS
+		#define AX_ENABLE_ASSERTS
+	#endif
 #else
 	#define AX_DEBUGBREAK()
 #endif

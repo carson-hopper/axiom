@@ -17,7 +17,7 @@ namespace Axiom {
 		virtual void Execute(CommandSender& sender, const std::vector<std::string>& arguments) = 0;
 
 		virtual std::vector<std::string> TabComplete(
-			CommandSender& sender, const std::vector<std::string>& arguments) {
+			CommandSender& /*sender*/, const std::vector<std::string>& /*arguments*/) {
 
 			return {};
 		}

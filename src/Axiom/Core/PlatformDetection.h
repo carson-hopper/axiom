@@ -9,7 +9,9 @@
 #elif defined(__APPLE__) || defined(__MACH__)
 	#include <TargetConditionals.h>
 	#if TARGET_OS_MAC
-		#define AX_PLATFORM_MACOS
+		#ifndef AX_PLATFORM_MACOS
+			#define AX_PLATFORM_MACOS
+		#endif
 	#else
 		#error "Unsupported Apple platform"
 	#endif

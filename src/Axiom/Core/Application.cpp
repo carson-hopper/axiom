@@ -1,6 +1,6 @@
 #include "Application.h"
 
-#include "Axiom/Core/Log.h"
+#include "Axiom/Core/Assert.h"
 #include "Axiom/Event/ServerEvents.h"
 #include "Axiom/Plugin/CorePlugin.h"
 #include "Axiom/Command/CommandSender.h"
