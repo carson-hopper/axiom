@@ -32,6 +32,14 @@ namespace Axiom {
 		m_PluginManager->RegisterPlugin(CreateScope<CorePlugin>());
 		m_PluginManager->EnableAll(*m_PluginContext);
 
+		m_PacketHandler = CreateScope<PacketHandler>(*m_Config);
+		m_NetworkServer = CreateScope<NetworkServer>();
+		m_NetworkServer->SetPacketHandler(
+			[this](Ref<Connection> connection, int32_t packetId, NetworkBuffer& buffer) {
+				m_PacketHandler->HandlePacket(std::move(connection), packetId, buffer);
+			});
+		m_NetworkServer->Start(m_Config->Port());
+
 		AX_CORE_INFO("Server initialized on port {}", m_Config->Port());
 	}
 
@@ -66,6 +74,8 @@ namespace Axiom {
 
 	void Application::Shutdown() {
 		AX_CORE_INFO("Server shutting down...");
+
+		m_NetworkServer->Stop();
 
 		ServerStopEvent stopEvent;
 		m_EventBus->Publish(stopEvent);

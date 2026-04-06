@@ -6,6 +6,8 @@
 #include "Axiom/Plugin/PluginContext.h"
 #include "Axiom/Command/CommandRegistry.h"
 #include "Axiom/Config/ServerConfig.h"
+#include "Axiom/Network/NetworkServer.h"
+#include "Axiom/Network/PacketHandler.h"
 
 namespace Axiom {
 
@@ -35,6 +37,8 @@ namespace Axiom {
 		Scope<CommandRegistry> m_CommandRegistry;
 		Scope<ServerConfig> m_Config;
 		Scope<PluginContext> m_PluginContext;
+		Scope<NetworkServer> m_NetworkServer;
+		Scope<PacketHandler> m_PacketHandler;
 		bool m_Running = false;
 
 		static Application* s_Instance;
