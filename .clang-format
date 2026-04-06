@@ -1,0 +1,54 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++23
+
+# Indentation
+UseTab: ForIndentation
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+NamespaceIndentation: All
+IndentCaseLabels: false
+IndentAccessModifiers: false
+AccessModifierOffset: -4
+
+# Braces
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  BeforeElse: true
+  BeforeCatch: true
+
+# Column limit
+ColumnLimit: 120
+
+# Alignment
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignOperands: true
+AlignTrailingComments: true
+
+# Packing
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+
+# Includes
+SortIncludes: CaseInsensitive
+IncludeBlocks: Preserve
+
+# Misc
+PointerAlignment: Left
+ReferenceAlignment: Left
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeParens: ControlStatements
+SpacesInAngles: Never

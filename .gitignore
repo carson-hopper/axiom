@@ -1,0 +1,29 @@
+# Build
+build/
+out/
+cmake-build-*/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Compiled
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Dependencies (vendored via submodules)
+# vendor/ is tracked
+
+# OS
+Thumbs.db
+
+# Specs and plans (not committed)
+docs/superpowers/
