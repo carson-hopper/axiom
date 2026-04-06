@@ -2,6 +2,8 @@
 
 #include "Axiom/Core/Log.h"
 
+#include <zlib.h>
+
 namespace Axiom {
 
 	Connection::Connection(asio::ip::tcp::socket socket)
@@ -32,27 +34,86 @@ namespace Axiom {
 		m_Socket.close(errorCode);
 	}
 
+	void Connection::EnableEncryption(const std::vector<uint8_t>& sharedSecret) {
+		m_Cipher = CreateScope<AesCipher>(sharedSecret);
+		AX_CORE_TRACE("Encryption enabled for {}", RemoteAddress());
+	}
+
+	void Connection::SetCompressionThreshold(int32_t threshold) {
+		m_CompressionThreshold = threshold;
+		AX_CORE_TRACE("Compression threshold set to {} for {}", threshold, RemoteAddress());
+	}
+
 	void Connection::SendRawPacket(int32_t packetId, const NetworkBuffer& payload) {
 		if (!m_Connected) {
 			return;
 		}
 
-		NetworkBuffer packet;
-		packet.WriteVarInt(packetId);
-		packet.WriteBytes(payload.Data());
+		std::vector<uint8_t> frameData;
 
-		NetworkBuffer frame;
-		frame.WriteVarInt(static_cast<int32_t>(packet.Size()));
-		frame.WriteBytes(packet.Data());
+		if (m_CompressionThreshold >= 0) {
+			frameData = CompressPacket(packetId, payload);
+		} else {
+			NetworkBuffer packet;
+			packet.WriteVarInt(packetId);
+			packet.WriteBytes(payload.Data());
+
+			NetworkBuffer frame;
+			frame.WriteVarInt(static_cast<int32_t>(packet.Size()));
+			frame.WriteBytes(packet.Data());
+			frameData = std::move(frame.Data());
+		}
+
+		if (m_Cipher) {
+			frameData = m_Cipher->Encrypt(frameData);
+		}
 
 		std::lock_guard<std::mutex> lock(m_WriteMutex);
 		asio::error_code errorCode;
-		asio::write(m_Socket, asio::buffer(frame.Data()), errorCode);
+		asio::write(m_Socket, asio::buffer(frameData), errorCode);
 
 		if (errorCode) {
 			AX_CORE_TRACE("Write error to {}: {}", RemoteAddress(), errorCode.message());
 			Disconnect();
 		}
+	}
+
+	std::vector<uint8_t> Connection::CompressPacket(int32_t packetId, const NetworkBuffer& payload) {
+		NetworkBuffer uncompressedBody;
+		uncompressedBody.WriteVarInt(packetId);
+		uncompressedBody.WriteBytes(payload.Data());
+
+		int32_t dataLength = static_cast<int32_t>(uncompressedBody.Size());
+
+		if (dataLength < m_CompressionThreshold) {
+			// Below threshold — send uncompressed with dataLength=0
+			NetworkBuffer frame;
+			int32_t packetLength = NetworkBuffer::VarIntSize(0) + dataLength;
+			frame.WriteVarInt(packetLength);
+			frame.WriteVarInt(0);
+			frame.WriteBytes(uncompressedBody.Data());
+			return std::move(frame.Data());
+		}
+
+		// Compress with zlib
+		uLongf compressedSize = compressBound(static_cast<uLong>(uncompressedBody.Size()));
+		std::vector<uint8_t> compressed(compressedSize);
+
+		int result = compress(compressed.data(), &compressedSize,
+			uncompressedBody.Data().data(), static_cast<uLong>(uncompressedBody.Size()));
+
+		if (result != Z_OK) {
+			AX_CORE_ERROR("Compression failed with code {}", result);
+			return {};
+		}
+		compressed.resize(compressedSize);
+
+		NetworkBuffer frame;
+		int32_t packetLength = NetworkBuffer::VarIntSize(dataLength) + static_cast<int32_t>(compressedSize);
+		frame.WriteVarInt(packetLength);
+		frame.WriteVarInt(dataLength);
+		frame.WriteBytes(compressed);
+		return std::move(frame.Data());
 	}
 
 	std::string Connection::RemoteAddress() const {
@@ -72,7 +133,6 @@ namespace Axiom {
 		auto self = shared_from_this();
 		auto lengthBuffer = std::make_shared<std::vector<uint8_t>>();
 
-		// Read VarInt one byte at a time
 		auto singleByte = std::make_shared<uint8_t>(0);
 		auto readNextByte = std::make_shared<std::function<void()>>();
 
@@ -89,14 +149,23 @@ namespace Axiom {
 						return;
 					}
 
-					lengthBuffer->push_back(*singleByte);
+					uint8_t decryptedByte = *singleByte;
+					if (m_Cipher) {
+						auto decrypted = m_Cipher->Decrypt({*singleByte});
+						if (decrypted.empty()) {
+							Disconnect("Decryption failed");
+							return;
+						}
+						decryptedByte = decrypted[0];
+					}
 
-					if ((*singleByte & 0x80) == 0) {
-						// VarInt complete — decode it
+					lengthBuffer->push_back(decryptedByte);
+
+					if ((decryptedByte & 0x80) == 0) {
 						NetworkBuffer buffer(*lengthBuffer);
 						int32_t frameLength = buffer.ReadVarInt();
 
-						if (frameLength <= 0 || frameLength > 2097152) {
+						if (frameLength <= 0 || frameLength > 0x200000) {
 							Disconnect("Invalid frame length");
 							return;
 						}
@@ -127,7 +196,13 @@ namespace Axiom {
 					return;
 				}
 
-				ProcessPacket(std::move(*bodyBuffer));
+				std::vector<uint8_t> data = std::move(*bodyBuffer);
+
+				if (m_Cipher) {
+					data = m_Cipher->Decrypt(data);
+				}
+
+				ProcessPacket(std::move(data));
 
 				if (m_Connected) {
 					ReadFrameLength();
@@ -136,11 +211,46 @@ namespace Axiom {
 	}
 
 	void Connection::ProcessPacket(std::vector<uint8_t> data) {
-		NetworkBuffer buffer(std::move(data));
-		int32_t packetId = buffer.ReadVarInt();
+		if (m_CompressionThreshold >= 0) {
+			// Compressed format: DataLength (VarInt) + CompressedData
+			NetworkBuffer compressedBuffer(std::move(data));
+			int32_t dataLength = compressedBuffer.ReadVarInt();
 
-		if (m_PacketHandler) {
-			m_PacketHandler(shared_from_this(), packetId, buffer);
+			if (dataLength == 0) {
+				// Below threshold — rest is uncompressed packet data
+				auto remaining = compressedBuffer.ReadRemainingBytes();
+				NetworkBuffer buffer(std::move(remaining));
+				int32_t packetId = buffer.ReadVarInt();
+				if (m_PacketHandler) {
+					m_PacketHandler(shared_from_this(), packetId, buffer);
+				}
+			} else {
+				// Decompress
+				auto compressedData = compressedBuffer.ReadRemainingBytes();
+				std::vector<uint8_t> decompressed(dataLength);
+				uLongf decompressedSize = static_cast<uLongf>(dataLength);
+
+				int result = uncompress(decompressed.data(), &decompressedSize,
+					compressedData.data(), static_cast<uLong>(compressedData.size()));
+
+				if (result != Z_OK) {
+					Disconnect("Decompression failed");
+					return;
+				}
+
+				decompressed.resize(decompressedSize);
+				NetworkBuffer buffer(std::move(decompressed));
+				int32_t packetId = buffer.ReadVarInt();
+				if (m_PacketHandler) {
+					m_PacketHandler(shared_from_this(), packetId, buffer);
+				}
+			}
+		} else {
+			NetworkBuffer buffer(std::move(data));
+			int32_t packetId = buffer.ReadVarInt();
+			if (m_PacketHandler) {
+				m_PacketHandler(shared_from_this(), packetId, buffer);
+			}
 		}
 	}
 

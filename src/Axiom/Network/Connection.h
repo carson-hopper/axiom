@@ -3,6 +3,7 @@
 #include "Axiom/Core/Base.h"
 #include "Axiom/Network/Protocol.h"
 #include "Axiom/Network/NetworkBuffer.h"
+#include "Axiom/Network/Crypto/AesCipher.h"
 
 #include <asio.hpp>
 
@@ -33,6 +34,9 @@ namespace Axiom {
 
 		void SetPacketHandler(PacketHandler handler) { m_PacketHandler = std::move(handler); }
 
+		void EnableEncryption(const std::vector<uint8_t>& sharedSecret);
+		void SetCompressionThreshold(int32_t threshold);
+
 		std::string RemoteAddress() const;
 		bool IsConnected() const { return m_Connected; }
 
@@ -42,11 +46,16 @@ namespace Axiom {
 		void ReadFrameBody(int32_t frameLength);
 		void ProcessPacket(std::vector<uint8_t> data);
 
+		std::vector<uint8_t> CompressPacket(int32_t packetId, const NetworkBuffer& payload);
+
 		asio::ip::tcp::socket m_Socket;
 		ConnectionState m_State = ConnectionState::Handshake;
 		PacketHandler m_PacketHandler;
 		bool m_Connected = false;
 		std::mutex m_WriteMutex;
+
+		Scope<AesCipher> m_Cipher;
+		int32_t m_CompressionThreshold = -1;
 	};
 
 }
