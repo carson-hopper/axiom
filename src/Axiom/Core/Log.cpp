@@ -86,7 +86,11 @@ namespace Axiom {
 				std::snprintf(timestamp, sizeof(timestamp), "%02d:%02d:%02d",
 					time.tm_hour, time.tm_min, time.tm_sec);
 
-				auto levelName = spdlog::level::to_string_view(message.level);
+				auto levelView = spdlog::level::to_string_view(message.level);
+				std::string levelName(levelView.data(), levelView.size());
+				for (auto& character : levelName) {
+					character = static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
+				}
 
 				if (m_ColorEnabled) {
 					const auto& color = ColorForLevel(message.level);
