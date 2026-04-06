@@ -11,6 +11,8 @@ namespace Axiom {
 		AX_CORE_TRACE("Handshake from {}: protocol={}, address={}:{}, nextState={}",
 			connection->RemoteAddress(), protocolVersion, serverAddress, serverPort, nextState);
 
+		connection->ProtocolVersion(protocolVersion);
+
 		if (nextState == 1) {
 			connection->State(ConnectionState::Status);
 		} else if (nextState == 2) {

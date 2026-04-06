@@ -54,16 +54,16 @@ namespace Axiom {
 
 	void Application::RegisterPackets() {
 		// Handshake
-		m_PacketRegistry.Register<HandshakePacket<>>();
+		m_PacketRegistry.Register<775, HandshakePacket<775>>();
 
 		// Status
-		m_PacketRegistry.Register<StatusRequestPacket<>>();
-		m_PacketRegistry.Register<PingRequestPacket<>>();
+		m_PacketRegistry.Register<775, StatusRequestPacket<775>>();
+		m_PacketRegistry.Register<775, PingRequestPacket<775>>();
 
 		// Login
-		m_PacketRegistry.Register<LoginHelloPacket<>>();
-		m_PacketRegistry.Register<EncryptionResponsePacket<>>();
-		m_PacketRegistry.Register<LoginAcknowledgedPacket<>>();
+		m_PacketRegistry.Register<775, LoginHelloPacket<775>>();
+		m_PacketRegistry.Register<775, EncryptionResponsePacket<775>>();
+		m_PacketRegistry.Register<775, LoginAcknowledgedPacket<775>>();
 	}
 
 	void Application::Run() {

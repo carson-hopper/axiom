@@ -32,6 +32,9 @@ namespace Axiom {
 		ConnectionState State() const { return m_State; }
 		void State(ConnectionState state) { m_State = state; }
 
+		int32_t ProtocolVersion() const { return m_ProtocolVersion; }
+		void ProtocolVersion(int32_t version) { m_ProtocolVersion = version; }
+
 		void SetPacketHandler(PacketHandler handler) { m_PacketHandler = std::move(handler); }
 
 		void EnableEncryption(const std::vector<uint8_t>& sharedSecret);
@@ -50,6 +53,7 @@ namespace Axiom {
 
 		asio::ip::tcp::socket m_Socket;
 		ConnectionState m_State = ConnectionState::Handshake;
+		int32_t m_ProtocolVersion = 0;
 		PacketHandler m_PacketHandler;
 		bool m_Connected = false;
 		std::mutex m_WriteMutex;

@@ -42,7 +42,7 @@ namespace Axiom {
 		Scope<PluginContext> m_PluginContext;
 		Scope<NetworkServer> m_NetworkServer;
 		Scope<PacketContext> m_PacketContext;
-		PacketRegistry<> m_PacketRegistry;
+		PacketRegistry m_PacketRegistry;
 		bool m_Running = false;
 
 		static Application* s_Instance;
