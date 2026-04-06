@@ -7,7 +7,8 @@
 #include "Axiom/Command/CommandRegistry.h"
 #include "Axiom/Config/ServerConfig.h"
 #include "Axiom/Network/NetworkServer.h"
-#include "Axiom/Network/PacketHandler.h"
+#include "Axiom/Network/Packet/PacketContext.h"
+#include "Axiom/Network/Packet/PacketRegistry.h"
 
 namespace Axiom {
 
@@ -32,13 +33,16 @@ namespace Axiom {
 		static Application& Instance() { return *s_Instance; }
 
 	private:
+		void RegisterPackets();
+
 		Scope<EventBus> m_EventBus;
 		Scope<PluginManager> m_PluginManager;
 		Scope<CommandRegistry> m_CommandRegistry;
 		Scope<ServerConfig> m_Config;
 		Scope<PluginContext> m_PluginContext;
 		Scope<NetworkServer> m_NetworkServer;
-		Scope<PacketHandler> m_PacketHandler;
+		Scope<PacketContext> m_PacketContext;
+		PacketRegistry<> m_PacketRegistry;
 		bool m_Running = false;
 
 		static Application* s_Instance;

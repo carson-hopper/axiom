@@ -5,9 +5,15 @@
 #include "Axiom/Plugin/CorePlugin.h"
 #include "Axiom/Command/CommandSender.h"
 
+#include "Axiom/Network/Packet/Handshake/HandshakePacket.h"
+#include "Axiom/Network/Packet/Status/StatusRequestPacket.h"
+#include "Axiom/Network/Packet/Status/PingRequestPacket.h"
+#include "Axiom/Network/Packet/Login/LoginHelloPacket.h"
+#include "Axiom/Network/Packet/Login/EncryptionResponsePacket.h"
+#include "Axiom/Network/Packet/Login/LoginAcknowledgedPacket.h"
+
 #include <iostream>
 #include <string>
-#include <thread>
 
 namespace Axiom {
 
@@ -32,15 +38,32 @@ namespace Axiom {
 		m_PluginManager->RegisterPlugin(CreateScope<CorePlugin>());
 		m_PluginManager->EnableAll(*m_PluginContext);
 
-		m_PacketHandler = CreateScope<PacketHandler>(*m_Config);
+		m_PacketContext = CreateScope<PacketContext>(*m_Config, *m_EventBus, *m_CommandRegistry);
+		RegisterPackets();
+
 		m_NetworkServer = CreateScope<NetworkServer>();
 		m_NetworkServer->SetPacketHandler(
 			[this](Ref<Connection> connection, int32_t packetId, NetworkBuffer& buffer) {
-				m_PacketHandler->HandlePacket(std::move(connection), packetId, buffer);
+				m_PacketRegistry.Dispatch(connection->State(), packetId, buffer,
+					std::move(connection), *m_PacketContext);
 			});
 		m_NetworkServer->Start(m_Config->Port());
 
 		AX_CORE_INFO("Server initialized on port {}", m_Config->Port());
+	}
+
+	void Application::RegisterPackets() {
+		// Handshake
+		m_PacketRegistry.Register<HandshakePacket<>>();
+
+		// Status
+		m_PacketRegistry.Register<StatusRequestPacket<>>();
+		m_PacketRegistry.Register<PingRequestPacket<>>();
+
+		// Login
+		m_PacketRegistry.Register<LoginHelloPacket<>>();
+		m_PacketRegistry.Register<EncryptionResponsePacket<>>();
+		m_PacketRegistry.Register<LoginAcknowledgedPacket<>>();
 	}
 
 	void Application::Run() {
