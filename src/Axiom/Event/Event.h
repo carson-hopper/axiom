@@ -1,0 +1,56 @@
+#pragma once
+
+#include "Axiom/Core/Base.h"
+
+#include <string>
+
+namespace Axiom {
+
+	enum class EventType {
+		None = 0,
+		// Player
+		PlayerJoin, PlayerQuit, PlayerChat, PlayerMove,
+		// Block
+		BlockPlace, BlockBreak,
+		// Server
+		ServerStart, ServerStop, ServerTick,
+		// Command
+		CommandExecute,
+		// Plugin
+		PluginEnable, PluginDisable
+	};
+
+	enum EventCategory {
+		EventCategoryNone    = 0,
+		EventCategoryPlayer  = BIT(0),
+		EventCategoryBlock   = BIT(1),
+		EventCategoryServer  = BIT(2),
+		EventCategoryCommand = BIT(3),
+		EventCategoryPlugin  = BIT(4)
+	};
+
+#define AX_EVENT_CLASS_TYPE(type) \
+	static EventType StaticType() { return EventType::type; } \
+	EventType Type() const override { return StaticType(); } \
+	const char* Name() const override { return #type; }
+
+#define AX_EVENT_CLASS_CATEGORY(category) \
+	int CategoryFlags() const override { return category; }
+
+	class Event {
+	public:
+		virtual ~Event() = default;
+
+		virtual EventType Type() const = 0;
+		virtual const char* Name() const = 0;
+		virtual int CategoryFlags() const = 0;
+		virtual std::string ToString() const { return Name(); }
+
+		bool IsInCategory(EventCategory category) const {
+			return CategoryFlags() & category;
+		}
+
+		bool m_Handled = false;
+	};
+
+}
