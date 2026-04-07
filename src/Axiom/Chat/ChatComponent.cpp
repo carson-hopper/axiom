@@ -129,6 +129,22 @@ namespace Axiom {
 		return *this;
 	}
 
+	ChatComponent::Builder& ChatComponent::Builder::Space() {
+		return Append(" ");
+	}
+
+	ChatComponent::Builder& ChatComponent::Builder::Space(const int count) {
+		return Append(std::string(count, ' '));
+	}
+
+	ChatComponent::Builder& ChatComponent::Builder::NewLine() {
+		return Append("\n");
+	}
+
+	ChatComponent::Builder& ChatComponent::Builder::NewLine(const int count) {
+		return Append(std::string(count, '\n'));
+	}
+
 	std::shared_ptr<ChatComponent> ChatComponent::Builder::Build() {
 		return m_Component;
 	}

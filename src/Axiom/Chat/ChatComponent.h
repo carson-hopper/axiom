@@ -123,12 +123,36 @@ namespace Axiom {
 			Builder& HoverEvent(HoverAction action, const Ref<ChatComponent> &value);
 			Builder& HoverText(const std::string& text);
 
-			// Append extra components
-			Builder& Extra(const std::shared_ptr<ChatComponent> &component);
-			Builder& Append(const std::string& text);
-			Builder& Append(const std::string& text, ChatColor color);
+		// Append extra components
+		Builder& Extra(const std::shared_ptr<ChatComponent> &component);
+		Builder& Append(const std::string& text);
+		Builder& Append(const std::string& text, ChatColor color);
 
-			std::shared_ptr<ChatComponent> Build();
+		/**
+		 * Add a space character.
+		 * Equivalent to Append(" ")
+		 */
+		Builder& Space();
+
+		/**
+		 * Add multiple spaces.
+		 * @param count Number of spaces to add (default: 1)
+		 */
+		Builder& Space(int count);
+
+		/**
+		 * Add a newline character.
+		 * Starts a new line in the chat.
+		 */
+		Builder& NewLine();
+
+		/**
+		 * Add multiple newlines.
+		 * @param count Number of newlines to add (default: 1)
+		 */
+		Builder& NewLine(int count);
+
+		std::shared_ptr<ChatComponent> Build();
 
 		private:
 			std::shared_ptr<ChatComponent> m_Component = CreateRef<ChatComponent>();
