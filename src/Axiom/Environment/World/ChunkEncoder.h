@@ -1,20 +1,13 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
+#include "Axiom/Environment/World/Generator/BlockStates.h"
 #include "Axiom/Network/NetworkBuffer.h"
 
 #include <array>
 #include <vector>
 
 namespace Axiom {
-
-	namespace BlockState {
-		constexpr int32_t Air = 0;
-		constexpr int32_t Stone = 1;
-		constexpr int32_t GrassBlock = 9;
-		constexpr int32_t Dirt = 10;
-		constexpr int32_t Bedrock = 85;
-	}
 
 	namespace Biome {
 		constexpr int32_t Plains = 40;
