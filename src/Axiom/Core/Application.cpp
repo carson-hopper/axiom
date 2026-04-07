@@ -5,12 +5,12 @@
 #include "Axiom/Plugin/CorePlugin.h"
 #include "Axiom/Command/CommandSender.h"
 
-#include "Axiom/Network/Packet/Handshake/HandshakePacket.h"
-#include "Axiom/Network/Packet/Status/StatusRequestPacket.h"
-#include "Axiom/Network/Packet/Status/PingRequestPacket.h"
-#include "Axiom/Network/Packet/Login/LoginHelloPacket.h"
-#include "Axiom/Network/Packet/Login/EncryptionResponsePacket.h"
-#include "Axiom/Network/Packet/Login/LoginAcknowledgedPacket.h"
+#include "Axiom/Network/Packet/26.1/Handshake/HandshakePacket.h"
+#include "Axiom/Network/Packet/26.1/Status/StatusRequestPacket.h"
+#include "Axiom/Network/Packet/26.1/Status/PingRequestPacket.h"
+#include "Axiom/Network/Packet/26.1/Login/LoginHelloPacket.h"
+#include "Axiom/Network/Packet/26.1/Login/EncryptionResponsePacket.h"
+#include "Axiom/Network/Packet/26.1/Login/LoginAcknowledgedPacket.h"
 
 #include <iostream>
 #include <string>
