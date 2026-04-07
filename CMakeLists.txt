@@ -27,7 +27,8 @@ add_subdirectory(vendor/json EXCLUDE_FROM_ALL)
 
 # asio (header-only, standalone)
 add_library(asio INTERFACE
-		src/axpch.h)
+		src/axpch.h
+		src/Axiom/Network/Packet/26.1/Packets.h)
 target_include_directories(asio INTERFACE vendor/asio/asio/include)
 target_compile_definitions(asio INTERFACE ASIO_STANDALONE)
 

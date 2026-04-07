@@ -7,26 +7,8 @@
 #include "Axiom/Plugin/CorePlugin.h"
 #include "Axiom/Command/CommandSender.h"
 
-#include "Axiom/Network/Packet/26.1/Handshake/HandshakePacket.h"
-#include "Axiom/Network/Packet/26.1/Status/StatusRequestPacket.h"
-#include "Axiom/Network/Packet/26.1/Status/PingRequestPacket.h"
-#include "Axiom/Network/Packet/26.1/Login/LoginHelloPacket.h"
-#include "Axiom/Network/Packet/26.1/Login/EncryptionResponsePacket.h"
-#include "Axiom/Network/Packet/26.1/Login/LoginAcknowledgedPacket.h"
-#include "Axiom/Network/Packet/26.1/Config/ClientInformationPacket.h"
-#include "Axiom/Network/Packet/26.1/Config/SelectKnownPacksPacket.h"
-#include "Axiom/Network/Packet/26.1/Config/FinishConfigurationPacket.h"
-#include "Axiom/Network/Packet/26.1/Config/KeepAlivePacket.h"
-#include "Axiom/Network/Packet/26.1/Play/PlayKeepAlivePacket.h"
-#include "Axiom/Network/Packet/26.1/Play/PlayerLoadedPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/ChunkBatchReceivedPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/AcceptTeleportationPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/ClientTickEndPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/MovePlayerPositionPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/PlayerActionPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/UseItemOnPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/SetCarriedItemPacket.h"
-#include "Axiom/Network/Packet/26.1/Play/SetCreativeModeSlotPacket.h"
+#include "Axiom/Network/Packet/26.1/Packets.h"
+
 #include "Axiom/Environment/Level/LevelTime.h"
 
 #include <iostream>
