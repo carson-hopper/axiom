@@ -45,41 +45,18 @@
 	private: \
 		type m_##name = v;
 
-#define PACKET_FIELD_INT(name) \
-	PACKET_FIELD(int, name, 0)
-
-#define PACKET_FIELD_INT8(name) \
-	PACKET_FIELD(int8_t, name, 0)
-
-#define PACKET_FIELD_INT16(name) \
-	PACKET_FIELD(int16_t, name, 0)
-
-#define PACKET_FIELD_INT32(name) \
-	PACKET_FIELD(int32_t, name, 0)
-
-#define PACKET_FIELD_INT64(name) \
-	PACKET_FIELD(int64_t, name, 0)
-
-#define PACKET_FIELD_UINT8(name) \
-	PACKET_FIELD(uint8_t, name, 0)
-
-#define PACKET_FIELD_UINT16(name) \
-	PACKET_FIELD(uint16_t, name, 0)
-
-#define PACKET_FIELD_UINT32(name) \
-	PACKET_FIELD(uint32_t, name, 0)
-
-#define PACKET_FIELD_UINT64(name) \
-	PACKET_FIELD(uint64_t, name, 0)
-
-#define PACKET_FIELD_FLOAT(name) \
-	PACKET_FIELD(float, name, 0)
-
-#define PACKET_FIELD_DOUBLE(name) \
-	PACKET_FIELD(double, name, 0)
-
-#define PACKET_FIELD_BOOL(name) \
-	PACKET_FIELD(bool, name, false)
+#define PACKET_FIELD_INT(name) PACKET_FIELD(int, name, 0)
+#define PACKET_FIELD_INT8(name) PACKET_FIELD(int8_t, name, 0)
+#define PACKET_FIELD_INT16(name) PACKET_FIELD(int16_t, name, 0)
+#define PACKET_FIELD_INT32(name) PACKET_FIELD(int32_t, name, 0)
+#define PACKET_FIELD_INT64(name) PACKET_FIELD(int64_t, name, 0)
+#define PACKET_FIELD_UINT8(name) PACKET_FIELD(uint8_t, name, 0)
+#define PACKET_FIELD_UINT16(name) PACKET_FIELD(uint16_t, name, 0)
+#define PACKET_FIELD_UINT32(name) PACKET_FIELD(uint32_t, name, 0)
+#define PACKET_FIELD_UINT64(name) PACKET_FIELD(uint64_t, name, 0)
+#define PACKET_FIELD_FLOAT(name) PACKET_FIELD(float, name, 0)
+#define PACKET_FIELD_DOUBLE(name) PACKET_FIELD(double, name, 0)
+#define PACKET_FIELD_BOOL(name) PACKET_FIELD(bool, name, false)
 
 #define PACKET_FIELD_STRING(name) \
 	public: \
@@ -95,22 +72,15 @@
 
 // ----- Implementation Macros ------------------------------------
 
-#define PACKET_DECODE_BEGIN(name) \
-	template<int32_t Version> \
-	void name<Version>::Decode(NetworkBuffer& buffer) {
+#define PACKET_DECODE_BEGIN(name) template<int32_t Version> void name<Version>::Decode(NetworkBuffer& buffer) {
 
-#define PACKET_DECODE_END() \
-	}
+#define PACKET_DECODE_END() }
 
-#define PACKET_HANDLE_BEGIN(name) \
-	template<int32_t Version> \
-	void name<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
+#define PACKET_HANDLE_BEGIN(name) template<int32_t Version> void name<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
 
-#define PACKET_HANDLE_END() \
-	}
+#define PACKET_HANDLE_END() }
 
-#define PACKET_INSTANTIATE(name, version) \
-	template class name<version>;
+#define PACKET_INSTANTIATE(name, version) template class name<version>;
 
 // ----- Read Operations ------------------------------------------
 

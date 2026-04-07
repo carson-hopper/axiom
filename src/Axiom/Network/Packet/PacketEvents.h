@@ -3,7 +3,6 @@
 #include "Axiom/Event/Event.h"
 #include "Axiom/Network/Protocol.h"
 
-#include <cstdint>
 #include <memory>
 
 namespace Axiom {
@@ -18,7 +17,7 @@ namespace Axiom {
 	class PacketReceiveEvent : public Event {
 	public:
 		PacketReceiveEvent(std::shared_ptr<Connection> connection, ConnectionState state,
-			int32_t packetId, ServerboundPacket* packet)
+			const int32_t packetId, ServerboundPacket* packet)
 			: m_Connection(std::move(connection))
 			, m_State(state)
 			, m_PacketId(packetId)
@@ -48,8 +47,8 @@ namespace Axiom {
 	 */
 	class PacketHandledEvent : public Event {
 	public:
-		PacketHandledEvent(std::shared_ptr<Connection> connection, ConnectionState state,
-			int32_t packetId, ServerboundPacket* packet)
+		PacketHandledEvent(std::shared_ptr<Connection> connection, const ConnectionState state,
+			const int32_t packetId, ServerboundPacket* packet)
 			: m_Connection(std::move(connection))
 			, m_State(state)
 			, m_PacketId(packetId)

@@ -11,8 +11,7 @@ namespace Axiom {
 		READ_INT64(m_Salt);
 
 		// Check if message is signed
-		bool hasSignature = buffer.ReadBoolean();
-		if (hasSignature) {
+		if (bool hasSignature = buffer.ReadBoolean()) {
 			// Read signature (256 bytes for signed messages)
 			m_Signature = buffer.ReadBytes(256);
 		}
