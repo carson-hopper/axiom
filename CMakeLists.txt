@@ -50,7 +50,9 @@ add_executable(axiom-server ${AXIOM_SOURCES}
 		src/Axiom/Core/UUID.cpp
 		src/axpch.cpp
         src/Axiom/Core/EntryPoint.h
-		src/Axiom/Core/Timer.h)
+		src/Axiom/Core/Timer.h
+		src/Axiom/Core/TickStack.cpp
+		src/Axiom/Core/TickStack.h)
 
 target_include_directories(axiom-server PRIVATE src)
 
