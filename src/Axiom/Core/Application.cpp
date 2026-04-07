@@ -49,19 +49,27 @@ namespace Axiom {
 
 	Application::~Application()
 	{
-		AX_CORE_INFO("Server shutting down...");
-
-		m_NetworkServer->Stop();
-
-		ServerStopEvent stopEvent;
-		m_EventBus->Publish(stopEvent);
-
-		m_PluginManager->DisableAll();
-
-		m_Config->Save();
-
-		AX_CORE_INFO("Server stopped.");
+		AX_CORE_TRACE("Shutting down Axiom Server");
+		
+		// Stop the tick stack first
+		m_LayerStack.Stop();
+		
 		s_Instance = nullptr;
+	}
+
+	void Application::PushTick(Tickable* tick)
+	{
+		m_LayerStack.PushTick(tick);
+	}
+
+	void Application::PopTick(Tickable* tick)
+	{
+		m_LayerStack.PopTick(tick);
+	}
+
+	void Application::PushTick(Tickable* tick) {
+		m_LayerStack.PushTick(tick);
+		tick->OnTickRegistered();
 	}
 
 	void Application::Init() {
@@ -207,28 +215,25 @@ namespace Axiom {
 
 		ConsoleSender consoleSender;
 
-		while (m_Running) {
-			const float time = Time::GetTime();
-			Timestep timestep = time - m_LastFrameTime;
-			m_LastFrameTime = time;
-
-
+		// Start the tick loop at 20 TPS
+		// This runs synchronously but supports Async() for background work
+		m_LayerStack.RunSyncLoop([this, &consoleSender]() -> bool {
+			// Process console input each tick
 			std::string input;
-			if (!std::getline(std::cin, input)) {
-				break;
+			if (std::cin.peek() != EOF) {
+				if (std::getline(std::cin, input)) {
+					if (!input.empty()) {
+						if (input == "stop") {
+							m_Running = false;
+							return false;
+						}
+						m_CommandRegistry->Dispatch(consoleSender, input);
+					}
+				}
 			}
 
-			if (input.empty()) {
-				continue;
-			}
-
-			if (input == "stop") {
-				m_Running = false;
-				break;
-			}
-
-			m_CommandRegistry->Dispatch(consoleSender, input);
-		}
+			return m_Running;
+		}, 20.0f); // 20 TPS = 50ms per tick
 	}
 
 }
