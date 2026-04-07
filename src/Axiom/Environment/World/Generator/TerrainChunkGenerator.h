@@ -1,15 +1,18 @@
 #pragma once
 
 #include "Axiom/Environment/World/Generator/ChunkGenerator.h"
-#include "Axiom/Environment/World/Generator/BiomeProvider.h"
+#include "Axiom/Environment/World/Generator/AquiferSampler.h"
 #include "Axiom/Environment/World/Generator/BlockStates.h"
 #include "Axiom/Environment/World/Generator/CaveCarver.h"
-#include "Axiom/Environment/World/Generator/DensityProvider.h"
-#include "Axiom/Environment/World/Generator/Noise.h"
+#include "Axiom/Environment/World/Generator/CellInterpolator.h"
+#include "Axiom/Environment/World/Generator/ClimateSampler.h"
+#include "Axiom/Environment/World/Generator/NormalNoise.h"
 #include "Axiom/Environment/World/Generator/OreDistributor.h"
+#include "Axiom/Environment/World/Generator/SplineFunction.h"
 #include "Axiom/Environment/World/Generator/SurfaceDecorator.h"
 #include "Axiom/Environment/World/Generator/TreePlacer.h"
 #include "Axiom/Environment/World/Generator/WaterDecorator.h"
+#include "Axiom/Environment/World/BiomeEncoder.h"
 #include "Axiom/Environment/World/ChunkEncoder.h"
 
 #include <algorithm>
@@ -20,12 +23,17 @@
 namespace Axiom {
 
 	/**
-	 * Generates terrain using 3D density functions for natural
-	 * overhangs, cliffs, and varied terrain shapes.
+	 * Full vanilla-style terrain generator using:
+	 * - 3D density with cell interpolation (4x8x4)
+	 * - Spline-based terrain shaping from climate parameters
+	 * - 4 cave types (cheese, spaghetti, noodle, entrance)
+	 * - Aquifer system for underground water/lava
+	 * - 6D multi-noise biome selection
+	 * - Noise-varied surface blocks and vegetation
 	 */
 	class TerrainChunkGenerator : public ChunkGenerator {
 	public:
-		static constexpr int SeaLevel = 62;
+		static constexpr int SeaLevel = 63;
 		static constexpr int MinY = -64;
 		static constexpr int MaxY = 319;
 		static constexpr int WorldHeight = MaxY - MinY + 1;
@@ -35,23 +43,20 @@ namespace Axiom {
 		double SpawnY() const override;
 
 	private:
-		bool IsRiver(int worldX, int worldZ) const;
+		double SampleTerrainDensity(int worldX, int worldY, int worldZ) const;
+		int FindSurfaceHeight(const std::vector<int32_t>& columnBlocks, int localX, int localZ) const;
 
-		void FillTerrainDensity(int32_t chunkX, int32_t chunkZ,
+		void FillBlocksFromDensity(int32_t chunkX, int32_t chunkZ,
+			const CellInterpolator& interpolator,
 			std::array<int, 256>& surfaceHeightmap,
-			const std::array<BiomeType, 256>& biomeMap,
-			const std::array<bool, 256>& riverMap,
 			std::vector<int32_t>& columnBlocks) const;
 
 		void ApplySurfaceBlocks(int32_t chunkX, int32_t chunkZ,
 			const std::array<int, 256>& surfaceHeightmap,
-			const std::array<BiomeType, 256>& biomeMap,
-			const std::array<bool, 256>& riverMap,
 			std::vector<int32_t>& columnBlocks) const;
 
 		void PlaceVegetation(int32_t chunkX, int32_t chunkZ,
 			const std::array<int, 256>& surfaceHeightmap,
-			const std::array<BiomeType, 256>& biomeMap,
 			std::vector<int32_t>& columnBlocks) const;
 
 		void ComputeBiomeGrid(int32_t chunkX, int32_t chunkZ,
@@ -61,14 +66,15 @@ namespace Axiom {
 			const std::vector<int32_t>& columnBlocks,
 			const std::array<int32_t, 16>& biomeGrid);
 
-		DensityProvider m_DensityProvider;
-		PerlinNoise m_RiverNoise;
-		BiomeProvider m_BiomeProvider;
+		ClimateSampler m_ClimateSampler;
 		CaveCarver m_CaveCarver;
+		AquiferSampler m_AquiferSampler;
 		OreDistributor m_OreDistributor;
 		SurfaceDecorator m_SurfaceDecorator;
 		TreePlacer m_TreePlacer;
 		WaterDecorator m_WaterDecorator;
+		NormalNoise m_OffsetNoise;
+		PerlinNoise m_RiverNoise;
 	};
 
 }

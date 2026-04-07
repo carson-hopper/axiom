@@ -1,46 +1,48 @@
 #include "TerrainChunkGenerator.h"
-#include "Axiom/Environment/World/BiomeEncoder.h"
 
 namespace Axiom {
 
 	TerrainChunkGenerator::TerrainChunkGenerator(const uint64_t seed)
-		: m_DensityProvider(seed)
-		, m_RiverNoise(seed + 10)
-		, m_BiomeProvider(seed + 20)
-		, m_CaveCarver(seed + 30)
-		, m_OreDistributor(seed + 40)
-		, m_SurfaceDecorator(seed + 50)
-		, m_TreePlacer(seed + 60)
-		, m_WaterDecorator(seed + 70) {}
+		: m_ClimateSampler(seed)
+		, m_CaveCarver(seed + 1000)
+		, m_AquiferSampler(seed + 2000)
+		, m_OreDistributor(seed + 3000)
+		, m_SurfaceDecorator(seed + 4000)
+		, m_TreePlacer(seed + 5000)
+		, m_WaterDecorator(seed + 6000)
+		, m_OffsetNoise(seed + 7000, NoiseParameters::Offset())
+		, m_RiverNoise(seed + 8000) {}
 
 	ChunkData TerrainChunkGenerator::Generate(const int32_t chunkX, const int32_t chunkZ) {
-		std::array<BiomeType, 256> biomeMap{};
-		std::array<bool, 256> riverMap{};
+		// Phase 1: Sample density at cell corners (4×8×4 cells)
+		CellInterpolator interpolator;
+		interpolator.SampleCorners(chunkX, chunkZ,
+			[this](const int worldX, const int worldY, const int worldZ) {
+				return SampleTerrainDensity(worldX, worldY, worldZ);
+			});
 
+		// Phase 2: Fill blocks from interpolated density + aquifer
+		std::vector<int32_t> columnBlocks(16 * 16 * WorldHeight, BlockState::Air);
+		std::array<int, 256> surfaceHeightmap{};
+		FillBlocksFromDensity(chunkX, chunkZ, interpolator, surfaceHeightmap, columnBlocks);
+
+		// Phase 3: Surface decoration
+		ApplySurfaceBlocks(chunkX, chunkZ, surfaceHeightmap, columnBlocks);
+
+		// Phase 4: Trees, vegetation, water features
+		std::array<BiomeType, 256> biomeMap{};
 		for (int localZ = 0; localZ < 16; localZ++) {
 			for (int localX = 0; localX < 16; localX++) {
-				const int worldX = chunkX * 16 + localX;
-				const int worldZ = chunkZ * 16 + localZ;
-				const int columnIndex = localZ * 16 + localX;
-
-				const double continentalness = m_DensityProvider.GetContinentalness(worldX, worldZ);
-				const double erosion = m_DensityProvider.GetErosion(worldX, worldZ);
-
-				biomeMap[columnIndex] = m_BiomeProvider.SelectBiome(continentalness, erosion, worldX, worldZ);
-				riverMap[columnIndex] = IsRiver(worldX, worldZ);
+				biomeMap[localZ * 16 + localX] = m_ClimateSampler.SelectBiomeType(
+					chunkX * 16 + localX, chunkZ * 16 + localZ);
 			}
 		}
 
-		std::vector<int32_t> columnBlocks(16 * 16 * WorldHeight, BlockState::Air);
-		std::array<int, 256> surfaceHeightmap{};
-
-		FillTerrainDensity(chunkX, chunkZ, surfaceHeightmap, biomeMap, riverMap, columnBlocks);
-		ApplySurfaceBlocks(chunkX, chunkZ, surfaceHeightmap, biomeMap, riverMap, columnBlocks);
 		m_TreePlacer.PlaceTrees(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
-		PlaceVegetation(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
+		PlaceVegetation(chunkX, chunkZ, surfaceHeightmap, columnBlocks);
 		m_WaterDecorator.Decorate(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
 
-		// Compute 4x4 biome grid for this chunk
+		// Phase 5: Encode sections with per-4x4 biome blending
 		std::array<int32_t, 16> biomeGrid{};
 		ComputeBiomeGrid(chunkX, chunkZ, biomeGrid);
 
@@ -54,76 +56,96 @@ namespace Axiom {
 			if (height > maximumHeight) maximumHeight = height;
 		}
 
-		const int32_t centerBiomeId = BiomeProvider::ToRegistryId(biomeMap[128]);
+		const int32_t centerBiomeId = m_ClimateSampler.SelectBiome(
+			chunkX * 16 + 8, 64, chunkZ * 16 + 8);
+
 		return ChunkData{chunkX, chunkZ, std::move(sectionData.Data()),
 			std::max(SeaLevel - MinY + 1, maximumHeight - MinY + 1), centerBiomeId};
 	}
 
 	double TerrainChunkGenerator::SpawnY() const {
-		return static_cast<double>(
-			std::max(m_DensityProvider.ComputeSurfaceHeight(0, 0), SeaLevel)) + 1.0;
+		return std::max(m_ClimateSampler.ComputeSurfaceY(0, 0), static_cast<double>(SeaLevel)) + 1.0;
 	}
 
-	bool TerrainChunkGenerator::IsRiver(const int worldX, const int worldZ) const {
-		return std::abs(m_RiverNoise.OctaveNoise(worldX * 0.004, worldZ * 0.004, 3, 0.5)) < 0.03;
+	double TerrainChunkGenerator::SampleTerrainDensity(const int worldX, const int worldY,
+		const int worldZ) const {
+
+		const double blockX = static_cast<double>(worldX);
+		const double blockY = static_cast<double>(worldY);
+		const double blockZ = static_cast<double>(worldZ);
+
+		// Get climate-driven target surface height
+		const double continentalness = m_ClimateSampler.GetContinentalness(worldX, worldZ);
+		const double erosion = m_ClimateSampler.GetErosion(worldX, worldZ);
+		const double weirdness = m_ClimateSampler.GetWeirdness(worldX, worldZ);
+
+		const double targetHeight = m_ClimateSampler.ComputeApproximateSurfaceY(
+			continentalness, erosion, weirdness);
+
+		// Small-scale offset noise for surface variation
+		const double offsetValue = m_OffsetNoise.GetValue(blockX, 0, blockZ) * 3.0;
+		const double adjustedTarget = targetHeight + offsetValue;
+
+		// Vertical gradient: positive below target, negative above
+		const double heightDelta = adjustedTarget - blockY;
+		double density = heightDelta * 0.15;
+
+		// Clamp density to prevent extreme values
+		density = std::clamp(density, -4.0, 4.0);
+
+		// Cave carving (subtracts from density)
+		if (worldY > MinY + 5 && worldY < adjustedTarget - 2) {
+			const double caveDensity = m_CaveCarver.SampleCaveDensity(worldX, worldY, worldZ);
+			density -= caveDensity;
+		}
+
+		// Bedrock floor
+		if (worldY <= MinY + 5) {
+			density = 4.0;
+		}
+
+		// Squeeze: vanilla applies this to prevent floating islands
+		// Reduces density above surface more aggressively
+		if (density > 0 && blockY > adjustedTarget + 8) {
+			const double squeezeAmount = (blockY - adjustedTarget - 8) * 0.05;
+			density -= squeezeAmount;
+		}
+
+		return density;
 	}
 
-	void TerrainChunkGenerator::FillTerrainDensity(const int32_t chunkX, const int32_t chunkZ,
+	void TerrainChunkGenerator::FillBlocksFromDensity(const int32_t chunkX, const int32_t chunkZ,
+		const CellInterpolator& interpolator,
 		std::array<int, 256>& surfaceHeightmap,
-		const std::array<BiomeType, 256>& biomeMap,
-		const std::array<bool, 256>& riverMap,
 		std::vector<int32_t>& columnBlocks) const {
 
 		surfaceHeightmap.fill(MinY);
 
 		for (int localZ = 0; localZ < 16; localZ++) {
 			for (int localX = 0; localX < 16; localX++) {
+				const int columnIndex = localZ * 16 + localX;
 				const int worldX = chunkX * 16 + localX;
 				const int worldZ = chunkZ * 16 + localZ;
-				const int columnIndex = localZ * 16 + localX;
-				const bool isRiver = riverMap[columnIndex];
 
-				const int approximateHeight = m_DensityProvider.ComputeSurfaceHeight(worldX, worldZ);
-				const int scanMaxY = std::min(MaxY, approximateHeight + 30);
+				for (int worldY = MinY; worldY <= MaxY; worldY++) {
+					const double density = interpolator.GetDensity(localX, worldY, localZ);
 
-				int surfaceHeight = MinY;
+					// Aquifer system determines final block
+					const int32_t blockState = m_AquiferSampler.ComputeBlockState(
+						worldX, worldY, worldZ, density);
 
-				for (int worldY = MinY; worldY <= scanMaxY; worldY++) {
-					const double density = m_DensityProvider.SampleDensity(worldX, worldY, worldZ);
-
-					const bool isRiverCarved = isRiver
-						&& worldY >= SeaLevel - 2 && worldY <= SeaLevel + 2
-						&& density > 0 && biomeMap[columnIndex] != BiomeType::Ocean;
-
-					if (density > 0 && !isRiverCarved) {
-						if (worldY <= MinY + 4) {
-							columnBlocks[(worldY - MinY) * 256 + columnIndex] = BlockState::Bedrock;
-						} else if (worldY <= 0) {
-							columnBlocks[(worldY - MinY) * 256 + columnIndex] = BlockState::Deepslate;
-						} else {
-							columnBlocks[(worldY - MinY) * 256 + columnIndex] = BlockState::Stone;
-						}
-						surfaceHeight = worldY;
-					} else if (worldY <= SeaLevel) {
-						columnBlocks[(worldY - MinY) * 256 + columnIndex] = BlockState::Water;
-					}
-				}
-
-				surfaceHeightmap[columnIndex] = surfaceHeight;
-
-				// Cave carving
-				for (int worldY = MinY + 5; worldY < surfaceHeight - 1; worldY++) {
 					const int absoluteY = worldY - MinY;
-					const int32_t currentBlock = columnBlocks[absoluteY * 256 + columnIndex];
-					if (currentBlock == BlockState::Stone || currentBlock == BlockState::Deepslate) {
-						if (m_CaveCarver.ShouldCarve(worldX, worldY, worldZ, SeaLevel)) {
-							columnBlocks[absoluteY * 256 + columnIndex] =
-								(worldY <= SeaLevel) ? BlockState::Water : BlockState::Air;
-						}
+					columnBlocks[absoluteY * 256 + columnIndex] = blockState;
+
+					// Track highest solid block for surface height
+					if (blockState == BlockState::Stone || blockState == BlockState::Deepslate
+						|| blockState == BlockState::Bedrock) {
+						surfaceHeightmap[columnIndex] = worldY;
 					}
 				}
 
-				// Ore placement
+				// Ore placement pass
+				const int surfaceHeight = surfaceHeightmap[columnIndex];
 				for (int worldY = MinY + 5; worldY <= surfaceHeight - 2; worldY++) {
 					const int absoluteY = worldY - MinY;
 					const int32_t currentBlock = columnBlocks[absoluteY * 256 + columnIndex];
@@ -137,10 +159,21 @@ namespace Axiom {
 		}
 	}
 
+	int TerrainChunkGenerator::FindSurfaceHeight(const std::vector<int32_t>& columnBlocks,
+		const int localX, const int localZ) const {
+
+		const int columnIndex = localZ * 16 + localX;
+		for (int worldY = MaxY; worldY >= MinY; worldY--) {
+			const int32_t block = columnBlocks[(worldY - MinY) * 256 + columnIndex];
+			if (block != BlockState::Air && block != BlockState::Water && block != BlockState::Lava) {
+				return worldY;
+			}
+		}
+		return MinY;
+	}
+
 	void TerrainChunkGenerator::ApplySurfaceBlocks(const int32_t chunkX, const int32_t chunkZ,
 		const std::array<int, 256>& surfaceHeightmap,
-		const std::array<BiomeType, 256>& biomeMap,
-		const std::array<bool, 256>& riverMap,
 		std::vector<int32_t>& columnBlocks) const {
 
 		for (int localZ = 0; localZ < 16; localZ++) {
@@ -149,36 +182,33 @@ namespace Axiom {
 				const int surfaceHeight = surfaceHeightmap[columnIndex];
 				if (surfaceHeight <= MinY) continue;
 
-				const BiomeType biome = biomeMap[columnIndex];
-				const bool isRiver = riverMap[columnIndex];
+				const int worldX = chunkX * 16 + localX;
+				const int worldZ = chunkZ * 16 + localZ;
+				const BiomeType biome = m_ClimateSampler.SelectBiomeType(worldX, worldZ);
+
 				const int surfaceAbsoluteY = surfaceHeight - MinY;
 				const int32_t surfaceBlock = columnBlocks[surfaceAbsoluteY * 256 + columnIndex];
 
-				if (surfaceBlock == BlockState::Air || surfaceBlock == BlockState::Water) continue;
+				if (surfaceBlock != BlockState::Stone && surfaceBlock != BlockState::Deepslate) continue;
 
-				const int worldX = chunkX * 16 + localX;
-				const int worldZ = chunkZ * 16 + localZ;
+				// Check if river
+				const bool isRiver = std::abs(m_RiverNoise.OctaveNoise(
+					worldX * 0.004, worldZ * 0.004, 3, 0.5)) < 0.03;
 
 				const int32_t newSurface = isRiver
 					? BlockState::Sand
 					: m_SurfaceDecorator.GetSurfaceBlock(worldX, worldZ, surfaceHeight, biome);
 				columnBlocks[surfaceAbsoluteY * 256 + columnIndex] = newSurface;
 
+				// Sub-surface layers (3-4 blocks deep)
 				const int32_t subSurfaceBlock = m_SurfaceDecorator.GetSubSurfaceBlock(
 					worldX, worldZ, surfaceHeight, biome);
-				for (int depth = 1; depth <= 3; depth++) {
+				for (int depth = 1; depth <= 4; depth++) {
 					const int belowY = surfaceHeight - depth;
 					if (belowY < MinY) break;
 					const int32_t existingBlock = columnBlocks[(belowY - MinY) * 256 + columnIndex];
 					if (existingBlock == BlockState::Stone || existingBlock == BlockState::Deepslate) {
 						columnBlocks[(belowY - MinY) * 256 + columnIndex] = subSurfaceBlock;
-					}
-				}
-
-				if (biome == BiomeType::SnowyPlains && surfaceHeight < SeaLevel) {
-					const int seaAbsoluteY = SeaLevel - MinY;
-					if (columnBlocks[seaAbsoluteY * 256 + columnIndex] == BlockState::Water) {
-						columnBlocks[seaAbsoluteY * 256 + columnIndex] = BlockState::PackedIce;
 					}
 				}
 			}
@@ -187,7 +217,6 @@ namespace Axiom {
 
 	void TerrainChunkGenerator::PlaceVegetation(const int32_t chunkX, const int32_t chunkZ,
 		const std::array<int, 256>& surfaceHeightmap,
-		const std::array<BiomeType, 256>& biomeMap,
 		std::vector<int32_t>& columnBlocks) const {
 
 		for (int localZ = 0; localZ < 16; localZ++) {
@@ -208,8 +237,11 @@ namespace Axiom {
 					|| surfaceBlock == BlockState::Podzol || surfaceBlock == BlockState::Stone;
 				if (!canDecorate) continue;
 
-				const int32_t vegetation = m_SurfaceDecorator.GetVegetation(
-					chunkX * 16 + localX, chunkZ * 16 + localZ, biomeMap[columnIndex]);
+				const int worldX = chunkX * 16 + localX;
+				const int worldZ = chunkZ * 16 + localZ;
+				const BiomeType biome = m_ClimateSampler.SelectBiomeType(worldX, worldZ);
+
+				const int32_t vegetation = m_SurfaceDecorator.GetVegetation(worldX, worldZ, biome);
 				if (vegetation != BlockState::Air) {
 					columnBlocks[aboveAbsoluteY * 256 + columnIndex] = vegetation;
 				}
@@ -220,17 +252,11 @@ namespace Axiom {
 	void TerrainChunkGenerator::ComputeBiomeGrid(const int32_t chunkX, const int32_t chunkZ,
 		std::array<int32_t, 16>& biomeGrid) const {
 
-		// Sample biome at the center of each 4x4 column (4 samples across 16 blocks)
 		for (int gridZ = 0; gridZ < 4; gridZ++) {
 			for (int gridX = 0; gridX < 4; gridX++) {
-				const int worldX = chunkX * 16 + gridX * 4 + 2; // Center of 4-block group
+				const int worldX = chunkX * 16 + gridX * 4 + 2;
 				const int worldZ = chunkZ * 16 + gridZ * 4 + 2;
-
-				const double continentalness = m_DensityProvider.GetContinentalness(worldX, worldZ);
-				const double erosion = m_DensityProvider.GetErosion(worldX, worldZ);
-
-				const BiomeType biome = m_BiomeProvider.SelectBiome(continentalness, erosion, worldX, worldZ);
-				biomeGrid[gridZ * 4 + gridX] = BiomeProvider::ToRegistryId(biome);
+				biomeGrid[gridZ * 4 + gridX] = m_ClimateSampler.SelectBiome(worldX, 64, worldZ);
 			}
 		}
 	}
@@ -262,8 +288,6 @@ namespace Axiom {
 			}
 		}
 
-		// Build 4x4x4 biome entries for this section
-		// The biome grid is 2D (4x4), replicated for all 4 Y levels in the section
 		std::array<int32_t, 64> biomeEntries{};
 		for (int biomeY = 0; biomeY < 4; biomeY++) {
 			for (int biomeZ = 0; biomeZ < 4; biomeZ++) {
@@ -273,21 +297,17 @@ namespace Axiom {
 			}
 		}
 
-		// Check if all blocks are one type AND all biomes are one type
-		const bool singleBlock = (palette.size() == 1);
 		bool singleBiome = true;
 		for (int entryIndex = 1; entryIndex < 64; entryIndex++) {
 			if (biomeEntries[entryIndex] != biomeEntries[0]) { singleBiome = false; break; }
 		}
 
-		if (singleBlock && singleBiome) {
+		if (palette.size() == 1 && singleBiome) {
 			ChunkEncoder::EncodeSingleBlockSection(buffer, palette[0], biomeEntries[0]);
 			return;
 		}
 
-		// Encode block data
-		if (singleBlock) {
-			// Single block type but multiple biomes
+		if (palette.size() == 1) {
 			buffer.WriteShort(palette[0] == BlockState::Air ? 0 : 4096);
 			buffer.WriteShort(0);
 			buffer.WriteByte(0);
@@ -317,7 +337,6 @@ namespace Axiom {
 			}
 		}
 
-		// Encode biome data
 		BiomeEncoder::EncodeBiomes(buffer, biomeEntries);
 	}
 

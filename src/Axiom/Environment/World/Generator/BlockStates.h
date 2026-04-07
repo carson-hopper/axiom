@@ -17,6 +17,7 @@ namespace Axiom {
 		constexpr int32_t Podzol = 13;
 		constexpr int32_t Bedrock = 85;
 		constexpr int32_t Water = 86;
+		constexpr int32_t Lava = 102;
 		constexpr int32_t Sand = 118;
 		constexpr int32_t RedSand = 123;
 		constexpr int32_t Gravel = 124;

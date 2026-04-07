@@ -22,6 +22,7 @@ namespace Axiom {
 		constexpr int32_t Savanna = 42;
 		constexpr int32_t Badlands = 0;
 		constexpr int32_t Meadow = 32;
+		constexpr int32_t FrozenOcean = 22;
 		constexpr int32_t JaggedPeaks = 27;
 	}
 

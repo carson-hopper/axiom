@@ -1,9 +1,5 @@
 #pragma once
 
-#include "Axiom/Core/Base.h"
-#include "Axiom/Network/NetworkBuffer.h"
-
-#include <cstdint>
 #include <vector>
 
 namespace Axiom {
