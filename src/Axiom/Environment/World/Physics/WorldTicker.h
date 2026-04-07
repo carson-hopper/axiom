@@ -52,6 +52,13 @@ namespace Axiom {
 		void SetBlock(int32_t worldX, int32_t worldY, int32_t worldZ, int32_t blockState);
 		int32_t GetBlock(int32_t worldX, int32_t worldY, int32_t worldZ) const;
 
+		/**
+		 * Scan a generated chunk for unstable blocks (gravity blocks over air,
+		 * exposed fluids) and schedule them for physics. Call after sending
+		 * a chunk to ensure natural terrain physics runs.
+		 */
+		void ScanChunkForPhysics(int32_t chunkX, int32_t chunkZ);
+
 		BlockPhysics& Physics() { return m_BlockPhysics; }
 
 	private:

@@ -184,6 +184,10 @@ namespace Axiom {
 		ChunkEncoder::EncodeLightData(payload);
 
 		connection->SendRawPacket(Clientbound::Play::LevelChunkWithLight, payload);
+
+		if (m_ChunkSentCallback) {
+			m_ChunkSentCallback(chunkX, chunkZ);
+		}
 	}
 
 	void ChunkManager::UnloadChunk(const Ref<Connection>& connection, int32_t chunkX, int32_t chunkZ) {

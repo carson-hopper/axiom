@@ -49,6 +49,48 @@ namespace Axiom {
 		return BlockState::Air;
 	}
 
+	void WorldTicker::ScanChunkForPhysics(const int32_t chunkX, const int32_t chunkZ) {
+		if (!m_TerrainLookup) return;
+
+		const int baseX = chunkX * 16;
+		const int baseZ = chunkZ * 16;
+
+		for (int localZ = 0; localZ < 16; localZ++) {
+			for (int localX = 0; localX < 16; localX++) {
+				const int worldX = baseX + localX;
+				const int worldZ = baseZ + localZ;
+
+				for (int worldY = -60; worldY <= 200; worldY++) {
+					const int32_t block = m_TerrainLookup(worldX, worldY, worldZ);
+
+					// Gravity blocks over air
+					if (GravityBlocks::IsGravityBlock(block)) {
+						const int32_t below = m_TerrainLookup(worldX, worldY - 1, worldZ);
+						if (below == BlockState::Air || FluidState::IsFluid(below)) {
+							m_BlockPhysics.ScheduleUpdate(worldX, worldY, worldZ);
+						}
+					}
+
+					// Fluid sources with exposed faces (potential flow)
+					if (FluidState::IsSource(block)) {
+						const int32_t below = m_TerrainLookup(worldX, worldY - 1, worldZ);
+						if (below == BlockState::Air) {
+							m_BlockPhysics.ScheduleUpdate(worldX, worldY, worldZ);
+							continue;
+						}
+						// Check horizontal neighbors
+						if (m_TerrainLookup(worldX + 1, worldY, worldZ) == BlockState::Air ||
+							m_TerrainLookup(worldX - 1, worldY, worldZ) == BlockState::Air ||
+							m_TerrainLookup(worldX, worldY, worldZ + 1) == BlockState::Air ||
+							m_TerrainLookup(worldX, worldY, worldZ - 1) == BlockState::Air) {
+							m_BlockPhysics.ScheduleUpdate(worldX, worldY, worldZ);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	void WorldTicker::TickLoop() {
 		using Clock = std::chrono::steady_clock;
 		auto nextTick = Clock::now();

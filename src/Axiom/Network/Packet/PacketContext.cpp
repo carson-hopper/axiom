@@ -26,6 +26,10 @@ namespace Axiom {
 			[this](const int32_t worldX, const int32_t worldY, const int32_t worldZ) -> int32_t {
 				return m_ChunkManager.Generator().GetBlockAt(worldX, worldY, worldZ);
 			});
+		m_ChunkManager.SetChunkSentCallback(
+			[this](const int32_t chunkX, const int32_t chunkZ) {
+				m_WorldTicker.ScanChunkForPhysics(chunkX, chunkZ);
+			});
 		m_WorldTicker.Start();
 	}
 

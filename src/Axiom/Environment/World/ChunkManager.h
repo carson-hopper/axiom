@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
-#include "Axiom/Environment/World/ChunkGenerator.h"
+#include "Generator/ChunkGenerator.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
 
@@ -50,6 +50,9 @@ namespace Axiom {
 		ChunkGenerator& Generator() const { return *m_Generator; }
 		int ViewDistance() const { return m_ViewDistance; }
 
+		using ChunkSentCallback = std::function<void(int32_t chunkX, int32_t chunkZ)>;
+		void SetChunkSentCallback(ChunkSentCallback callback) { m_ChunkSentCallback = std::move(callback); }
+
 	private:
 		struct PlayerChunkState {
 			int32_t lastChunkX = 0;
@@ -83,6 +86,7 @@ namespace Axiom {
 		std::mutex m_QueueMutex;
 		std::condition_variable m_QueueCondition;
 		std::atomic<bool> m_Stopping = false;
+		ChunkSentCallback m_ChunkSentCallback;
 	};
 
 }
