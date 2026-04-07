@@ -53,8 +53,12 @@ namespace Axiom {
 			const std::array<BiomeType, 256>& biomeMap,
 			std::vector<int32_t>& columnBlocks) const;
 
+		void ComputeBiomeGrid(int32_t chunkX, int32_t chunkZ,
+			std::array<int32_t, 16>& biomeGrid) const;
+
 		static void EncodeSection(NetworkBuffer& buffer, int sectionMinY,
-			const std::vector<int32_t>& columnBlocks, int32_t biomeId);
+			const std::vector<int32_t>& columnBlocks,
+			const std::array<int32_t, 16>& biomeGrid);
 
 		DensityProvider m_DensityProvider;
 		PerlinNoise m_RiverNoise;

@@ -1,4 +1,5 @@
 #include "TerrainChunkGenerator.h"
+#include "Axiom/Environment/World/BiomeEncoder.h"
 
 namespace Axiom {
 
@@ -37,10 +38,13 @@ namespace Axiom {
 		m_TreePlacer.PlaceTrees(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
 		PlaceVegetation(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
 
+		// Compute 4x4 biome grid for this chunk
+		std::array<int32_t, 16> biomeGrid{};
+		ComputeBiomeGrid(chunkX, chunkZ, biomeGrid);
+
 		NetworkBuffer sectionData;
-		const int32_t centerBiomeId = BiomeProvider::ToRegistryId(biomeMap[128]);
 		for (int sectionIndex = 0; sectionIndex < 24; sectionIndex++) {
-			EncodeSection(sectionData, MinY + sectionIndex * 16, columnBlocks, centerBiomeId);
+			EncodeSection(sectionData, MinY + sectionIndex * 16, columnBlocks, biomeGrid);
 		}
 
 		int maximumHeight = MinY;
@@ -48,6 +52,7 @@ namespace Axiom {
 			if (height > maximumHeight) maximumHeight = height;
 		}
 
+		const int32_t centerBiomeId = BiomeProvider::ToRegistryId(biomeMap[128]);
 		return ChunkData{chunkX, chunkZ, std::move(sectionData.Data()),
 			std::max(SeaLevel - MinY + 1, maximumHeight - MinY + 1), centerBiomeId};
 	}
@@ -206,8 +211,27 @@ namespace Axiom {
 		}
 	}
 
+	void TerrainChunkGenerator::ComputeBiomeGrid(const int32_t chunkX, const int32_t chunkZ,
+		std::array<int32_t, 16>& biomeGrid) const {
+
+		// Sample biome at the center of each 4x4 column (4 samples across 16 blocks)
+		for (int gridZ = 0; gridZ < 4; gridZ++) {
+			for (int gridX = 0; gridX < 4; gridX++) {
+				const int worldX = chunkX * 16 + gridX * 4 + 2; // Center of 4-block group
+				const int worldZ = chunkZ * 16 + gridZ * 4 + 2;
+
+				const double continentalness = m_DensityProvider.GetContinentalness(worldX, worldZ);
+				const double erosion = m_DensityProvider.GetErosion(worldX, worldZ);
+
+				const BiomeType biome = m_BiomeProvider.SelectBiome(continentalness, erosion, worldX, worldZ);
+				biomeGrid[gridZ * 4 + gridX] = BiomeProvider::ToRegistryId(biome);
+			}
+		}
+	}
+
 	void TerrainChunkGenerator::EncodeSection(NetworkBuffer& buffer, const int sectionMinY,
-		const std::vector<int32_t>& columnBlocks, const int32_t biomeId) {
+		const std::vector<int32_t>& columnBlocks,
+		const std::array<int32_t, 16>& biomeGrid) {
 
 		std::vector<int32_t> palette;
 		std::array<int32_t, 4096> blockIndices{};
@@ -232,36 +256,63 @@ namespace Axiom {
 			}
 		}
 
-		if (palette.size() == 1) {
-			ChunkEncoder::EncodeSingleBlockSection(buffer, palette[0], biomeId);
+		// Build 4x4x4 biome entries for this section
+		// The biome grid is 2D (4x4), replicated for all 4 Y levels in the section
+		std::array<int32_t, 64> biomeEntries{};
+		for (int biomeY = 0; biomeY < 4; biomeY++) {
+			for (int biomeZ = 0; biomeZ < 4; biomeZ++) {
+				for (int biomeX = 0; biomeX < 4; biomeX++) {
+					biomeEntries[biomeY * 16 + biomeZ * 4 + biomeX] = biomeGrid[biomeZ * 4 + biomeX];
+				}
+			}
+		}
+
+		// Check if all blocks are one type AND all biomes are one type
+		const bool singleBlock = (palette.size() == 1);
+		bool singleBiome = true;
+		for (int entryIndex = 1; entryIndex < 64; entryIndex++) {
+			if (biomeEntries[entryIndex] != biomeEntries[0]) { singleBiome = false; break; }
+		}
+
+		if (singleBlock && singleBiome) {
+			ChunkEncoder::EncodeSingleBlockSection(buffer, palette[0], biomeEntries[0]);
 			return;
 		}
 
-		buffer.WriteShort(static_cast<int16_t>(nonAirCount));
-		buffer.WriteShort(0);
+		// Encode block data
+		if (singleBlock) {
+			// Single block type but multiple biomes
+			buffer.WriteShort(palette[0] == BlockState::Air ? 0 : 4096);
+			buffer.WriteShort(0);
+			buffer.WriteByte(0);
+			buffer.WriteVarInt(palette[0]);
+		} else {
+			buffer.WriteShort(static_cast<int16_t>(nonAirCount));
+			buffer.WriteShort(0);
 
-		int bitsPerEntry = 4;
-		while ((1 << bitsPerEntry) < static_cast<int>(palette.size())) bitsPerEntry++;
+			int bitsPerEntry = 4;
+			while ((1 << bitsPerEntry) < static_cast<int>(palette.size())) bitsPerEntry++;
 
-		buffer.WriteByte(static_cast<uint8_t>(bitsPerEntry));
-		buffer.WriteVarInt(static_cast<int32_t>(palette.size()));
-		for (const int32_t stateId : palette) buffer.WriteVarInt(stateId);
+			buffer.WriteByte(static_cast<uint8_t>(bitsPerEntry));
+			buffer.WriteVarInt(static_cast<int32_t>(palette.size()));
+			for (const int32_t stateId : palette) buffer.WriteVarInt(stateId);
 
-		const int entriesPerLong = 64 / bitsPerEntry;
-		const int longCount = (4096 + entriesPerLong - 1) / entriesPerLong;
-		for (int longIndex = 0; longIndex < longCount; longIndex++) {
-			int64_t packed = 0;
-			const int startEntry = longIndex * entriesPerLong;
-			for (int offset = 0; offset < entriesPerLong; offset++) {
-				const int entryIndex = startEntry + offset;
-				if (entryIndex >= 4096) break;
-				packed |= (static_cast<int64_t>(blockIndices[entryIndex]) << (offset * bitsPerEntry));
+			const int entriesPerLong = 64 / bitsPerEntry;
+			const int longCount = (4096 + entriesPerLong - 1) / entriesPerLong;
+			for (int longIndex = 0; longIndex < longCount; longIndex++) {
+				int64_t packed = 0;
+				const int startEntry = longIndex * entriesPerLong;
+				for (int offset = 0; offset < entriesPerLong; offset++) {
+					const int entryIndex = startEntry + offset;
+					if (entryIndex >= 4096) break;
+					packed |= (static_cast<int64_t>(blockIndices[entryIndex]) << (offset * bitsPerEntry));
+				}
+				buffer.WriteLong(packed);
 			}
-			buffer.WriteLong(packed);
 		}
 
-		buffer.WriteByte(0);
-		buffer.WriteVarInt(biomeId);
+		// Encode biome data
+		BiomeEncoder::EncodeBiomes(buffer, biomeEntries);
 	}
 
 }
