@@ -30,11 +30,6 @@ namespace Axiom {
 		}
 	};
 
-	/**
-	 * Manages chunk loading and unloading per connection.
-	 * Generates chunks asynchronously on worker threads and streams
-	 * them to clients as they complete.
-	 */
 	class ChunkManager {
 	public:
 		explicit ChunkManager(Ref<ChunkGenerator> generator, int viewDistance = 10);
@@ -43,14 +38,14 @@ namespace Axiom {
 		ChunkManager(const ChunkManager&) = delete;
 		ChunkManager& operator=(const ChunkManager&) = delete;
 
-		void SendInitialChunks(Ref<Connection> connection, double playerX, double playerZ);
+		void SendInitialChunks(const Ref<Connection>& connection, double playerX, double playerZ);
 		void OnPlayerMove(Ref<Connection> connection, double playerX, double playerZ);
-		void RemovePlayer(Connection* connection);
+		void RemovePlayer(ConnectionId connectionId);
 
 		ChunkGenerator& Generator() const { return *m_Generator; }
 		int ViewDistance() const { return m_ViewDistance; }
 
-		using ChunkSentCallback = std::function<void(int32_t chunkX, int32_t chunkZ)>;
+		using ChunkSentCallback = std::function<void(ChunkPosition chunkPosition)>;
 		void SetChunkSentCallback(ChunkSentCallback callback) { m_ChunkSentCallback = std::move(callback); }
 
 	private:
@@ -60,13 +55,11 @@ namespace Axiom {
 			std::set<ChunkPosition> loadedChunks;
 		};
 
-		void QueueChunksInRadius(Ref<Connection> connection, int32_t centerX, int32_t centerZ);
-		void UnloadDistantChunks(Ref<Connection> connection, int32_t centerX, int32_t centerZ,
-			PlayerChunkState& state);
-		void SendChunk(const Ref<Connection>& connection, int32_t chunkX, int32_t chunkZ) const;
-		void UnloadChunk(const Ref<Connection>& connection, int32_t chunkX, int32_t chunkZ);
+		void QueueChunksInRadius(Ref<Connection> connection, ChunkPosition centerPosition);
+		void UnloadDistantChunks(Ref<Connection> connection, ChunkPosition centerPosition, PlayerChunkState& state);
+		void SendChunk(const Ref<Connection>& connection, ChunkPosition chunkPosition) const;
+		void UnloadChunk(const Ref<Connection>& connection, ChunkPosition chunkPosition);
 
-		// Worker thread pool
 		void WorkerLoop();
 		void SubmitTask(std::function<void()> task);
 
@@ -78,9 +71,8 @@ namespace Axiom {
 		int m_ViewDistance;
 
 		std::mutex m_StateMutex;
-		std::unordered_map<Connection*, PlayerChunkState> m_PlayerStates;
+		std::unordered_map<ConnectionId, PlayerChunkState> m_PlayerStates;
 
-		// Thread pool
 		std::vector<std::thread> m_Workers;
 		std::queue<std::function<void()>> m_TaskQueue;
 		std::mutex m_QueueMutex;

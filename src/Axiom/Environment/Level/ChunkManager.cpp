@@ -1,4 +1,5 @@
-#include "ChunkManager.h"
+#include "axpch.h"
+#include "Axiom/Environment/Level/ChunkManager.h"
 
 #include "Axiom/Core/Log.h"
 #include "Axiom/Environment/Level/ChunkEncoder.h"
@@ -7,11 +8,11 @@
 
 namespace Axiom {
 
-	ChunkManager::ChunkManager(Ref<ChunkGenerator> generator, int viewDistance)
+	ChunkManager::ChunkManager(Ref<ChunkGenerator> generator, const int viewDistance)
 		: m_Generator(std::move(generator))
 		, m_ViewDistance(viewDistance) {
 
-		unsigned int threadCount = std::max(2u, std::thread::hardware_concurrency() / 2);
+		const unsigned int threadCount = std::max(2u, std::thread::hardware_concurrency() / 2);
 		for (unsigned int i = 0; i < threadCount; i++) {
 			m_Workers.emplace_back(&ChunkManager::WorkerLoop, this);
 		}
@@ -27,90 +28,88 @@ namespace Axiom {
 		}
 	}
 
-	void ChunkManager::SendInitialChunks(Ref<Connection> connection, double playerX, double playerZ) {
-		int32_t chunkX = BlockToChunk(playerX);
-		int32_t chunkZ = BlockToChunk(playerZ);
+	void ChunkManager::SendInitialChunks(const Ref<Connection> &connection, const double playerX, const double playerZ) {
+		const ChunkPosition center{BlockToChunk(playerX), BlockToChunk(playerZ)};
 
 		{
 			NetworkBuffer payload;
-			payload.WriteVarInt(chunkX);
-			payload.WriteVarInt(chunkZ);
+			payload.WriteVarInt(center.x);
+			payload.WriteVarInt(center.z);
 			connection->SendRawPacket(Clientbound::Play::SetChunkCacheCenter, payload);
 		}
 
 		{
 			std::lock_guard<std::mutex> lock(m_StateMutex);
-			auto& state = m_PlayerStates[connection.get()];
-			state.lastChunkX = chunkX;
-			state.lastChunkZ = chunkZ;
+			auto& state = m_PlayerStates[connection->Id()];
+			state.lastChunkX = center.x;
+			state.lastChunkZ = center.z;
 		}
 
 		{
-			NetworkBuffer payload;
+			const NetworkBuffer payload;
 			connection->SendRawPacket(Clientbound::Play::ChunkBatchStart, payload);
 		}
 
-		QueueChunksInRadius(connection, chunkX, chunkZ);
+		QueueChunksInRadius(connection, center);
 	}
 
-	void ChunkManager::OnPlayerMove(Ref<Connection> connection, double playerX, double playerZ) {
-		int32_t chunkX = BlockToChunk(playerX);
-		int32_t chunkZ = BlockToChunk(playerZ);
+	void ChunkManager::OnPlayerMove(Ref<Connection> connection, const double playerX, const double playerZ) {
+		const ChunkPosition center{BlockToChunk(playerX), BlockToChunk(playerZ)};
 
 		bool needsUpdate = false;
 
 		{
 			std::lock_guard<std::mutex> lock(m_StateMutex);
-			auto iterator = m_PlayerStates.find(connection.get());
+			const auto iterator = m_PlayerStates.find(connection->Id());
 			if (iterator == m_PlayerStates.end()) return;
 
 			auto& state = iterator->second;
-			if (chunkX == state.lastChunkX && chunkZ == state.lastChunkZ) return;
+			if (center.x == state.lastChunkX && center.z == state.lastChunkZ) return;
 
-			state.lastChunkX = chunkX;
-			state.lastChunkZ = chunkZ;
+			state.lastChunkX = center.x;
+			state.lastChunkZ = center.z;
 			needsUpdate = true;
 
-			UnloadDistantChunks(connection, chunkX, chunkZ, state);
+			UnloadDistantChunks(connection, center, state);
 		}
 
 		if (!needsUpdate) return;
 
 		{
 			NetworkBuffer payload;
-			payload.WriteVarInt(chunkX);
-			payload.WriteVarInt(chunkZ);
+			payload.WriteVarInt(center.x);
+			payload.WriteVarInt(center.z);
 			connection->SendRawPacket(Clientbound::Play::SetChunkCacheCenter, payload);
 		}
 
 		{
-			NetworkBuffer payload;
+			const NetworkBuffer payload;
 			connection->SendRawPacket(Clientbound::Play::ChunkBatchStart, payload);
 		}
 
-		QueueChunksInRadius(connection, chunkX, chunkZ);
+		QueueChunksInRadius(connection, center);
 	}
 
-	void ChunkManager::RemovePlayer(Connection* connection) {
+	void ChunkManager::RemovePlayer(ConnectionId connectionId) {
 		std::lock_guard<std::mutex> lock(m_StateMutex);
-		m_PlayerStates.erase(connection);
+		m_PlayerStates.erase(connectionId);
 	}
 
-	void ChunkManager::QueueChunksInRadius(Ref<Connection> connection, int32_t centerX, int32_t centerZ) {
+	void ChunkManager::QueueChunksInRadius(Ref<Connection> connection, const ChunkPosition centerPosition) {
 		std::vector<ChunkPosition> toGenerate;
 
 		{
 			std::lock_guard<std::mutex> lock(m_StateMutex);
-			auto stateIterator = m_PlayerStates.find(connection.get());
+			const auto stateIterator = m_PlayerStates.find(connection->Id());
 			if (stateIterator == m_PlayerStates.end()) return;
 			auto& state = stateIterator->second;
 
 			for (int radius = 0; radius <= m_ViewDistance; radius++) {
-				for (int x = -radius; x <= radius; x++) {
-					for (int z = -radius; z <= radius; z++) {
-						if (std::abs(x) != radius && std::abs(z) != radius) continue;
+				for (int offsetX = -radius; offsetX <= radius; offsetX++) {
+					for (int offsetZ = -radius; offsetZ <= radius; offsetZ++) {
+						if (std::abs(offsetX) != radius && std::abs(offsetZ) != radius) continue;
 
-						ChunkPosition position{centerX + x, centerZ + z};
+						const ChunkPosition position{centerPosition.x + offsetX, centerPosition.z + offsetZ};
 						if (state.loadedChunks.contains(position)) continue;
 
 						state.loadedChunks.insert(position);
@@ -128,17 +127,15 @@ namespace Axiom {
 		}
 
 		auto remaining = std::make_shared<std::atomic<int>>(static_cast<int>(toGenerate.size()));
-		int totalChunks = static_cast<int>(toGenerate.size());
+		const int totalChunks = static_cast<int>(toGenerate.size());
 
-		for (const auto& position : toGenerate) {
+		for (const auto& chunkPosition : toGenerate) {
 			auto connectionRef = connection;
-			int32_t chunkX = position.x;
-			int32_t chunkZ = position.z;
 
-			SubmitTask([this, connectionRef, chunkX, chunkZ, remaining, totalChunks]() {
+			SubmitTask([this, connectionRef, chunkPosition, remaining, totalChunks]() {
 				if (!connectionRef->IsConnected()) return;
 
-				SendChunk(connectionRef, chunkX, chunkZ);
+				SendChunk(connectionRef, chunkPosition);
 
 				if (remaining->fetch_sub(1) == 1) {
 					NetworkBuffer payload;
@@ -149,30 +146,30 @@ namespace Axiom {
 		}
 	}
 
-	void ChunkManager::UnloadDistantChunks(Ref<Connection> connection, int32_t centerX, int32_t centerZ,
+	void ChunkManager::UnloadDistantChunks(Ref<Connection> connection, const ChunkPosition centerPosition,
 		PlayerChunkState& state) {
 
 		std::vector<ChunkPosition> toUnload;
 
 		for (const auto& position : state.loadedChunks) {
-			if (std::abs(position.x - centerX) > m_ViewDistance + 1 ||
-				std::abs(position.z - centerZ) > m_ViewDistance + 1) {
+			if (std::abs(position.x - centerPosition.x) > m_ViewDistance + 1 ||
+				std::abs(position.z - centerPosition.z) > m_ViewDistance + 1) {
 				toUnload.push_back(position);
 			}
 		}
 
 		for (const auto& position : toUnload) {
-			UnloadChunk(connection, position.x, position.z);
+			UnloadChunk(connection, position);
 			state.loadedChunks.erase(position);
 		}
 	}
 
-	void ChunkManager::SendChunk(const Ref<Connection>& connection, int32_t chunkX, int32_t chunkZ) const {
-		auto chunkData = m_Generator->Generate(chunkX, chunkZ);
+	void ChunkManager::SendChunk(const Ref<Connection>& connection, const ChunkPosition chunkPosition) const {
+		const auto chunkData = m_Generator->Generate(chunkPosition.x, chunkPosition.z);
 
 		NetworkBuffer payload;
-		payload.WriteInt(chunkX);
-		payload.WriteInt(chunkZ);
+		payload.WriteInt(chunkPosition.x);
+		payload.WriteInt(chunkPosition.z);
 
 		ChunkEncoder::EncodeHeightmaps(payload, chunkData.heightmapValue);
 
@@ -186,14 +183,14 @@ namespace Axiom {
 		connection->SendRawPacket(Clientbound::Play::LevelChunkWithLight, payload);
 
 		if (m_ChunkSentCallback) {
-			m_ChunkSentCallback(chunkX, chunkZ);
+			m_ChunkSentCallback(chunkPosition);
 		}
 	}
 
-	void ChunkManager::UnloadChunk(const Ref<Connection>& connection, int32_t chunkX, int32_t chunkZ) {
+	void ChunkManager::UnloadChunk(const Ref<Connection>& connection, const ChunkPosition chunkPosition) {
 		NetworkBuffer payload;
-		payload.WriteInt(chunkX);
-		payload.WriteInt(chunkZ);
+		payload.WriteInt(chunkPosition.x);
+		payload.WriteInt(chunkPosition.z);
 		connection->SendRawPacket(Clientbound::Play::ForgetLevelChunk, payload);
 	}
 
