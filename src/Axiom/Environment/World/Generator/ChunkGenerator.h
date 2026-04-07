@@ -33,6 +33,15 @@ namespace Axiom {
 		 * The Y coordinate where players should spawn.
 		 */
 		virtual double SpawnY() const = 0;
+
+		/**
+		 * Get the block state at any world position.
+		 * Used by physics to query generated terrain.
+		 * Default returns Air — generators should override for physics support.
+		 */
+		virtual int32_t GetBlockAt(int32_t worldX, int32_t worldY, int32_t worldZ) const {
+			return 0; // Air
+		}
 	};
 
 }

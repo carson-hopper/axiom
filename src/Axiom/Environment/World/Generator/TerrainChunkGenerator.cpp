@@ -67,6 +67,48 @@ namespace Axiom {
 		return std::max(m_ClimateSampler.ComputeSurfaceY(0, 0), static_cast<double>(SeaLevel)) + 1.0;
 	}
 
+	int32_t TerrainChunkGenerator::GetBlockAt(const int32_t worldX, const int32_t worldY,
+		const int32_t worldZ) const {
+
+		if (worldY < MinY || worldY > MaxY) return BlockState::Air;
+
+		const double density = SampleTerrainDensity(worldX, worldY, worldZ);
+		const double approximateSurfaceY = m_ClimateSampler.ComputeSurfaceY(worldX, worldZ);
+
+		if (density > 0) {
+			if (worldY <= MinY + 5) return BlockState::Bedrock;
+			if (worldY <= 0) return BlockState::Deepslate;
+
+			// Check if this is a surface block
+			const double densityAbove = SampleTerrainDensity(worldX, worldY + 1, worldZ);
+			if (densityAbove <= 0) {
+				// This is the surface — apply biome surface block
+				const BiomeType biome = m_ClimateSampler.SelectBiomeType(worldX, worldZ);
+				return m_SurfaceDecorator.GetSurfaceBlock(worldX, worldZ, worldY, biome);
+			}
+
+			// Check if near surface (sub-surface)
+			const double density3Above = SampleTerrainDensity(worldX, worldY + 4, worldZ);
+			if (density3Above <= 0) {
+				const BiomeType biome = m_ClimateSampler.SelectBiomeType(worldX, worldZ);
+				return m_SurfaceDecorator.GetSubSurfaceBlock(worldX, worldZ, worldY, biome);
+			}
+
+			return BlockState::Stone;
+		}
+
+		// Non-solid
+		if (worldY > SeaLevel) return BlockState::Air;
+
+		const bool isUnderground = worldY < approximateSurfaceY - 2;
+		if (isUnderground) {
+			if (worldY < AquiferSampler::LavaLevel) return BlockState::Lava;
+			return BlockState::Air;
+		}
+
+		return BlockState::Water;
+	}
+
 	double TerrainChunkGenerator::SampleTerrainDensity(const int worldX, const int worldY,
 		const int worldZ) const {
 

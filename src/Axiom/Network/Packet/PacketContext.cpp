@@ -22,6 +22,10 @@ namespace Axiom {
 		m_Registries.LoadAll(dataPath.string());
 		m_KeepAliveManager.Start();
 		m_WorldTime.Start();
+		m_WorldTicker.SetTerrainLookup(
+			[this](const int32_t worldX, const int32_t worldY, const int32_t worldZ) -> int32_t {
+				return m_ChunkManager.Generator().GetBlockAt(worldX, worldY, worldZ);
+			});
 		m_WorldTicker.Start();
 	}
 

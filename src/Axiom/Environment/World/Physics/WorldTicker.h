@@ -2,7 +2,7 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Environment/World/Physics/BlockPhysics.h"
-#include "Axiom/Environment/World/World.h"
+#include "Axiom/Environment/World/Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
@@ -10,8 +10,10 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <mutex>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 namespace Axiom {
@@ -19,9 +21,15 @@ namespace Axiom {
 	/**
 	 * Drives block physics at 20 TPS and broadcasts block changes
 	 * to all nearby players.
+	 *
+	 * Maintains a sparse override map of block changes on top of the
+	 * generated terrain. For any position without an override, queries
+	 * the terrain lookup function to determine the generated block.
 	 */
 	class WorldTicker {
 	public:
+		using TerrainLookup = std::function<int32_t(int32_t, int32_t, int32_t)>;
+
 		WorldTicker(PlayerManager& playerManager)
 			: m_PlayerManager(playerManager) {}
 
@@ -30,38 +38,30 @@ namespace Axiom {
 		WorldTicker(const WorldTicker&) = delete;
 		WorldTicker& operator=(const WorldTicker&) = delete;
 
+		/**
+		 * Set the terrain lookup function. Called to get the generated block
+		 * state at any position. Must be thread-safe.
+		 */
+		void SetTerrainLookup(TerrainLookup lookup) {
+			m_TerrainLookup = std::move(lookup);
+		}
+
 		void Start();
 		void Stop();
 
-		/**
-		 * Notify the ticker that a block changed (e.g., player placed/broke).
-		 * This schedules physics updates for neighbors.
-		 */
-		void OnBlockChanged(int32_t worldX, int32_t worldY, int32_t worldZ,
-			int32_t newBlockState);
-
-		/**
-		 * Set a block in the world and notify physics + clients.
-		 */
-		void SetBlock(int32_t worldX, int32_t worldY, int32_t worldZ,
-			int32_t blockState);
-
-		/**
-		 * Get a block from world storage.
-		 */
+		void SetBlock(int32_t worldX, int32_t worldY, int32_t worldZ, int32_t blockState);
 		int32_t GetBlock(int32_t worldX, int32_t worldY, int32_t worldZ) const;
 
 		BlockPhysics& Physics() { return m_BlockPhysics; }
 
 	private:
 		void TickLoop();
-		void BroadcastBlockChange(int32_t worldX, int32_t worldY, int32_t worldZ,
-			int32_t blockState);
+		void BroadcastBlockChange(int32_t worldX, int32_t worldY, int32_t worldZ, int32_t blockState);
 
 		PlayerManager& m_PlayerManager;
 		BlockPhysics m_BlockPhysics;
+		TerrainLookup m_TerrainLookup;
 
-		// Simple block storage for physics (chunk-less, position → state map)
 		mutable std::mutex m_BlockMutex;
 		std::unordered_map<BlockPosition, int32_t, BlockPosition::Hash> m_BlockOverrides;
 

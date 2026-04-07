@@ -41,6 +41,7 @@ namespace Axiom {
 		explicit TerrainChunkGenerator(uint64_t seed = 12345);
 		ChunkData Generate(int32_t chunkX, int32_t chunkZ) override;
 		double SpawnY() const override;
+		int32_t GetBlockAt(int32_t worldX, int32_t worldY, int32_t worldZ) const override;
 
 	private:
 		double SampleTerrainDensity(int worldX, int worldY, int worldZ) const;

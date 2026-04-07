@@ -19,17 +19,6 @@ namespace Axiom {
 		}
 	}
 
-	void WorldTicker::OnBlockChanged(const int32_t worldX, const int32_t worldY, const int32_t worldZ,
-		const int32_t newBlockState) {
-
-		{
-			std::lock_guard<std::mutex> lock(m_BlockMutex);
-			m_BlockOverrides[{worldX, worldY, worldZ}] = newBlockState;
-		}
-
-		m_BlockPhysics.ScheduleUpdate(worldX, worldY, worldZ);
-	}
-
 	void WorldTicker::SetBlock(const int32_t worldX, const int32_t worldY, const int32_t worldZ,
 		const int32_t blockState) {
 
@@ -43,11 +32,20 @@ namespace Axiom {
 	}
 
 	int32_t WorldTicker::GetBlock(const int32_t worldX, const int32_t worldY, const int32_t worldZ) const {
-		std::lock_guard<std::mutex> lock(m_BlockMutex);
-		const auto iterator = m_BlockOverrides.find({worldX, worldY, worldZ});
-		if (iterator != m_BlockOverrides.end()) {
-			return iterator->second;
+		// Check overrides first (player-placed/broken blocks)
+		{
+			std::lock_guard<std::mutex> lock(m_BlockMutex);
+			const auto iterator = m_BlockOverrides.find({worldX, worldY, worldZ});
+			if (iterator != m_BlockOverrides.end()) {
+				return iterator->second;
+			}
 		}
+
+		// Fall back to generated terrain
+		if (m_TerrainLookup) {
+			return m_TerrainLookup(worldX, worldY, worldZ);
+		}
+
 		return BlockState::Air;
 	}
 
@@ -82,7 +80,6 @@ namespace Axiom {
 	void WorldTicker::BroadcastBlockChange(const int32_t worldX, const int32_t worldY, const int32_t worldZ,
 		const int32_t blockState) {
 
-		// Encode position as packed Long (same as Position type in MC protocol)
 		const int64_t encodedPosition = (static_cast<int64_t>(worldX & 0x3FFFFFF) << 38)
 			| (static_cast<int64_t>(worldZ & 0x3FFFFFF) << 12)
 			| static_cast<int64_t>(worldY & 0xFFF);
