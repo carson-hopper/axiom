@@ -7,7 +7,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void AcceptTeleportationPacket<Version>::Handle(Ref<Connection> connection, PacketContext& /*context*/) {
+	void AcceptTeleportationPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
 		AX_CORE_TRACE("Teleport accepted from {}: id={}", connection->RemoteAddress(), teleportId);
 	}
 

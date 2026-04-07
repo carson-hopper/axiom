@@ -8,7 +8,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void LoginHelloPacket<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
+	void LoginHelloPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
 		AX_CORE_INFO("Login request from {} ({})", playerName, connection->RemoteAddress());
 
 		if (context.Config().OnlineMode()) {

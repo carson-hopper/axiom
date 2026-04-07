@@ -9,7 +9,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void StatusRequestPacket<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
+	void StatusRequestPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
 		nlohmann::json response;
 		response["version"]["name"] = MINECRAFT_VERSION;
 		response["version"]["protocol"] = PROTOCOL_VERSION;

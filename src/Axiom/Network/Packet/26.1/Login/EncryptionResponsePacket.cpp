@@ -11,7 +11,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void EncryptionResponsePacket<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
+	void EncryptionResponsePacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
 		std::vector<uint8_t> sharedSecret;
 		std::vector<uint8_t> verifyToken;
 		try {

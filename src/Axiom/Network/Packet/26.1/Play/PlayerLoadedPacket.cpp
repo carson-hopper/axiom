@@ -7,7 +7,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void PlayerLoadedPacket<Version>::Handle(Ref<Connection> connection, PacketContext& /*context*/) {
+	void PlayerLoadedPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
 		AX_CORE_INFO("Player fully loaded from {}", connection->RemoteAddress());
 	}
 

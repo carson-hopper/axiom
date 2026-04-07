@@ -6,7 +6,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void PingRequestPacket<Version>::Handle(Ref<Connection> connection, PacketContext& /*context*/) {
+	void PingRequestPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
 		NetworkBuffer payload;
 		payload.WriteLong(timestamp);
 		connection->SendRawPacket(Clientbound::Status::PongResponse, payload);

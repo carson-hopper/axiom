@@ -19,8 +19,7 @@ namespace Axiom {
 
 		context.Commands().Register("help", "List available commands", [&context](CommandSender& sender, const std::vector<std::string>&) {
 			sender.SendMessage("Available commands:");
-			auto completions = context.Commands().TabComplete(sender, "");
-			for (const auto& command : completions) {
+			for (const auto completions = context.Commands().TabComplete(sender, "");const auto& command : completions) {
 				sender.SendMessage("  " + command);
 			}
 		});

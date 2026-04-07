@@ -7,7 +7,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void HandshakePacket<Version>::Handle(Ref<Connection> connection, PacketContext& /*context*/) {
+	void HandshakePacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
 		AX_CORE_TRACE("Handshake from {}: protocol={}, address={}:{}, nextState={}",
 			connection->RemoteAddress(), protocolVersion, serverAddress, serverPort, nextState);
 

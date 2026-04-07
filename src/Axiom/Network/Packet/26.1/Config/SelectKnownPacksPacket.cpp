@@ -14,13 +14,13 @@ namespace Axiom {
 
 	namespace {
 
-		void SendRegistryData(Ref<Connection>& connection, const std::string& registryId,
+		void SendRegistryData(const Ref<Connection>& connection, const std::string& registryId,
 			const nlohmann::json& entries) {
 
 			NetworkBuffer payload;
 			payload.WriteString(registryId);
 
-			int32_t entryCount = static_cast<int32_t>(entries.size());
+			const int32_t entryCount = static_cast<int32_t>(entries.size());
 			payload.WriteVarInt(entryCount);
 
 			for (auto& [entryName, entryData] : entries.items()) {
@@ -51,7 +51,7 @@ namespace Axiom {
 	} // anonymous namespace
 
 	template<int32_t Version>
-	void SelectKnownPacksPacket<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
+	void SelectKnownPacksPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
 		AX_CORE_TRACE("Client selected {} known packs", knownPacks.size());
 
 		// Send registry data from extractor files
@@ -72,7 +72,7 @@ namespace Axiom {
 
 		// Send FinishConfiguration
 		{
-			NetworkBuffer payload;
+			const NetworkBuffer payload;
 			connection->SendRawPacket(Clientbound::Config::FinishConfiguration, payload);
 		}
 	}

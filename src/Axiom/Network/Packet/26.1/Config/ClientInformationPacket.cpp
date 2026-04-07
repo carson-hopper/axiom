@@ -7,7 +7,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void ClientInformationPacket<Version>::Handle(Ref<Connection> connection, PacketContext& /*context*/) {
+	void ClientInformationPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
 		AX_CORE_TRACE("Client info from {}: locale={}, viewDistance={}, mainHand={}",
 			connection->RemoteAddress(), locale, viewDistance, mainHand);
 	}

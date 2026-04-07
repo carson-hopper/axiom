@@ -11,7 +11,7 @@ namespace Axiom {
 
 	namespace {
 
-		void SendLoginPacket(Ref<Connection>& connection, PacketContext& context) {
+		void SendLoginPacket(const Ref<Connection>& connection, PacketContext& context) {
 			NetworkBuffer payload;
 
 			payload.WriteInt(1);           // Entity ID
@@ -40,14 +40,14 @@ namespace Axiom {
 			connection->SendRawPacket(Clientbound::Play::Login, payload);
 		}
 
-		void SendSpawnPosition(Ref<Connection>& connection) {
+		void SendSpawnPosition(const Ref<Connection>& connection) {
 			NetworkBuffer payload;
 
 			payload.WriteString("minecraft:overworld");  // Dimension name
 
 			// Position as packed long: x(26 bits) | z(26 bits) | y(12 bits)
 			int64_t x = 0, y = 0, z = 0;
-			int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+			const int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
 			payload.WriteLong(position);
 
 			payload.WriteFloat(0.0f);  // Yaw
@@ -56,24 +56,19 @@ namespace Axiom {
 			connection->SendRawPacket(Clientbound::Play::SetDefaultSpawnPosition, payload);
 		}
 
-		void SendPlayerPosition(Ref<Connection>& connection) {
+		void SendPlayerPosition(const Ref<Connection>& connection) {
 			NetworkBuffer payload;
 
-			payload.WriteVarInt(0);    // Teleport ID
-			payload.WriteDouble(0.5);  // X
-			payload.WriteDouble(0.0);  // Y
-			payload.WriteDouble(0.5);  // Z
-			payload.WriteDouble(0.0);  // Velocity X
-			payload.WriteDouble(0.0);  // Velocity Y
-			payload.WriteDouble(0.0);  // Velocity Z
-			payload.WriteFloat(0.0f);  // Yaw
-			payload.WriteFloat(0.0f);  // Pitch
-			payload.WriteInt(0);       // Flags (all absolute)
+			payload.WriteVarInt(0); // Teleport ID
+			payload.WriteVector3(0.5, 0.0, 0.5); // Position
+			payload.WriteVector3(0.0, 0.0, 0.0); // Velocity
+			payload.WriteVector2(0.0f, 0.0f); // Rotation
+			payload.WriteInt(0); // Flags (all absolute)
 
 			connection->SendRawPacket(Clientbound::Play::PlayerPosition, payload);
 		}
 
-		void SendChunks(Ref<Connection>& connection, int viewDistance) {
+		void SendChunks(const Ref<Connection>& connection, const int viewDistance) {
 			// Set chunk cache center
 			{
 				NetworkBuffer payload;
@@ -84,7 +79,7 @@ namespace Axiom {
 
 			// Chunk batch start
 			{
-				NetworkBuffer payload;
+				const NetworkBuffer payload;
 				connection->SendRawPacket(Clientbound::Play::ChunkBatchStart, payload);
 			}
 
@@ -104,7 +99,7 @@ namespace Axiom {
 			}
 		}
 
-		void SendGameEvent(Ref<Connection>& connection, uint8_t eventId, float value) {
+		void SendGameEvent(const Ref<Connection>& connection, uint8_t eventId, float value) {
 			NetworkBuffer payload;
 			payload.WriteByte(eventId);
 			payload.WriteFloat(value);
@@ -114,7 +109,7 @@ namespace Axiom {
 	} // anonymous namespace
 
 	template<int32_t Version>
-	void FinishConfigurationPacket<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
+	void FinishConfigurationPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
 		AX_CORE_INFO("Configuration complete for {}", connection->RemoteAddress());
 		connection->State(ConnectionState::Play);
 

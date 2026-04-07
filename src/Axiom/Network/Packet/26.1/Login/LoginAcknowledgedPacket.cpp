@@ -8,7 +8,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void LoginAcknowledgedPacket<Version>::Handle(Ref<Connection> connection, PacketContext& context) {
+	void LoginAcknowledgedPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
 		AX_CORE_TRACE("Login acknowledged from {}", connection->RemoteAddress());
 		connection->State(ConnectionState::Configuration);
 

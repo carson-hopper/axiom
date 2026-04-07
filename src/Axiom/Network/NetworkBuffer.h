@@ -2,8 +2,6 @@
 
 #include "Axiom/Core/Base.h"
 
-#include <cstdint>
-#include <cstring>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -33,7 +31,7 @@ namespace Axiom {
 
 		int16_t ReadShort() {
 			EnsureReadable(2);
-			int16_t value = static_cast<int16_t>(
+			const int16_t value = static_cast<int16_t>(
 				(static_cast<uint16_t>(m_Data[m_ReaderIndex]) << 8) |
 				static_cast<uint16_t>(m_Data[m_ReaderIndex + 1]));
 			m_ReaderIndex += 2;
@@ -120,7 +118,7 @@ namespace Axiom {
 			return value;
 		}
 
-		std::string ReadString(int32_t maxLength = 32767) {
+		std::string ReadString(const int32_t maxLength = 0x7FFF) {
 			int32_t length = ReadVarInt();
 			if (length < 0 || length > maxLength * 4) {
 				throw std::runtime_error("String length out of bounds");
@@ -131,7 +129,7 @@ namespace Axiom {
 			return result;
 		}
 
-		std::vector<uint8_t> ReadBytes(size_t count) {
+		std::vector<uint8_t> ReadBytes(const size_t count) {
 			EnsureReadable(count);
 			std::vector<uint8_t> result(m_Data.begin() + m_ReaderIndex,
 				m_Data.begin() + m_ReaderIndex + count);
@@ -145,50 +143,66 @@ namespace Axiom {
 
 		// ----- Writing --------------------------------------------------
 
-		void WriteByte(uint8_t value) {
+		void WriteByte(const uint8_t value) {
 			m_Data.push_back(value);
 		}
 
-		void WriteBoolean(bool value) {
+		void WriteBoolean(const bool value) {
 			WriteByte(value ? 1 : 0);
 		}
 
-		void WriteShort(int16_t value) {
+		void WriteShort(const int16_t value) {
 			m_Data.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
 			m_Data.push_back(static_cast<uint8_t>(value & 0xFF));
 		}
 
-		void WriteUnsignedShort(uint16_t value) {
+		void WriteUnsignedShort(const uint16_t value) {
 			m_Data.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
 			m_Data.push_back(static_cast<uint8_t>(value & 0xFF));
 		}
 
-		void WriteInt(int32_t value) {
+		void WriteInt(const int32_t value) {
 			m_Data.push_back(static_cast<uint8_t>((value >> 24) & 0xFF));
 			m_Data.push_back(static_cast<uint8_t>((value >> 16) & 0xFF));
 			m_Data.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
 			m_Data.push_back(static_cast<uint8_t>(value & 0xFF));
 		}
 
-		void WriteLong(int64_t value) {
+		void WriteLong(const int64_t value) {
 			for (int i = 56; i >= 0; i -= 8) {
 				m_Data.push_back(static_cast<uint8_t>((value >> i) & 0xFF));
 			}
 		}
 
-		void WriteFloat(float value) {
+		void WriteFloat(const float value) {
 			int32_t bits;
 			std::memcpy(&bits, &value, sizeof(float));
 			WriteInt(bits);
 		}
 
-		void WriteDouble(double value) {
+		void WriteDouble(const double value) {
 			int64_t bits;
 			std::memcpy(&bits, &value, sizeof(double));
 			WriteLong(bits);
 		}
 
-		void WriteVarInt(int32_t value) {
+		void WriteVector2(const float yaw, const float pitch) {
+			WriteFloat(yaw);
+			WriteFloat(pitch);
+		}
+
+		void WriteVector2(const double x, const double z) {
+			WriteDouble(x);
+			WriteDouble(z);
+		}
+
+		void WriteVector3(const double x, const double y, const double z) {
+			WriteDouble(x);
+			WriteDouble(y);
+			WriteDouble(z);
+		}
+
+		void WriteVarInt(const int32_t value) {
 			auto unsigned_value = static_cast<uint32_t>(value);
 			do {
 				uint8_t temp = static_cast<uint8_t>(unsigned_value & 0x7F);
@@ -200,7 +214,7 @@ namespace Axiom {
 			} while (unsigned_value != 0);
 		}
 
-		void WriteVarLong(int64_t value) {
+		void WriteVarLong(const int64_t value) {
 			auto unsigned_value = static_cast<uint64_t>(value);
 			do {
 				uint8_t temp = static_cast<uint8_t>(unsigned_value & 0x7F);
@@ -214,7 +228,7 @@ namespace Axiom {
 
 		void WriteString(const std::string& value) {
 			WriteVarInt(static_cast<int32_t>(value.size()));
-			m_Data.insert(m_Data.end(), value.begin(), value.end());
+			WriteBytes(reinterpret_cast<const uint8_t*>(value.data()), value.size());
 		}
 
 		void WriteBytes(const uint8_t* data, size_t length) {
@@ -239,7 +253,7 @@ namespace Axiom {
 
 		size_t ReadableBytes() const { return m_Data.size() - m_ReaderIndex; }
 		size_t ReaderIndex() const { return m_ReaderIndex; }
-		void ReaderIndex(size_t index) { m_ReaderIndex = index; }
+		void ReaderIndex(const size_t index) { m_ReaderIndex = index; }
 		const std::vector<uint8_t>& Data() const { return m_Data; }
 		std::vector<uint8_t>& Data() { return m_Data; }
 		size_t Size() const { return m_Data.size(); }

@@ -7,7 +7,7 @@
 namespace Axiom {
 
 	template<int32_t Version>
-	void PlayKeepAlivePacket<Version>::Handle(Ref<Connection> connection, PacketContext& /*context*/) {
+	void PlayKeepAlivePacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
 		AX_CORE_TRACE("Keep-alive response from {}: {}", connection->RemoteAddress(), keepAliveId);
 	}
 
