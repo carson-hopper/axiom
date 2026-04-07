@@ -5,7 +5,6 @@
 #include "Axiom/Network/Protocol.h"
 #include "Axiom/Network/Packet/PacketContext.h"
 #include "Axiom/Config/ServerConfig.h"
-#include "Axiom/World/ChunkEncoder.h"
 
 namespace Axiom {
 
@@ -40,14 +39,14 @@ namespace Axiom {
 			connection->SendRawPacket(Clientbound::Play::Login, payload);
 		}
 
-		void SendSpawnPosition(const Ref<Connection>& connection) {
+		void SendSpawnPosition(const Ref<Connection>& connection, double spawnY) {
 			NetworkBuffer payload;
 
-			payload.WriteString("minecraft:overworld");  // Dimension name
+			payload.WriteString("minecraft:overworld");
 
-			// Position as packed long: x(26 bits) | z(26 bits) | y(12 bits)
-			int64_t x = 0, y = 0, z = 0;
-			const int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+			int64_t x = 0, z = 0;
+			int64_t y = static_cast<int64_t>(spawnY) & 0xFFF;
+			int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | y;
 			payload.WriteLong(position);
 
 			payload.WriteFloat(0.0f);  // Yaw
@@ -56,49 +55,21 @@ namespace Axiom {
 			connection->SendRawPacket(Clientbound::Play::SetDefaultSpawnPosition, payload);
 		}
 
-		void SendPlayerPosition(const Ref<Connection>& connection) {
+		void SendPlayerPosition(const Ref<Connection>& connection, double spawnY) {
 			NetworkBuffer payload;
 
-			payload.WriteVarInt(0); // Teleport ID
-			payload.WriteVector3(0.5, 0.0, 0.5); // Position
-			payload.WriteVector3(0.0, 0.0, 0.0); // Velocity
-			payload.WriteVector2(0.0f, 0.0f); // Rotation
-			payload.WriteInt(0); // Flags (all absolute)
+			payload.WriteVarInt(0);    // Teleport ID
+			payload.WriteDouble(0.5);  // X
+			payload.WriteDouble(spawnY);
+			payload.WriteDouble(0.5);  // Z
+			payload.WriteDouble(0.0);  // Velocity X
+			payload.WriteDouble(0.0);  // Velocity Y
+			payload.WriteDouble(0.0);  // Velocity Z
+			payload.WriteFloat(0.0f);  // Yaw
+			payload.WriteFloat(0.0f);  // Pitch
+			payload.WriteInt(0);       // Flags (all absolute)
 
 			connection->SendRawPacket(Clientbound::Play::PlayerPosition, payload);
-		}
-
-		void SendChunks(const Ref<Connection>& connection, const int viewDistance) {
-			// Set chunk cache center
-			{
-				NetworkBuffer payload;
-				payload.WriteVarInt(0);
-				payload.WriteVarInt(0);
-				connection->SendRawPacket(Clientbound::Play::SetChunkCacheCenter, payload);
-			}
-
-			// Chunk batch start
-			{
-				const NetworkBuffer payload;
-				connection->SendRawPacket(Clientbound::Play::ChunkBatchStart, payload);
-			}
-
-			int radius = std::min(viewDistance, 3);
-			for (int x = -radius; x <= radius; x++) {
-				for (int z = -radius; z <= radius; z++) {
-					NetworkBuffer payload;
-					ChunkEncoder::EncodeLevelChunkWithLight(payload, x, z);
-					connection->SendRawPacket(Clientbound::Play::LevelChunkWithLight, payload);
-				}
-			}
-
-			// Chunk batch finished
-			{
-				int chunkCount = (radius * 2 + 1) * (radius * 2 + 1);
-				NetworkBuffer payload;
-				payload.WriteVarInt(chunkCount);
-				connection->SendRawPacket(Clientbound::Play::ChunkBatchFinished, payload);
-			}
 		}
 
 		void SendGameEvent(const Ref<Connection>& connection, uint8_t eventId, float value) {
@@ -115,10 +86,14 @@ namespace Axiom {
 		AX_CORE_INFO("Configuration complete for {}", connection->RemoteAddress());
 		connection->State(ConnectionState::Play);
 
+		double spawnY = context.ChunkManagement().Generator().SpawnY();
+
 		SendLoginPacket(connection, context);
-		SendSpawnPosition(connection);
-		SendPlayerPosition(connection);
-		SendChunks(connection, context.Config().ViewDistance());
+		SendSpawnPosition(connection, spawnY);
+		SendPlayerPosition(connection, spawnY);
+
+		// Send initial chunks via ChunkManager
+		context.ChunkManagement().SendInitialChunks(connection, 0.5, 0.5);
 
 		// Game event 13 = "Start waiting for level chunks"
 		SendGameEvent(connection, 13, 0.0f);
