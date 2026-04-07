@@ -154,12 +154,16 @@ namespace Axiom {
 
 				if (surfaceBlock == BlockState::Air || surfaceBlock == BlockState::Water) continue;
 
+				const int worldX = chunkX * 16 + localX;
+				const int worldZ = chunkZ * 16 + localZ;
+
 				const int32_t newSurface = isRiver
 					? BlockState::Sand
-					: m_SurfaceDecorator.GetSurfaceBlock(surfaceHeight, biome);
+					: m_SurfaceDecorator.GetSurfaceBlock(worldX, worldZ, surfaceHeight, biome);
 				columnBlocks[surfaceAbsoluteY * 256 + columnIndex] = newSurface;
 
-				const int32_t subSurfaceBlock = m_SurfaceDecorator.GetSubSurfaceBlock(surfaceHeight, biome);
+				const int32_t subSurfaceBlock = m_SurfaceDecorator.GetSubSurfaceBlock(
+					worldX, worldZ, surfaceHeight, biome);
 				for (int depth = 1; depth <= 3; depth++) {
 					const int belowY = surfaceHeight - depth;
 					if (belowY < MinY) break;
