@@ -10,7 +10,8 @@ namespace Axiom {
 		, m_CaveCarver(seed + 30)
 		, m_OreDistributor(seed + 40)
 		, m_SurfaceDecorator(seed + 50)
-		, m_TreePlacer(seed + 60) {}
+		, m_TreePlacer(seed + 60)
+		, m_WaterDecorator(seed + 70) {}
 
 	ChunkData TerrainChunkGenerator::Generate(const int32_t chunkX, const int32_t chunkZ) {
 		std::array<BiomeType, 256> biomeMap{};
@@ -37,6 +38,7 @@ namespace Axiom {
 		ApplySurfaceBlocks(chunkX, chunkZ, surfaceHeightmap, biomeMap, riverMap, columnBlocks);
 		m_TreePlacer.PlaceTrees(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
 		PlaceVegetation(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
+		m_WaterDecorator.Decorate(chunkX, chunkZ, surfaceHeightmap, biomeMap, columnBlocks);
 
 		// Compute 4x4 biome grid for this chunk
 		std::array<int32_t, 16> biomeGrid{};

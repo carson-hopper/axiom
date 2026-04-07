@@ -9,6 +9,7 @@
 #include "Axiom/Environment/World/Generator/OreDistributor.h"
 #include "Axiom/Environment/World/Generator/SurfaceDecorator.h"
 #include "Axiom/Environment/World/Generator/TreePlacer.h"
+#include "Axiom/Environment/World/Generator/WaterDecorator.h"
 #include "Axiom/Environment/World/ChunkEncoder.h"
 
 #include <algorithm>
@@ -67,6 +68,7 @@ namespace Axiom {
 		OreDistributor m_OreDistributor;
 		SurfaceDecorator m_SurfaceDecorator;
 		TreePlacer m_TreePlacer;
+		WaterDecorator m_WaterDecorator;
 	};
 
 }
