@@ -1,20 +1,15 @@
 #pragma once
 
-#include "Axiom/Core/Base.h"
+#include "Axiom/Core/Error.h"
 #include "Axiom/Environment/Level/Physics/BlockPhysics.h"
-#include "Axiom/Environment/Level/Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/Connection.h"
-#include "Axiom/Network/Protocol.h"
-#include "Axiom/Network/NetworkBuffer.h"
 
 #include <atomic>
-#include <cstdint>
 #include <functional>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
-#include <vector>
 
 namespace Axiom {
 
@@ -49,7 +44,16 @@ namespace Axiom {
 		void Start();
 		void Stop();
 
-		void SetBlock(int32_t worldX, int32_t worldY, int32_t worldZ, int32_t blockState);
+		/**
+		 * Set a block in the world.
+		 *
+		 * @param worldX World X coordinate
+		 * @param worldY World Y coordinate
+		 * @param worldZ World Z coordinate
+		 * @param blockState Block state ID to set
+		 * @return Result<void> Success or error code
+		 */
+		Result<void> SetBlock(int32_t worldX, int32_t worldY, int32_t worldZ, int32_t blockState);
 		int32_t GetBlock(int32_t worldX, int32_t worldY, int32_t worldZ) const;
 
 		/**

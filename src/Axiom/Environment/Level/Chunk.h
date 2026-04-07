@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
+#include "Axiom/Core/Error.h"
 
 #include <array>
 #include <cstdint>
@@ -62,7 +63,7 @@ namespace Axiom {
 		static constexpr int MinY = -64;
 		static constexpr int MaxY = 319;
 
-		Chunk(int32_t chunkX, int32_t chunkZ)
+		Chunk(const int32_t chunkX, const int32_t chunkZ)
 			: m_ChunkX(chunkX)
 			, m_ChunkZ(chunkZ) {}
 
@@ -86,18 +87,27 @@ namespace Axiom {
 		/**
 		 * Set a block state ID at the given world coordinates.
 		 * Allocates the section on first write.
+		 *
+		 * @param x Block X coordinate (0-15 within chunk)
+		 * @param y Block Y coordinate (world coordinates, -64 to 319)
+		 * @param z Block Z coordinate (0-15 within chunk)
+		 * @param stateId The block state ID to set (0 = air)
+		 * @return Result<void> Success or ErrorCode::BlockOutOfBounds if Y is out of range
 		 */
-		void SetBlockState(int x, int y, int z, int32_t stateId) {
+		Result<void> SetBlockState(int x, int y, int z, int32_t stateId) {
 			int sectionIndex = (y - MinY) / SectionSize;
-			if (sectionIndex < 0 || sectionIndex >= SectionCount) return;
+			if (sectionIndex < 0 || sectionIndex >= SectionCount) {
+				return MakeError<void>(ErrorCode::BlockOutOfBounds);
+			}
 
 			auto& section = m_Sections[sectionIndex];
 			if (!section) {
-				if (stateId == 0) return;  // Don't allocate for air
+				if (stateId == 0) return {};  // Don't allocate for air
 				section = CreateScope<ChunkSection>();
 			}
 
 			section->SetBlockState(x & 0xF, (y - MinY) & 0xF, z & 0xF, stateId);
+			return {};
 		}
 
 		/**
@@ -110,12 +120,18 @@ namespace Axiom {
 
 		/**
 		 * Ensure a section exists, allocating if needed.
+		 *
+		 * @param index Section index (0-23)
+		 * @return Pointer to the section, or nullptr if index is out of bounds
 		 */
-		ChunkSection& GetOrCreateSection(int index) {
+		ChunkSection* GetOrCreateSection(int index) {
+			if (index < 0 || index >= SectionCount) {
+				return nullptr;
+			}
 			if (!m_Sections[index]) {
 				m_Sections[index] = CreateScope<ChunkSection>();
 			}
-			return *m_Sections[index];
+			return m_Sections[index].get();
 		}
 
 		bool HasSection(int index) const {

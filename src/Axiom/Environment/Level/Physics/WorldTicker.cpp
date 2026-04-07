@@ -1,4 +1,5 @@
-#include "WorldTicker.h"
+#include "axpch.h"
+#include "Axiom/Environment/Level/Physics/WorldTicker.h"
 
 #include "Axiom/Core/Log.h"
 
@@ -19,7 +20,7 @@ namespace Axiom {
 		}
 	}
 
-	void WorldTicker::SetBlock(const int32_t worldX, const int32_t worldY, const int32_t worldZ,
+	Result<void> WorldTicker::SetBlock(const int32_t worldX, const int32_t worldY, const int32_t worldZ,
 		const int32_t blockState) {
 
 		{
@@ -29,6 +30,7 @@ namespace Axiom {
 
 		BroadcastBlockChange(worldX, worldY, worldZ, blockState);
 		m_BlockPhysics.ScheduleUpdate(worldX, worldY, worldZ);
+		return {};
 	}
 
 	int32_t WorldTicker::GetBlock(const int32_t worldX, const int32_t worldY, const int32_t worldZ) const {
@@ -122,12 +124,8 @@ namespace Axiom {
 	void WorldTicker::BroadcastBlockChange(const int32_t worldX, const int32_t worldY, const int32_t worldZ,
 		const int32_t blockState) {
 
-		const int64_t encodedPosition = (static_cast<int64_t>(worldX & 0x3FFFFFF) << 38)
-			| (static_cast<int64_t>(worldZ & 0x3FFFFFF) << 12)
-			| static_cast<int64_t>(worldY & 0xFFF);
-
 		NetworkBuffer payload;
-		payload.WriteLong(encodedPosition);
+		payload.WriteBlockPosition(worldX, worldY, worldZ);
 		payload.WriteVarInt(blockState);
 
 		const auto players = m_PlayerManager.AllPlayers();
