@@ -15,6 +15,11 @@
 #include "Axiom/Network/Packet/26.1/Config/SelectKnownPacksPacket.h"
 #include "Axiom/Network/Packet/26.1/Config/FinishConfigurationPacket.h"
 #include "Axiom/Network/Packet/26.1/Config/KeepAlivePacket.h"
+#include "Axiom/Network/Packet/26.1/Play/PlayKeepAlivePacket.h"
+#include "Axiom/Network/Packet/26.1/Play/PlayerLoadedPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/ChunkBatchReceivedPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/AcceptTeleportationPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/ClientTickEndPacket.h"
 
 #include <iostream>
 #include <string>
@@ -74,6 +79,13 @@ namespace Axiom {
 		m_PacketRegistry.Register<775, SelectKnownPacksPacket<775>>();
 		m_PacketRegistry.Register<775, FinishConfigurationPacket<775>>();
 		m_PacketRegistry.Register<775, ConfigKeepAlivePacket<775>>();
+
+		// Play
+		m_PacketRegistry.Register<775, PlayKeepAlivePacket<775>>();
+		m_PacketRegistry.Register<775, PlayerLoadedPacket<775>>();
+		m_PacketRegistry.Register<775, ChunkBatchReceivedPacket<775>>();
+		m_PacketRegistry.Register<775, AcceptTeleportationPacket<775>>();
+		m_PacketRegistry.Register<775, ClientTickEndPacket<775>>();
 	}
 
 	void Application::Run() {
