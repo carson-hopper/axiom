@@ -1,8 +1,31 @@
-//
-// Created by Carson Hopper on 4/7/26.
-//
+#pragma once
 
-#ifndef AXIOM_AXPCH_H
-#define AXIOM_AXPCH_H
+#include "Axiom/Core/PlatformDetection.h"
 
-#endif //AXIOM_AXPCH_H
+#ifdef AX_PLATFORM_WINDOWS
+	#ifndef NOMINMAX
+		// See github.com/skypjack/entt/wiki/Frequently-Asked-Questions#warning-c4003-the-min-the-max-and-the-macro
+		#define NOMINMAX
+	#endif
+#endif
+
+#include <iostream>
+#include <memory>
+#include <utility>
+#include <algorithm>
+#include <functional>
+
+#include <string>
+#include <sstream>
+#include <array>
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+
+#include "Axiom/Core/Base.h"
+
+#include "Axiom/Core/Log.h"
+
+#ifdef AX_PLATFORM_WINDOWS
+	#include <Windows.h>
+#endif

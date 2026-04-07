@@ -11,6 +11,7 @@ namespace Axiom {
 
 		Vector2() = default;
 		Vector2(const float x, const float y) : x(x), y(y) {}
+		Vector2(const int32_t x, const int32_t y) : x(x), y(y) {}
 	};
 
 	struct Vector3 {
@@ -19,7 +20,7 @@ namespace Axiom {
 		double z = 0.0;
 
 		Vector3() = default;
-		Vector3(double x, double y, double z) : x(x), y(y), z(z) {}
+		Vector3(const double x, const double y, const double z) : x(x), y(y), z(z) {}
 
 		Vector3 operator+(const Vector3& other) const { return {x + other.x, y + other.y, z + other.z}; }
 		Vector3 operator-(const Vector3& other) const { return {x - other.x, y - other.y, z - other.z}; }

@@ -1,8 +1,7 @@
-#include "Log.h"
+#include "axpch.h"
+#include "Axiom/Core/Log.h"
 
-#include <spdlog/sinks/ansicolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/pattern_formatter.h>
 
 #include <cstdlib>
 #include <mutex>

@@ -1,8 +1,17 @@
-//
-// Created by Carson Hopper on 4/7/26.
-//
+#pragma once
+#include "Axiom/Core/Base.h"
+#include "Axiom/Core/Application.h"
 
-#ifndef AXIOM_ENTRYPOINT_H
-#define AXIOM_ENTRYPOINT_H
+#if defined(AX_PLATFORM_LINUX) || defined(AX_PLATFORM_MACOS)
 
-#endif //AXIOM_ENTRYPOINT_H
+extern Axiom::Scope<Axiom::Application> CreateApplication(Axiom::ApplicationCommandLineArgs args);
+
+int main(int argc, char** argv)
+{
+	Axiom::Log::Init();
+
+	const auto app = Axiom::CreateApplication({ argc, argv });
+	app->Run();
+}
+
+#endif
