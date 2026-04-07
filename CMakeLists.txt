@@ -78,3 +78,11 @@ if(MSVC)
 else()
 	target_compile_options(axiom-server PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+# Copy data directory next to executable after build
+add_custom_command(TARGET axiom-server POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_SOURCE_DIR}/data
+		$<TARGET_FILE_DIR:axiom-server>/data
+	COMMENT "Copying data directory to build output"
+)

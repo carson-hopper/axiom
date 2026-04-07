@@ -1,6 +1,7 @@
 #include "PacketContext.h"
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Core/PathUtil.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
 
@@ -13,7 +14,8 @@ namespace Axiom {
 		, m_EventBus(eventBus)
 		, m_Commands(commands) {
 
-		m_Registries.LoadAll("data");
+		auto dataPath = ResolvePath("data");
+		m_Registries.LoadAll(dataPath.string());
 	}
 
 	void PacketContext::StorePendingLogin(Connection* connection, PendingLogin login) {
