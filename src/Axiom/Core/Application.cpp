@@ -1,5 +1,7 @@
-#include "Application.h"
+#include "axpch.h"
+#include "Axiom/Core/Application.h"
 
+#include "Axiom/Core/Time.h"
 #include "Axiom/Core/Assert.h"
 #include "Axiom/Event/ServerEvents.h"
 #include "Axiom/Plugin/CorePlugin.h"
@@ -35,11 +37,34 @@ namespace Axiom {
 
 	Application* Application::s_Instance = nullptr;
 
-	void Application::Init() {
+	Application::Application(const ApplicationSpecification& specification)
+		: m_Specification(specification) {
+
 		AX_CORE_ASSERT(!s_Instance, "Application already exists");
 		s_Instance = this;
 
-		Log::Init();
+		if (!m_Specification.WorkingDirectory.empty())
+			std::filesystem::current_path(m_Specification.WorkingDirectory);
+	}
+
+	Application::~Application()
+	{
+		AX_CORE_INFO("Server shutting down...");
+
+		m_NetworkServer->Stop();
+
+		ServerStopEvent stopEvent;
+		m_EventBus->Publish(stopEvent);
+
+		m_PluginManager->DisableAll();
+
+		m_Config->Save();
+
+		AX_CORE_INFO("Server stopped.");
+		s_Instance = nullptr;
+	}
+
+	void Application::Init() {
 		AX_CORE_INFO("Axiom Server v0.1.0 starting...");
 
 		m_Config = CreateScope<ServerConfig>();
@@ -59,9 +84,9 @@ namespace Axiom {
 
 		m_NetworkServer = CreateScope<NetworkServer>();
 		m_NetworkServer->SetPacketHandler(
-			[this](Ref<Connection> connection, int32_t packetId, NetworkBuffer& buffer) {
+			[this](const Ref<Connection>& connection, const int32_t packetId, NetworkBuffer& buffer) {
 				m_PacketRegistry.Dispatch(connection->State(), packetId, buffer,
-					std::move(connection), *m_PacketContext);
+					connection, *m_PacketContext);
 			});
 		m_NetworkServer->Start(m_Config->Port());
 
@@ -183,6 +208,11 @@ namespace Axiom {
 		ConsoleSender consoleSender;
 
 		while (m_Running) {
+			const float time = Time::GetTime();
+			Timestep timestep = time - m_LastFrameTime;
+			m_LastFrameTime = time;
+
+
 			std::string input;
 			if (!std::getline(std::cin, input)) {
 				break;
@@ -199,22 +229,6 @@ namespace Axiom {
 
 			m_CommandRegistry->Dispatch(consoleSender, input);
 		}
-	}
-
-	void Application::Shutdown() const {
-		AX_CORE_INFO("Server shutting down...");
-
-		m_NetworkServer->Stop();
-
-		ServerStopEvent stopEvent;
-		m_EventBus->Publish(stopEvent);
-
-		m_PluginManager->DisableAll();
-
-		m_Config->Save();
-
-		AX_CORE_INFO("Server stopped.");
-		s_Instance = nullptr;
 	}
 
 }

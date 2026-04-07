@@ -1,8 +1,21 @@
-//
-// Created by Carson Hopper on 4/7/26.
-//
+#pragma once
 
-#ifndef AXIOM_TIMESTEP_H
-#define AXIOM_TIMESTEP_H
+namespace Axiom {
 
-#endif //AXIOM_TIMESTEP_H
+	class Timestep
+	{
+	public:
+		Timestep(const float time = 0.0f)
+			: m_Time(time)
+		{
+		}
+
+		explicit operator float() const { return m_Time; }
+
+		float GetSeconds() const { return m_Time; }
+		float GetMilliseconds() const { return m_Time * 1000.0f; }
+	private:
+		float m_Time;
+	};
+
+}
