@@ -26,7 +26,8 @@ set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 add_subdirectory(vendor/json EXCLUDE_FROM_ALL)
 
 # asio (header-only, standalone)
-add_library(asio INTERFACE)
+add_library(asio INTERFACE
+		src/axpch.h)
 target_include_directories(asio INTERFACE vendor/asio/asio/include)
 target_compile_definitions(asio INTERFACE ASIO_STANDALONE)
 
@@ -43,7 +44,13 @@ file(GLOB_RECURSE AXIOM_SOURCES
 	"src/Axiom/*.cpp"
 )
 
-add_executable(axiom-server ${AXIOM_SOURCES})
+add_executable(axiom-server ${AXIOM_SOURCES}
+        src/Axiom/Core/Timestep.h
+		src/Axiom/Core/UUID.h
+		src/Axiom/Core/UUID.cpp
+		src/axpch.cpp
+        src/Axiom/Core/EntryPoint.h
+		src/Axiom/Core/Timer.h)
 
 target_include_directories(axiom-server PRIVATE src)
 
@@ -86,3 +93,59 @@ add_custom_command(TARGET axiom-server POST_BUILD
 		$<TARGET_FILE_DIR:axiom-server>/data
 	COMMENT "Copying data directory to build output"
 )
+
+# ----- Tests -----------------------------------------------------
+
+option(AX_BUILD_TESTS "Build unit tests" ON)
+
+if(AX_BUILD_TESTS)
+	file(GLOB_RECURSE TEST_SOURCES
+		"tests/*.h"
+		"tests/*.cpp"
+	)
+
+	add_executable(axiom-tests ${TEST_SOURCES})
+
+	target_include_directories(axiom-tests PRIVATE
+		src
+		tests
+	)
+
+	target_link_libraries(axiom-tests PRIVATE
+		spdlog::spdlog_header_only
+		yaml-cpp
+		nlohmann_json::nlohmann_json
+		asio
+		OpenSSL::SSL
+		OpenSSL::Crypto
+		ZLIB::ZLIB
+	)
+
+	target_compile_definitions(axiom-tests PRIVATE
+		AX_DEBUG
+		AX_ENABLE_ASSERTS
+	)
+
+	# Platform detection for tests
+	if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+		target_compile_definitions(axiom-tests PRIVATE AX_PLATFORM_LINUX)
+	elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+		target_compile_definitions(axiom-tests PRIVATE AX_PLATFORM_MACOS)
+	elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+		target_compile_definitions(axiom-tests PRIVATE AX_PLATFORM_WINDOWS)
+	endif()
+
+	# Warnings for tests
+	if(MSVC)
+		target_compile_options(axiom-tests PRIVATE /W4)
+	else()
+		target_compile_options(axiom-tests PRIVATE -Wall -Wextra -Wpedantic)
+	endif()
+
+	# Add test target
+	add_custom_target(test
+		COMMAND axiom-tests
+		DEPENDS axiom-tests
+		COMMENT "Running unit tests"
+	)
+endif()

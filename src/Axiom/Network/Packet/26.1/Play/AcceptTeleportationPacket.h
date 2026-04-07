@@ -8,18 +8,19 @@
 namespace Axiom {
 
 	template<int32_t Version = PROTOCOL_VERSION>
-	class AcceptTeleportationPacket : public ServerboundPacket {
+	class ConfirmTeleportationPacket : public ServerboundPacket {
 	public:
 		static constexpr int32_t PacketId = Serverbound::Play::AcceptTeleportation;
-		static constexpr ConnectionState PacketState = ConnectionState::Play;
+		static constexpr auto PacketState = ConnectionState::Play;
 
 		void Decode(NetworkBuffer& buffer) override {
-			teleportId = buffer.ReadVarInt();
+			m_TeleportId = buffer.ReadVarInt();
 		}
 
 		void Handle(Ref<Connection> connection, PacketContext& context) override;
 
-		int32_t teleportId = 0;
+	private:
+		int32_t m_TeleportId = 0;
 	};
 
 }

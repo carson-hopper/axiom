@@ -3,7 +3,8 @@ build/
 out/
 cmake-build-*/
 *.log
-logs
+logs/
+*.yml
 
 # IDE
 .idea/
