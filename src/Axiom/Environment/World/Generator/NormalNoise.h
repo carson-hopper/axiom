@@ -33,39 +33,44 @@ namespace Axiom {
 			const auto& amplitudes = parameters.amplitudes;
 			const int octaveCount = static_cast<int>(amplitudes.size());
 
-			// Calculate frequency and value factor matching vanilla
-			m_ValueFactor = 0.0;
-			double frequency = std::pow(2.0, static_cast<double>(firstOctave));
+			// In vanilla, each octave has a frequency that doubles.
+			// firstOctave = -9 means the first octave has period 2^9 = 512 blocks.
+			// The Perlin noise is sampled at (coord / period), so higher octaves
+			// sample at higher frequencies (smaller period = more detail).
+			// Vanilla NormalNoise: each octave contributes amplitude / valueFactor
+			// where valueFactor is the sum of all amplitudes (normalizes to ~[-1,1])
+			double amplitudeSum = 0.0;
 
 			for (int octave = 0; octave < octaveCount; octave++) {
 				if (amplitudes[octave] != 0.0) {
-					m_Octaves.push_back({frequency, amplitudes[octave], seed + octave * 2, seed + octave * 2 + 1});
-					m_ValueFactor += amplitudes[octave] / frequency;
+					const double period = std::pow(2.0, -static_cast<double>(firstOctave + octave));
+					m_Octaves.push_back({period, amplitudes[octave],
+						seed + static_cast<uint64_t>(octave) * 2,
+						seed + static_cast<uint64_t>(octave) * 2 + 1});
+					amplitudeSum += amplitudes[octave];
 				}
-				frequency *= 2.0;
 			}
 
-			// Normalize so output is roughly in [-1, 1]
-			if (m_ValueFactor > 0) {
-				m_ValueFactor = 1.0 / m_ValueFactor;
-			}
+			// Scale factor so that combined output is roughly in [-1, 1]
+			// Vanilla uses 1/sum but Perlin output is ~[-0.7, 0.7] so we
+			// use a less aggressive normalization to get full range
+			m_ValueFactor = (amplitudeSum > 0) ? (1.0 / (amplitudeSum * 0.16)) : 1.0;
 		}
 
 		double GetValue(const double blockX, const double blockY, const double blockZ) const {
 			double value = 0.0;
 
 			for (const auto& octave : m_Octaves) {
-				// Vanilla samples two independent Perlin noises and averages them
-				const double firstSample = octave.firstNoise.Noise3D(
-					blockX / octave.frequency,
-					blockY / octave.frequency,
-					blockZ / octave.frequency);
-				const double secondSample = octave.secondNoise.Noise3D(
-					blockX / octave.frequency,
-					blockY / octave.frequency,
-					blockZ / octave.frequency);
+				// Sample at (coord / period) — larger period = lower frequency
+				const double sampleX = blockX / octave.period;
+				const double sampleY = blockY / octave.period;
+				const double sampleZ = blockZ / octave.period;
 
-				value += octave.amplitude * (firstSample + secondSample) * 0.5 / octave.frequency;
+				const double firstSample = octave.firstNoise.Noise3D(sampleX, sampleY, sampleZ);
+				const double secondSample = octave.secondNoise.Noise3D(
+					sampleX + 100.0, sampleY + 100.0, sampleZ + 100.0);
+
+				value += octave.amplitude * (firstSample + secondSample) * 0.5;
 			}
 
 			return value * m_ValueFactor;
@@ -80,14 +85,14 @@ namespace Axiom {
 
 	private:
 		struct OctaveData {
-			double frequency;
+			double period;
 			double amplitude;
 			PerlinNoise firstNoise;
 			PerlinNoise secondNoise;
 
-			OctaveData(const double frequency, const double amplitude,
+			OctaveData(const double period, const double amplitude,
 				const uint64_t seed1, const uint64_t seed2)
-				: frequency(frequency)
+				: period(period)
 				, amplitude(amplitude)
 				, firstNoise(seed1)
 				, secondNoise(seed2) {}
