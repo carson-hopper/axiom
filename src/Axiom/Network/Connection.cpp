@@ -64,11 +64,14 @@ namespace Axiom {
 			frameData = std::move(frame.Data());
 		}
 
+		// Lock covers encryption + write: cipher is stateful and packets
+		// must arrive in the order they were encrypted
+		std::lock_guard<std::mutex> lock(m_WriteMutex);
+
 		if (m_Cipher) {
 			frameData = m_Cipher->Encrypt(frameData);
 		}
 
-		std::lock_guard<std::mutex> lock(m_WriteMutex);
 		asio::error_code errorCode;
 		asio::write(m_Socket, asio::buffer(frameData), errorCode);
 
