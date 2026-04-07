@@ -45,13 +45,11 @@ namespace Axiom {
 			state.lastChunkZ = chunkZ;
 		}
 
-		// Start batch
 		{
 			NetworkBuffer payload;
 			connection->SendRawPacket(Clientbound::Play::ChunkBatchStart, payload);
 		}
 
-		// Queue all chunks for async generation — each sends immediately when ready
 		QueueChunksInRadius(connection, chunkX, chunkZ);
 	}
 
@@ -59,15 +57,24 @@ namespace Axiom {
 		int32_t chunkX = BlockToChunk(playerX);
 		int32_t chunkZ = BlockToChunk(playerZ);
 
-		std::lock_guard<std::mutex> lock(m_StateMutex);
-		auto iterator = m_PlayerStates.find(connection.get());
-		if (iterator == m_PlayerStates.end()) return;
+		bool needsUpdate = false;
 
-		auto& state = iterator->second;
-		if (chunkX == state.lastChunkX && chunkZ == state.lastChunkZ) return;
+		{
+			std::lock_guard<std::mutex> lock(m_StateMutex);
+			auto iterator = m_PlayerStates.find(connection.get());
+			if (iterator == m_PlayerStates.end()) return;
 
-		state.lastChunkX = chunkX;
-		state.lastChunkZ = chunkZ;
+			auto& state = iterator->second;
+			if (chunkX == state.lastChunkX && chunkZ == state.lastChunkZ) return;
+
+			state.lastChunkX = chunkX;
+			state.lastChunkZ = chunkZ;
+			needsUpdate = true;
+
+			UnloadDistantChunks(connection, chunkX, chunkZ, state);
+		}
+
+		if (!needsUpdate) return;
 
 		{
 			NetworkBuffer payload;
@@ -75,8 +82,6 @@ namespace Axiom {
 			payload.WriteVarInt(chunkZ);
 			connection->SendRawPacket(Clientbound::Play::SetChunkCacheCenter, payload);
 		}
-
-		UnloadDistantChunks(connection, chunkX, chunkZ, state);
 
 		{
 			NetworkBuffer payload;
@@ -92,8 +97,6 @@ namespace Axiom {
 	}
 
 	void ChunkManager::QueueChunksInRadius(Ref<Connection> connection, int32_t centerX, int32_t centerZ) {
-		// Collect positions to generate, marking them as loaded immediately
-		// to prevent duplicate generation on rapid movement
 		std::vector<ChunkPosition> toGenerate;
 
 		{
@@ -118,14 +121,12 @@ namespace Axiom {
 		}
 
 		if (toGenerate.empty()) {
-			// Still need to send batch finished
 			NetworkBuffer payload;
 			payload.WriteVarInt(0);
 			connection->SendRawPacket(Clientbound::Play::ChunkBatchFinished, payload);
 			return;
 		}
 
-		// Track how many chunks are pending for this batch
 		auto remaining = std::make_shared<std::atomic<int>>(static_cast<int>(toGenerate.size()));
 		int totalChunks = static_cast<int>(toGenerate.size());
 
@@ -137,10 +138,8 @@ namespace Axiom {
 			SubmitTask([this, connectionRef, chunkX, chunkZ, remaining, totalChunks]() {
 				if (!connectionRef->IsConnected()) return;
 
-				// Generate and send immediately
 				SendChunk(connectionRef, chunkX, chunkZ);
 
-				// If this is the last chunk in the batch, send BatchFinished
 				if (remaining->fetch_sub(1) == 1) {
 					NetworkBuffer payload;
 					payload.WriteVarInt(totalChunks);
