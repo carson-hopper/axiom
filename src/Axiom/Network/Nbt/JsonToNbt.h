@@ -44,14 +44,9 @@ namespace Axiom {
 					writer.WriteLong(name, intValue);
 				}
 			} else if (value.is_number_float()) {
-				double floatValue = value.get<double>();
-				// Use float if it fits without precision loss
-				float asFloat = static_cast<float>(floatValue);
-				if (static_cast<double>(asFloat) == floatValue) {
-					writer.WriteFloat(name, asFloat);
-				} else {
-					writer.WriteDouble(name, floatValue);
-				}
+				// MC registry NBT almost exclusively uses Float, not Double.
+				// JSON doesn't distinguish, so we default to Float.
+				writer.WriteFloat(name, value.get<float>());
 			}
 		}
 
@@ -69,6 +64,27 @@ namespace Axiom {
 		}
 
 	private:
+		/**
+		 * Check if a string looks like a hex color (#RRGGBB or #AARRGGBB).
+		 */
+		static bool IsHexColor(const std::string& value) {
+			if (value.empty() || value[0] != '#') return false;
+			if (value.size() != 7 && value.size() != 9) return false;
+			for (size_t i = 1; i < value.size(); i++) {
+				char character = value[i];
+				if (!((character >= '0' && character <= '9') ||
+					  (character >= 'a' && character <= 'f') ||
+					  (character >= 'A' && character <= 'F'))) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		static int32_t ParseHexColor(const std::string& value) {
+			return static_cast<int32_t>(std::stoul(value.substr(1), nullptr, 16));
+		}
+
 		static void WriteList(NbtWriter& writer, const std::string& name,
 			const nlohmann::json& array) {
 

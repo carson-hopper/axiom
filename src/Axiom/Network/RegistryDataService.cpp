@@ -92,8 +92,77 @@ namespace Axiom {
 		connection->SendRawPacket(Clientbound::Config::UpdateTags, payload);
 	}
 
+	static int32_t ParseHexColor(const std::string& value) {
+		return static_cast<int32_t>(std::stoul(value.substr(1), nullptr, 16));
+	}
+
+	static bool IsHexColor(const std::string& value) {
+		if (value.empty() || value[0] != '#') return false;
+		if (value.size() != 7 && value.size() != 9) return false;
+		for (size_t i = 1; i < value.size(); i++) {
+			char character = value[i];
+			if (!((character >= '0' && character <= '9') ||
+				  (character >= 'a' && character <= 'f') ||
+				  (character >= 'A' && character <= 'F'))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Convert hex color strings to integers for fields the MC client
+	 * expects as TAG_Int. Operates recursively on specific known paths.
+	 */
+	static void ConvertHexColorsInBiomes(nlohmann::json& registries) {
+		// Known fields that should be int colors in biome effects
+		static const std::vector<std::string> colorFields = {
+			"water_color", "water_fog_color", "fog_color", "sky_color",
+			"foliage_color", "grass_color"
+		};
+
+		if (!registries.contains("worldgen/biome")) return;
+
+		for (auto& [biomeName, biomeData] : registries["worldgen/biome"].items()) {
+			if (!biomeData.contains("effects")) continue;
+			auto& effects = biomeData["effects"];
+			for (const auto& field : colorFields) {
+				if (effects.contains(field) && effects[field].is_string()) {
+					auto& value = effects[field];
+					if (IsHexColor(value.get<std::string>())) {
+						value = ParseHexColor(value.get<std::string>());
+					}
+				}
+			}
+		}
+
+		// Dimension type visual attributes also have hex colors
+		if (!registries.contains("dimension_type")) return;
+
+		static const std::vector<std::string> dimensionColorFields = {
+			"minecraft:visual/ambient_light_color",
+			"minecraft:visual/cloud_color",
+			"minecraft:visual/fog_color",
+			"minecraft:visual/sky_color"
+		};
+
+		for (auto& [dimensionName, dimensionData] : registries["dimension_type"].items()) {
+			if (!dimensionData.contains("attributes")) continue;
+			auto& attributes = dimensionData["attributes"];
+			for (const auto& field : dimensionColorFields) {
+				if (attributes.contains(field) && attributes[field].is_string()) {
+					auto& value = attributes[field];
+					if (IsHexColor(value.get<std::string>())) {
+						value = ParseHexColor(value.get<std::string>());
+					}
+				}
+			}
+		}
+	}
+
 	void RegistryDataService::LoadSyncedRegistries(const std::string& dataDirectory) {
 		m_SyncedRegistries = LoadJson(dataDirectory + "/synced_registries.json");
+		ConvertHexColorsInBiomes(m_SyncedRegistries);
 	}
 
 	void RegistryDataService::LoadTags(const std::string& dataDirectory) {
