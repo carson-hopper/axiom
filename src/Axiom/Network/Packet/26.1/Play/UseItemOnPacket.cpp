@@ -3,7 +3,7 @@
 #include "Axiom/Core/Log.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/PacketContext.h"
-#include "Axiom/Environment/World/Generator/BlockStates.h"
+#include "Axiom/Environment/Level/Generator/BlockStates.h"
 
 namespace Axiom {
 

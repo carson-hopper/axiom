@@ -20,7 +20,7 @@ namespace Axiom {
 		m_Connection->SendRawPacket(Clientbound::Play::SystemChat, payload);
 	}
 
-	void Player::Kick(const std::string& reason) {
+	void Player::Kick(const std::string& reason) const {
 		if (!m_Connection || !m_Connection->IsConnected()) return;
 
 		nlohmann::json disconnectMessage;

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Axiom/Environment/World/Generator/BiomeProvider.h"
-#include "Axiom/Environment/World/Generator/NormalNoise.h"
-#include "Axiom/Environment/World/Generator/SplineFunction.h"
+#include "Axiom/Environment/Level/Generator/BiomeProvider.h"
+#include "Axiom/Environment/Level/Generator/NormalNoise.h"
+#include "Axiom/Environment/Level/Generator/SplineFunction.h"
 
 #include <algorithm>
 #include <array>

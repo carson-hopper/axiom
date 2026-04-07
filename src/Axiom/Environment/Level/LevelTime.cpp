@@ -1,4 +1,4 @@
-#include "WorldTime.h"
+#include "LevelTime.h"
 
 #include "Axiom/Core/Log.h"
 
@@ -6,27 +6,27 @@
 
 namespace Axiom {
 
-	void WorldTime::Start() {
+	void LevelTime::Start() {
 		m_Running = true;
-		m_Thread = std::thread(&WorldTime::TickLoop, this);
+		m_Thread = std::thread(&LevelTime::TickLoop, this);
 		AX_CORE_INFO("World time started (time of day: {})", m_TimeOfDay.load());
 	}
 
-	void WorldTime::Stop() {
+	void LevelTime::Stop() {
 		m_Running = false;
 		if (m_Thread.joinable()) {
 			m_Thread.join();
 		}
 	}
 
-	void WorldTime::SetWeather(WeatherType weather) {
+	void LevelTime::SetWeather(WeatherType weather) {
 		WeatherType previous = m_Weather.exchange(weather);
 		if (previous != weather) {
 			BroadcastWeatherChange(weather);
 		}
 	}
 
-	void WorldTime::TickLoop() {
+	void LevelTime::TickLoop() {
 		using Clock = std::chrono::steady_clock;
 		auto nextTick = Clock::now();
 		constexpr auto tickDuration = std::chrono::milliseconds(50); // 20 TPS
@@ -55,7 +55,7 @@ namespace Axiom {
 		}
 	}
 
-	void WorldTime::BroadcastTime() {
+	void LevelTime::BroadcastTime() {
 		auto players = m_PlayerManager.AllPlayers();
 
 		for (const auto& player : players) {
@@ -81,7 +81,7 @@ namespace Axiom {
 		}
 	}
 
-	void WorldTime::BroadcastWeatherChange(WeatherType newWeather) {
+	void LevelTime::BroadcastWeatherChange(WeatherType newWeather) {
 		auto players = m_PlayerManager.AllPlayers();
 
 		for (const auto& player : players) {

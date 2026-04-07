@@ -14,20 +14,20 @@ namespace Axiom {
 	 */
 	class Item {
 	public:
-		Item(int32_t itemId, std::string name)
+		Item(const int32_t itemId, std::string name)
 			: m_ItemId(itemId)
 			, m_Name(std::move(name)) {}
 
 		virtual ~Item() = default;
 
-		int32_t ItemId() const { return m_ItemId; }
+		int32_t GetItemId() const { return m_ItemId; }
 		const std::string& Name() const { return m_Name; }
 
-		int MaxStackSize() const { return m_MaxStackSize; }
+		int GetMaxStackSize() const { return m_MaxStackSize; }
 		void SetMaxStackSize(int size) { m_MaxStackSize = size; }
 
-		int MaxDamage() const { return m_MaxDamage; }
-		void SetMaxDamage(int damage) { m_MaxDamage = damage; }
+		int GetMaxDamage() const { return m_MaxDamage; }
+		void SetMaxDamage(const int damage) { m_MaxDamage = damage; }
 
 		bool IsStackable() const { return m_MaxStackSize > 1; }
 

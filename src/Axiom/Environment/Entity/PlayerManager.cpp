@@ -2,6 +2,8 @@
 
 #include "Axiom/Core/Log.h"
 
+#include <ranges>
+
 namespace Axiom {
 
 	Ref<Player> PlayerManager::AddPlayer(const int32_t entityId, Ref<Connection> connection,
@@ -56,8 +58,8 @@ namespace Axiom {
 
 	Ref<Player> PlayerManager::GetPlayerByEntityId(const int32_t entityId) {
 		std::lock_guard<std::mutex> lock(m_Mutex);
-		for (auto& [connection, player] : m_PlayersByConnection) {
-			if (player->EntityId() == entityId) {
+		for (auto& player : m_PlayersByConnection | std::views::values) {
+			if (player->GetEntityId() == entityId) {
 				return player;
 			}
 		}
@@ -68,7 +70,7 @@ namespace Axiom {
 		std::lock_guard<std::mutex> lock(m_Mutex);
 		std::vector<Ref<Player>> result;
 		result.reserve(m_PlayersByConnection.size());
-		for (auto& [connection, player] : m_PlayersByConnection) {
+		for (auto& player : m_PlayersByConnection | std::views::values) {
 			result.push_back(player);
 		}
 		return result;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
-#include "Axiom/Environment/World/Physics/BlockPhysics.h"
-#include "Axiom/Environment/World/Generator/ChunkGenerator.h"
+#include "Axiom/Environment/Level/Physics/BlockPhysics.h"
+#include "Axiom/Environment/Level/Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"

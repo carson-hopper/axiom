@@ -20,7 +20,7 @@ namespace Axiom {
 
 		// Send FinishConfiguration
 		{
-			NetworkBuffer payload;
+			const NetworkBuffer payload;
 			connection->SendRawPacket(Clientbound::Config::FinishConfiguration, payload);
 		}
 	}

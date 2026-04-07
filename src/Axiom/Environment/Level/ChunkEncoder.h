@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
-#include "Axiom/Environment/World/Generator/BlockStates.h"
+#include "Axiom/Environment/Level/Generator/BlockStates.h"
 #include "Axiom/Network/NetworkBuffer.h"
 
 #include <array>

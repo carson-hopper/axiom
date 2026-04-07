@@ -10,7 +10,7 @@ namespace Axiom {
 		float y = 0.0f;
 
 		Vector2() = default;
-		Vector2(float x, float y) : x(x), y(y) {}
+		Vector2(const float x, const float y) : x(x), y(y) {}
 	};
 
 	struct Vector3 {

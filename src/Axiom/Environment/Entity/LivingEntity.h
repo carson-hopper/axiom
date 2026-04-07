@@ -13,11 +13,11 @@ namespace Axiom {
 		explicit LivingEntity(const int32_t entityId)
 			: Entity(entityId) {}
 
-		float Health() const { return m_Health; }
-		float MaxHealth() const { return m_MaxHealth; }
+		float GetHealth() const { return m_Health; }
+		float GetMaxHealth() const { return m_MaxHealth; }
 		bool IsAlive() const { return m_Health > 0.0f; }
 
-		void SetHealth(float health) {
+		void SetHealth(const float health) {
 			m_Health = std::min(health, m_MaxHealth);
 			if (m_Health <= 0.0f) {
 				m_Health = 0.0f;
@@ -37,19 +37,11 @@ namespace Axiom {
 			SetHealth(m_Health + amount);
 		}
 
-		float AbsorptionAmount() const { return m_AbsorptionAmount; }
-		void SetAbsorptionAmount(const float amount) { m_AbsorptionAmount = amount; }
-
-		int ArrowCount() const { return m_ArrowCount; }
-		void SetArrowCount(const int count) { m_ArrowCount = count; }
-
 	protected:
 		virtual void OnDeath() {}
 
 		float m_Health = 20.0f;
 		float m_MaxHealth = 20.0f;
-		float m_AbsorptionAmount = 0.0f;
-		int m_ArrowCount = 0;
 	};
 
 }

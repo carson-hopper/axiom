@@ -2,8 +2,8 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Core/Math.h"
-#include "Axiom/Environment/World/Chunk.h"
-#include "Axiom/Environment/World/ChunkGenerator.h"
+#include "Axiom/Environment/Level/Chunk.h"
+#include "Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Entity/Entity.h"
 
 #include <cstdint>
@@ -16,9 +16,9 @@ namespace Axiom {
 	/**
 	 * Represents a dimension/world containing chunks and entities.
 	 */
-	class World {
+	class Level {
 	public:
-		World(std::string name, Ref<ChunkGenerator> generator)
+		Level(std::string name, Ref<ChunkGenerator> generator)
 			: m_Name(std::move(name))
 			, m_Generator(std::move(generator)) {}
 
@@ -59,6 +59,7 @@ namespace Axiom {
 		 */
 		void Tick();
 
+		[[nodiscard]]
 		ChunkGenerator& Generator() const { return *m_Generator; }
 
 	private:

@@ -56,11 +56,10 @@ namespace Axiom {
 		 * Falls back to the highest registered version <= protocolVersion.
 		 * Returns nullptr if no suitable packet is registered.
 		 */
-		Scope<ServerboundPacket> Create(int32_t protocolVersion, ConnectionState state,
-			int32_t packetId) const {
+		Scope<ServerboundPacket> Create(const int32_t protocolVersion, const ConnectionState state, const int32_t packetId) const {
 
-			auto statePacketKey = MakeStatePacketKey(state, packetId);
-			auto outerIterator = m_Factories.find(statePacketKey);
+			const auto statePacketKey = MakeStatePacketKey(state, packetId);
+			const auto outerIterator = m_Factories.find(statePacketKey);
 			if (outerIterator == m_Factories.end()) {
 				return nullptr;
 			}
@@ -81,8 +80,7 @@ namespace Axiom {
 		 * Uses the connection's protocol version for packet selection.
 		 * Returns false if no packet registered for this version/state/id.
 		 */
-		bool Dispatch(ConnectionState state, int32_t packetId, NetworkBuffer& buffer,
-			Ref<Connection> connection, PacketContext& context) const {
+		bool Dispatch(ConnectionState state, int32_t packetId, NetworkBuffer& buffer, const Ref<Connection>& connection, PacketContext& context) const {
 
 			int32_t protocolVersion = connection->ProtocolVersion();
 

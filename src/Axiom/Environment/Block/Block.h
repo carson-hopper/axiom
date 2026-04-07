@@ -26,13 +26,13 @@ namespace Axiom {
 		int32_t DefaultStateId() const { return m_DefaultStateId; }
 
 		float Hardness() const { return m_Hardness; }
-		void SetHardness(float hardness) { m_Hardness = hardness; }
+		void SetHardness(const float hardness) { m_Hardness = hardness; }
 
 		float BlastResistance() const { return m_BlastResistance; }
-		void SetBlastResistance(float resistance) { m_BlastResistance = resistance; }
+		void SetBlastResistance(const float resistance) { m_BlastResistance = resistance; }
 
 		float Slipperiness() const { return m_Slipperiness; }
-		void SetSlipperiness(float slipperiness) { m_Slipperiness = slipperiness; }
+		void SetSlipperiness(const float slipperiness) { m_Slipperiness = slipperiness; }
 
 		bool IsAir() const { return m_DefaultStateId == 0; }
 		bool IsSolid() const { return m_Hardness >= 0.0f && !IsAir(); }

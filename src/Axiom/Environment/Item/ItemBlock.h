@@ -11,7 +11,7 @@ namespace Axiom {
 	 */
 	class ItemBlock : public Item {
 	public:
-		ItemBlock(int32_t itemId, std::string name, Ref<Block> block)
+		ItemBlock(const int32_t itemId, std::string name, Ref<Block> block)
 			: Item(itemId, std::move(name))
 			, m_Block(std::move(block)) {}
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Axiom/Environment/World/Generator/Noise.h"
+#include "Axiom/Environment/Level/Generator/Noise.h"
 
 #include <algorithm>
 #include <cmath>

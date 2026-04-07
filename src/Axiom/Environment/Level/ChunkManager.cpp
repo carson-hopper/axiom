@@ -1,7 +1,7 @@
 #include "ChunkManager.h"
 
 #include "Axiom/Core/Log.h"
-#include "Axiom/Environment/World/ChunkEncoder.h"
+#include "Axiom/Environment/Level/ChunkEncoder.h"
 
 #include <algorithm>
 

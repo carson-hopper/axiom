@@ -21,22 +21,22 @@ namespace Axiom {
 
 		virtual ~Entity() = default;
 
-		int32_t EntityId() const { return m_EntityId; }
+		int32_t GetEntityId() const { return m_EntityId; }
 
-		const Vector3& Position() const { return m_Position; }
+		const Vector3& GetPosition() const { return m_Position; }
 		void SetPosition(const Vector3& position) { m_Position = position; }
 
-		const Vector2& Rotation() const { return m_Rotation; }
+		const Vector2& GetRotation() const { return m_Rotation; }
 		void SetRotation(const Vector2& rotation) { m_Rotation = rotation; }
 
-		const Vector3& Velocity() const { return m_Velocity; }
+		const Vector3& GetVelocity() const { return m_Velocity; }
 		void SetVelocity(const Vector3& velocity) { m_Velocity = velocity; }
 
 		bool IsOnGround() const { return m_OnGround; }
 		void SetOnGround(const bool onGround) { m_OnGround = onGround; }
 
-		int32_t ChunkX() const { return m_Position.ChunkX(); }
-		int32_t ChunkZ() const { return m_Position.ChunkZ(); }
+		int32_t GetChunkX() const { return m_Position.ChunkX(); }
+		int32_t GetChunkZ() const { return m_Position.ChunkZ(); }
 
 		virtual void Tick() {}
 

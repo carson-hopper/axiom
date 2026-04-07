@@ -21,7 +21,7 @@ namespace Axiom {
 	 * Manages world time and weather, broadcasting updates to players.
 	 * Runs on its own thread at 20 ticks per second.
 	 */
-	class WorldTime {
+	class LevelTime {
 	public:
 		static constexpr int64_t TicksPerDay = 24000;
 		static constexpr int64_t Sunrise = 0;
@@ -29,13 +29,13 @@ namespace Axiom {
 		static constexpr int64_t Sunset = 12000;
 		static constexpr int64_t Midnight = 18000;
 
-		explicit WorldTime(PlayerManager& playerManager)
+		explicit LevelTime(PlayerManager& playerManager)
 			: m_PlayerManager(playerManager) {}
 
-		~WorldTime() { Stop(); }
+		~LevelTime() { Stop(); }
 
-		WorldTime(const WorldTime&) = delete;
-		WorldTime& operator=(const WorldTime&) = delete;
+		LevelTime(const LevelTime&) = delete;
+		LevelTime& operator=(const LevelTime&) = delete;
 
 		void Start();
 		void Stop();

@@ -5,8 +5,9 @@
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
 #include "Axiom/Config/ServerConfig.h"
-#include "Axiom/Environment/World/Generator/FlatChunkGenerator.h"
-#include "Axiom/Environment/World/Generator/TerrainChunkGenerator.h"
+#include "Axiom/Environment/Level/Generator/FlatChunkGenerator.h"
+#include "Axiom/Environment/Level/Generator/TerrainChunkGenerator.h"
+#include "Axiom/Environment/Level/Generator/VanillaChunkGenerator.h"
 
 namespace Axiom {
 
@@ -16,7 +17,7 @@ namespace Axiom {
 		: m_Config(config)
 		, m_EventBus(eventBus)
 		, m_Commands(commands)
-		, m_ChunkManager(CreateRef<TerrainChunkGenerator>(), config.ViewDistance()) {
+		, m_ChunkManager(CreateRef<VanillaChunkGenerator>("/Users/carson/Desktop/server/world"), config.ViewDistance()) {
 
 		auto dataPath = ResolvePath("data");
 		m_Registries.LoadAll(dataPath.string());

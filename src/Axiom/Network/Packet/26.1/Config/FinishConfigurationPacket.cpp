@@ -27,10 +27,10 @@ namespace Axiom {
 			payload.WriteVarInt(1);        // Dimension type (Holder: registry index 0 + 1)
 			payload.WriteString("minecraft:overworld");  // Dimension name
 			payload.WriteLong(0);          // Hashed seed
-			payload.WriteByte(1);          // Game mode (creative)
+			payload.WriteByte(static_cast<uint8_t>(GameMode::Creative));
 			payload.WriteByte(-1);         // Previous game mode (none)
 			payload.WriteBoolean(false);   // Is debug
-			payload.WriteBoolean(true);    // Is flat
+			payload.WriteBoolean(false);   // Is flat
 			payload.WriteBoolean(false);   // Has death location
 			payload.WriteVarInt(0);        // Portal cooldown
 			payload.WriteVarInt(0);        // Sea level
@@ -39,18 +39,13 @@ namespace Axiom {
 			connection->SendRawPacket(Clientbound::Play::Login, payload);
 		}
 
-		void SendSpawnPosition(const Ref<Connection>& connection, double spawnY) {
+		void SendSpawnPosition(const Ref<Connection>& connection, const double spawnY) {
 			NetworkBuffer payload;
 
 			payload.WriteString("minecraft:overworld");
 
-			int64_t x = 0, z = 0;
-			int64_t y = static_cast<int64_t>(spawnY) & 0xFFF;
-			int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | y;
-			payload.WriteLong(position);
-
-			payload.WriteFloat(0.0f);  // Yaw
-			payload.WriteFloat(0.0f);  // Pitch
+			payload.WriteVector3Encoded(0, static_cast<int64_t>(spawnY), 0); // Position
+			payload.WriteVector2(0.0f, 0.0f); // Rotation
 
 			connection->SendRawPacket(Clientbound::Play::SetDefaultSpawnPosition, payload);
 		}
@@ -59,14 +54,9 @@ namespace Axiom {
 			NetworkBuffer payload;
 
 			payload.WriteVarInt(0);    // Teleport ID
-			payload.WriteDouble(0.5);  // X
-			payload.WriteDouble(spawnY);
-			payload.WriteDouble(0.5);  // Z
-			payload.WriteDouble(0.0);  // Velocity X
-			payload.WriteDouble(0.0);  // Velocity Y
-			payload.WriteDouble(0.0);  // Velocity Z
-			payload.WriteFloat(0.0f);  // Yaw
-			payload.WriteFloat(0.0f);  // Pitch
+			payload.WriteVector3(0.5, spawnY, 0.5); // Position
+			payload.WriteVector3(0.0, 0.0, 0.05); // Velocity
+			payload.WriteVector2(0.0f, 0.0f); // Rotation
 			payload.WriteInt(0);       // Flags (all absolute)
 
 			connection->SendRawPacket(Clientbound::Play::PlayerPosition, payload);
@@ -86,7 +76,7 @@ namespace Axiom {
 		AX_CORE_INFO("Configuration complete for {}", connection->RemoteAddress());
 		connection->State(ConnectionState::Play);
 
-		double spawnY = context.ChunkManagement().Generator().SpawnY();
+		const double spawnY = context.ChunkManagement().Generator().SpawnY();
 
 		SendLoginPacket(connection, context);
 		SendSpawnPosition(connection, spawnY);

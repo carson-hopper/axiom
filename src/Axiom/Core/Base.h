@@ -11,7 +11,7 @@
 	#if defined(AX_PLATFORM_WINDOWS)
 		#define AX_DEBUGBREAK() __debugbreak()
 	#elif defined(AX_PLATFORM_LINUX) || defined(AX_PLATFORM_MACOS)
-		#include <signal.h>
+		#include <csignal>
 		#define AX_DEBUGBREAK() raise(SIGTRAP)
 	#else
 		#error "AX_DEBUGBREAK not supported on this platform"

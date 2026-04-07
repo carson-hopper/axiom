@@ -37,12 +37,12 @@ namespace Axiom {
 
 		connection->EnableEncryption(sharedSecret);
 
-		auto connectionRef = connection;
+		const auto& connectionRef = connection;
 		std::string playerName = pendingLogin->playerName;
 		auto publicKey = context.KeyPair().PublicKeyDer();
 
 		std::thread([&context, connectionRef, playerName, sharedSecret, publicKey]() {
-			std::string serverHash = MinecraftServerHash("", sharedSecret, publicKey);
+			const std::string serverHash = MinecraftServerHash("", sharedSecret, publicKey);
 
 			auto profile = MojangAuth::HasJoined(playerName, serverHash);
 			if (!profile) {

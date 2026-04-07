@@ -3,11 +3,11 @@
 #include "Axiom/Core/Base.h"
 #include "Axiom/Network/Crypto/ServerKeyPair.h"
 #include "Axiom/Network/RegistryDataService.h"
-#include "Axiom/Environment/World/ChunkManager.h"
+#include "Axiom/Environment/Level/ChunkManager.h"
 #include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/KeepAliveManager.h"
-#include "Axiom/Environment/World/WorldTime.h"
-#include "Axiom/Environment/World/Physics/WorldTicker.h"
+#include "Axiom/Environment/Level/LevelTime.h"
+#include "Axiom/Environment/Level/Physics/WorldTicker.h"
 
 #include <array>
 #include <cstdint>
@@ -41,7 +41,7 @@ namespace Axiom {
 		ChunkManager& ChunkManagement() { return m_ChunkManager; }
 		PlayerManager& Players() { return m_PlayerManager; }
 		KeepAliveManager& KeepAlive() { return m_KeepAliveManager; }
-		WorldTime& Time() { return m_WorldTime; }
+		LevelTime& Time() { return m_WorldTime; }
 		WorldTicker& Ticker() { return m_WorldTicker; }
 
 		// ----- Pending logins -------------------------------------------
@@ -65,7 +65,7 @@ namespace Axiom {
 		ChunkManager m_ChunkManager;
 		PlayerManager m_PlayerManager;
 		KeepAliveManager m_KeepAliveManager{m_PlayerManager};
-		WorldTime m_WorldTime{m_PlayerManager};
+		LevelTime m_WorldTime{m_PlayerManager};
 		WorldTicker m_WorldTicker{m_PlayerManager};
 
 		std::mutex m_PendingLoginsMutex;

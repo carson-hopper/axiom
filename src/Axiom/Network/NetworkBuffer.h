@@ -202,6 +202,11 @@ namespace Axiom {
 			WriteDouble(z);
 		}
 
+		void WriteVector3Encoded(const int64_t x, const int64_t y, const int64_t z) {
+			const int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+			WriteLong(position);
+		}
+
 		void WriteVarInt(const int32_t value) {
 			auto unsigned_value = static_cast<uint32_t>(value);
 			do {

@@ -1,10 +1,10 @@
-#include "World.h"
+#include "Level.h"
 
 #include "Axiom/Core/Log.h"
 
 namespace Axiom {
 
-	Ref<Chunk> World::GetOrGenerateChunk(int32_t chunkX, int32_t chunkZ) {
+	Ref<Chunk> Level::GetOrGenerateChunk(int32_t chunkX, int32_t chunkZ) {
 		const int64_t key = ChunkKey(chunkX, chunkZ);
 
 		std::lock_guard<std::mutex> lock(m_ChunkMutex);
@@ -20,7 +20,7 @@ namespace Axiom {
 		return chunk;
 	}
 
-	Ref<Chunk> World::GetChunkIfLoaded(const int32_t chunkX, const int32_t chunkZ) {
+	Ref<Chunk> Level::GetChunkIfLoaded(const int32_t chunkX, const int32_t chunkZ) {
 		const int64_t key = ChunkKey(chunkX, chunkZ);
 
 		std::lock_guard<std::mutex> lock(m_ChunkMutex);
@@ -30,14 +30,14 @@ namespace Axiom {
 		return nullptr;
 	}
 
-	int32_t World::GetBlockState(const Vector3& position) {
+	int32_t Level::GetBlockState(const Vector3& position) {
 		return GetBlockState(
 			static_cast<int>(std::floor(position.x)),
 			static_cast<int>(std::floor(position.y)),
 			static_cast<int>(std::floor(position.z)));
 	}
 
-	int32_t World::GetBlockState(const int x, const int y, const int z) {
+	int32_t Level::GetBlockState(const int x, const int y, const int z) {
 		const int32_t chunkX = x >> 4;
 		const int32_t chunkZ = z >> 4;
 		const auto chunk = GetChunkIfLoaded(chunkX, chunkZ);
@@ -45,7 +45,7 @@ namespace Axiom {
 		return chunk->GetBlockState(x, y, z);
 	}
 
-	void World::SetBlockState(const Vector3& position, const int32_t stateId) {
+	void Level::SetBlockState(const Vector3& position, const int32_t stateId) {
 		SetBlockState(
 			static_cast<int>(std::floor(position.x)),
 			static_cast<int>(std::floor(position.y)),
@@ -53,33 +53,32 @@ namespace Axiom {
 			stateId);
 	}
 
-	void World::SetBlockState(const int x, const int y, const int z, const int32_t stateId) {
+	void Level::SetBlockState(const int x, const int y, const int z, const int32_t stateId) {
 		const int32_t chunkX = x >> 4;
 		const int32_t chunkZ = z >> 4;
 		const auto chunk = GetOrGenerateChunk(chunkX, chunkZ);
 		chunk->SetBlockState(x, y, z, stateId);
 	}
 
-	void World::AddEntity(Ref<Entity> entity) {
+	void Level::AddEntity(Ref<Entity> entity) {
 		std::lock_guard<std::mutex> lock(m_EntityMutex);
-		m_Entities[entity->EntityId()] = std::move(entity);
+		m_Entities[entity->GetEntityId()] = std::move(entity);
 	}
 
-	void World::RemoveEntity(const int32_t entityId) {
+	void Level::RemoveEntity(const int32_t entityId) {
 		std::lock_guard<std::mutex> lock(m_EntityMutex);
 		m_Entities.erase(entityId);
 	}
 
-	Entity* World::GetEntity(const int32_t entityId) {
+	Entity* Level::GetEntity(const int32_t entityId) {
 		std::lock_guard<std::mutex> lock(m_EntityMutex);
-		const auto iterator = m_Entities.find(entityId);
-		if (iterator != m_Entities.end()) {
+		if (const auto iterator = m_Entities.find(entityId);iterator != m_Entities.end()) {
 			return iterator->second.get();
 		}
 		return nullptr;
 	}
 
-	void World::Tick() {
+	void Level::Tick() {
 		std::lock_guard<std::mutex> lock(m_EntityMutex);
 
 		std::vector<int32_t> toRemove;

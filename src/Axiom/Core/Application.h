@@ -25,10 +25,10 @@ namespace Axiom {
 		void Shutdown()const;
 		void Stop() { m_Running = false; }
 
-		EventBus& Events() { return *m_EventBus; }
-		PluginManager& Plugins() { return *m_PluginManager; }
-		CommandRegistry& Commands() { return *m_CommandRegistry; }
-		ServerConfig& Config() { return *m_Config; }
+		EventBus& Events() const { return *m_EventBus; }
+		PluginManager& Plugins() const { return *m_PluginManager; }
+		CommandRegistry& Commands() const { return *m_CommandRegistry; }
+		ServerConfig& Config() const { return *m_Config; }
 
 		static Application& Instance() { return *s_Instance; }
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Axiom/Environment/World/Generator/BiomeProvider.h"
-#include "Axiom/Environment/World/Generator/BlockStates.h"
-#include "Axiom/Environment/World/Generator/Noise.h"
+#include "Axiom/Environment/Level/Generator/BiomeProvider.h"
+#include "Axiom/Environment/Level/Generator/BlockStates.h"
+#include "Axiom/Environment/Level/Generator/Noise.h"
 
 #include <array>
 #include <cmath>
