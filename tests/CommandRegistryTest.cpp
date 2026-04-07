@@ -3,6 +3,7 @@
 #include "Axiom/Command/CommandRegistry.h"
 #include "Axiom/Command/Command.h"
 #include "Axiom/Command/CommandSender.h"
+#include "Axiom/Chat/ChatComponent.h"
 
 using namespace Axiom;
 
@@ -11,8 +12,8 @@ class MockCommandSender : public CommandSender {
 public:
 	std::vector<std::string> Messages;
 
-	void SendMessage(const std::string& message) override {
-		Messages.push_back(message);
+	void SendMessage(const Ref<ChatComponent>& message) override {
+		Messages.push_back(message->GetPlainText());
 	}
 
 	bool IsPlayer() const override { return false; }

@@ -1,13 +1,24 @@
+#include "axpch.h"
 #include "CommandSender.h"
 
+#include "Axiom/Chat/ChatComponent.h"
 #include "Axiom/Core/Log.h"
 
 namespace Axiom {
 
 	const std::string ConsoleSender::s_Name = "Console";
 
-	void ConsoleSender::SendMessage(const std::string& message) {
-		AX_CORE_INFO("{}", message);
+	void CommandSender::SendPlainMessage(const std::string& text) {
+		auto component = ChatComponent::Create()
+			.Text(text)
+			.Build();
+		SendMessage(component);
+	}
+
+	void ConsoleSender::SendMessage(const Ref<ChatComponent>& message) {
+		// For console, just log the plain text
+		// In production, you might want to strip color codes
+		AX_CORE_INFO("[Chat] {}", message->GetPlainText());
 	}
 
 }

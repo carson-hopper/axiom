@@ -37,7 +37,10 @@ namespace Axiom {
 	 *
 	 *     void Execute(CommandSender& sender, const std::vector<std::string>& args) override {
 	 *         if (args.size() < 3) {
-	 *             sender.SendMessage("Usage: /teleport <x> <y> <z>");
+	 *             sender.SendMessage(ChatComponent::Create()
+	 *                 .Text("Usage: /teleport <x> <y> <z>")
+	 *                 .Color(ChatColor::Red)
+	 *                 .Build());
 	 *             return;
 	 *         }
 	 *         // ... teleport logic ...

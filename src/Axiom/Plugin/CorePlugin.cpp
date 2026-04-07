@@ -3,7 +3,7 @@
 #include "Axiom/Core/Log.h"
 #include "Axiom/Plugin/PluginContext.h"
 #include "Axiom/Command/CommandRegistry.h"
-#include "Axiom/Command/CommandSender.h"
+#include "Axiom/Commands.h"
 
 namespace Axiom {
 
@@ -13,20 +13,11 @@ namespace Axiom {
 	}
 
 	void CorePlugin::OnEnable(PluginContext& context) {
-		context.Commands().Register("stop", "Stop the server", [](CommandSender& sender, const std::vector<std::string>&) {
-			sender.SendMessage("Stopping the server...");
-		});
+		// Register built-in commands using their own classes
+		context.Commands().Register(CreateRef<StopCommand>());
+		context.Commands().Register(CreateRef<HelpCommand>(context.Commands()));
 
-		context.Commands().Register("help", "List available commands", [&context](CommandSender& sender, const std::vector<std::string>&) {
-			sender.SendMessage("Available commands:");
-			for (const auto completions = context.Commands().TabComplete(sender, "");const auto& command : completions) {
-				sender.SendMessage("  " + command);
-			}
-		});
-
-		context.Commands().Register("version", "Show server version", [](CommandSender& sender, const std::vector<std::string>&) {
-			sender.SendMessage("Axiom Server v0.1.0");
-		});
+		AX_CORE_INFO("Core commands registered");
 	}
 
 	void CorePlugin::OnDisable() {
