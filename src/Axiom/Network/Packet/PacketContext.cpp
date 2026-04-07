@@ -22,6 +22,7 @@ namespace Axiom {
 		m_Registries.LoadAll(dataPath.string());
 		m_KeepAliveManager.Start();
 		m_WorldTime.Start();
+		m_WorldTicker.Start();
 	}
 
 	void PacketContext::StorePendingLogin(Connection* connection, PendingLogin login) {

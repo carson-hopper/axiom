@@ -7,6 +7,7 @@
 #include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/KeepAliveManager.h"
 #include "Axiom/Environment/World/WorldTime.h"
+#include "Axiom/Environment/World/Physics/WorldTicker.h"
 
 #include <array>
 #include <cstdint>
@@ -30,7 +31,7 @@ namespace Axiom {
 	class PacketContext {
 	public:
 		PacketContext(ServerConfig& config, EventBus& eventBus, CommandRegistry& commands);
-		~PacketContext() { m_WorldTime.Stop(); m_KeepAliveManager.Stop(); }
+		~PacketContext() { m_WorldTicker.Stop(); m_WorldTime.Stop(); m_KeepAliveManager.Stop(); }
 
 		ServerConfig& Config() { return m_Config; }
 		EventBus& Events() { return m_EventBus; }
@@ -41,6 +42,7 @@ namespace Axiom {
 		PlayerManager& Players() { return m_PlayerManager; }
 		KeepAliveManager& KeepAlive() { return m_KeepAliveManager; }
 		WorldTime& Time() { return m_WorldTime; }
+		WorldTicker& Ticker() { return m_WorldTicker; }
 
 		// ----- Pending logins -------------------------------------------
 
@@ -64,6 +66,7 @@ namespace Axiom {
 		PlayerManager m_PlayerManager;
 		KeepAliveManager m_KeepAliveManager{m_PlayerManager};
 		WorldTime m_WorldTime{m_PlayerManager};
+		WorldTicker m_WorldTicker{m_PlayerManager};
 
 		std::mutex m_PendingLoginsMutex;
 		std::unordered_map<Connection*, PendingLogin> m_PendingLogins;

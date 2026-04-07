@@ -21,6 +21,8 @@
 #include "Axiom/Network/Packet/26.1/Play/AcceptTeleportationPacket.h"
 #include "Axiom/Network/Packet/26.1/Play/ClientTickEndPacket.h"
 #include "Axiom/Network/Packet/26.1/Play/MovePlayerPositionPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/PlayerActionPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/UseItemOnPacket.h"
 #include "Axiom/Environment/World/WorldTime.h"
 
 #include <iostream>
@@ -132,6 +134,8 @@ namespace Axiom {
 		m_PacketRegistry.Register<775, MovePlayerPositionRotationPacket<775>>();
 		m_PacketRegistry.Register<775, MovePlayerRotationPacket<775>>();
 		m_PacketRegistry.Register<775, MovePlayerStatusOnlyPacket<775>>();
+		m_PacketRegistry.Register<775, PlayerActionPacket<775>>();
+		m_PacketRegistry.Register<775, UseItemOnPacket<775>>();
 	}
 
 	void Application::Run() {
