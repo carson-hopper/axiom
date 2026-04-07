@@ -72,21 +72,35 @@ namespace Axiom {
 			const double blockZ = static_cast<double>(worldZ);
 			const int waterDepth = SeaLevel - surfaceHeight;
 
-			// Clay patches on ocean/river floor
-			const double claySample = m_ClayNoise.Noise(blockX * 0.1, blockZ * 0.1);
-			if (claySample > 0.6) {
+			// Clay patches on ocean/river floor — large common blobs
+			const double claySample = m_ClayNoise.Noise(blockX * 0.06, blockZ * 0.06);
+			if (claySample > 0.2) {
 				const int surfaceAbsoluteY = surfaceHeight - MinY;
 				const int32_t existingBlock = columnBlocks[surfaceAbsoluteY * 256 + columnIndex];
 				if (existingBlock == BlockState::Gravel || existingBlock == BlockState::Sand
 					|| existingBlock == BlockState::Dirt) {
 					columnBlocks[surfaceAbsoluteY * 256 + columnIndex] = BlockState::Clay;
+					// Also replace a few blocks below for thick clay deposits
+					for (int depth = 1; depth <= 2; depth++) {
+						const int belowAbsoluteY = surfaceAbsoluteY - depth;
+						if (belowAbsoluteY < 0) break;
+						const int32_t belowBlock = columnBlocks[belowAbsoluteY * 256 + columnIndex];
+						if (belowBlock == BlockState::Gravel || belowBlock == BlockState::Sand
+							|| belowBlock == BlockState::Stone) {
+							columnBlocks[belowAbsoluteY * 256 + columnIndex] = BlockState::Clay;
+						}
+					}
 				}
 			}
 
-			// Seagrass on shallow ocean floor
-			if (waterDepth < 15 && waterDepth > 1) {
-				const double seagrassSample = m_SeagrassNoise.Noise(blockX * 0.3, blockZ * 0.3);
-				const double seagrassThreshold = (biome == BiomeType::Swamp) ? 0.3 : 0.55;
+			// Seagrass — very common on ocean floor, dense in shallow water
+			if (waterDepth > 1 && waterDepth < 25) {
+				const double seagrassSample = m_SeagrassNoise.Noise(blockX * 0.5, blockZ * 0.5);
+
+				// Lower threshold = more seagrass. Shallower water = denser.
+				const double depthFactor = 1.0 - (waterDepth / 25.0); // 1.0 at surface, 0.0 at depth 25
+				const double biomeBonus = (biome == BiomeType::Swamp) ? 0.3 : 0.0;
+				const double seagrassThreshold = 0.1 - depthFactor * 0.3 - biomeBonus;
 
 				if (seagrassSample > seagrassThreshold) {
 					const int aboveFloorAbsoluteY = surfaceHeight - MinY + 1;
@@ -96,13 +110,15 @@ namespace Axiom {
 				}
 			}
 
-			// Kelp in deeper ocean water
-			if (waterDepth >= 5 && biome == BiomeType::Ocean) {
-				const double kelpSample = m_KelpNoise.Noise(blockX * 0.2, blockZ * 0.2);
-				if (kelpSample > 0.6) {
-					// Kelp grows from floor upward as a column of KelpPlant blocks
-					const int kelpHeight = static_cast<int>((kelpSample - 0.6) * 25.0);
-					const int maxKelpHeight = std::min(kelpHeight, waterDepth - 2);
+			// Kelp forests — grow in patches, can be quite tall
+			if (waterDepth >= 4) {
+				const double kelpSample = m_KelpNoise.Noise(blockX * 0.08, blockZ * 0.08);
+				const double kelpDetail = m_KelpNoise.Noise(blockX * 0.3 + 100, blockZ * 0.3 + 100);
+
+				// Kelp grows in forest-like patches
+				if (kelpSample > 0.15 && kelpDetail > -0.2) {
+					const int maxKelpHeight = std::min(waterDepth - 1,
+						static_cast<int>((kelpSample - 0.15) * 30.0) + 3);
 
 					for (int heightOffset = 1; heightOffset <= maxKelpHeight; heightOffset++) {
 						const int kelpAbsoluteY = surfaceHeight - MinY + heightOffset;
