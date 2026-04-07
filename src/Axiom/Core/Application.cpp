@@ -20,6 +20,8 @@
 #include "Axiom/Network/Packet/26.1/Play/ChunkBatchReceivedPacket.h"
 #include "Axiom/Network/Packet/26.1/Play/AcceptTeleportationPacket.h"
 #include "Axiom/Network/Packet/26.1/Play/ClientTickEndPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/MovePlayerPositionPacket.h"
+#include "Axiom/Environment/World/WorldTime.h"
 
 #include <iostream>
 #include <string>
@@ -58,6 +60,46 @@ namespace Axiom {
 			});
 		m_NetworkServer->Start(m_Config->Port());
 
+		// Register server commands that need PacketContext
+		m_CommandRegistry->Register("time", "Set time of day (0-24000 or day/noon/night/midnight)",
+			[this](CommandSender& sender, const std::vector<std::string>& arguments) {
+				if (arguments.empty()) {
+					sender.SendMessage("Time: " + std::to_string(m_PacketContext->Time().TimeOfDay()));
+					return;
+				}
+				const auto& argument = arguments[0];
+				int64_t time;
+				if (argument == "day") time = 1000;
+				else if (argument == "noon") time = 6000;
+				else if (argument == "sunset") time = 12000;
+				else if (argument == "night") time = 13000;
+				else if (argument == "midnight") time = 18000;
+				else time = std::stoll(argument);
+				m_PacketContext->Time().SetTimeOfDay(time);
+				sender.SendMessage("Set time to " + std::to_string(time));
+			});
+
+		m_CommandRegistry->Register("weather", "Set weather (clear/rain/thunder)",
+			[this](CommandSender& sender, const std::vector<std::string>& arguments) {
+				if (arguments.empty()) {
+					sender.SendMessage("Usage: weather <clear|rain|thunder>");
+					return;
+				}
+				const auto& argument = arguments[0];
+				if (argument == "clear") {
+					m_PacketContext->Time().SetWeather(WeatherType::Clear);
+					sender.SendMessage("Weather set to clear");
+				} else if (argument == "rain") {
+					m_PacketContext->Time().SetWeather(WeatherType::Rain);
+					sender.SendMessage("Weather set to rain");
+				} else if (argument == "thunder") {
+					m_PacketContext->Time().SetWeather(WeatherType::Thunder);
+					sender.SendMessage("Weather set to thunder");
+				} else {
+					sender.SendMessage("Unknown weather: " + argument);
+				}
+			});
+
 		AX_CORE_INFO("Server initialized on port {}", m_Config->Port());
 	}
 
@@ -86,6 +128,10 @@ namespace Axiom {
 		m_PacketRegistry.Register<775, ChunkBatchReceivedPacket<775>>();
 		m_PacketRegistry.Register<775, AcceptTeleportationPacket<775>>();
 		m_PacketRegistry.Register<775, ClientTickEndPacket<775>>();
+		m_PacketRegistry.Register<775, MovePlayerPositionPacket<775>>();
+		m_PacketRegistry.Register<775, MovePlayerPositionRotationPacket<775>>();
+		m_PacketRegistry.Register<775, MovePlayerRotationPacket<775>>();
+		m_PacketRegistry.Register<775, MovePlayerStatusOnlyPacket<775>>();
 	}
 
 	void Application::Run() {
@@ -117,7 +163,7 @@ namespace Axiom {
 		}
 	}
 
-	void Application::Shutdown() {
+	void Application::Shutdown() const {
 		AX_CORE_INFO("Server shutting down...");
 
 		m_NetworkServer->Stop();

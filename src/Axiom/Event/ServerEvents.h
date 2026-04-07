@@ -22,7 +22,7 @@ namespace Axiom {
 
 	class ServerTickEvent : public Event {
 	public:
-		explicit ServerTickEvent(uint64_t tickNumber)
+		explicit ServerTickEvent(const uint64_t tickNumber)
 			: m_TickNumber(tickNumber) {}
 
 		uint64_t TickNumber() const { return m_TickNumber; }

@@ -22,7 +22,7 @@ namespace Axiom {
 
 		void Init();
 		void Run();
-		void Shutdown();
+		void Shutdown()const;
 		void Stop() { m_Running = false; }
 
 		EventBus& Events() { return *m_EventBus; }

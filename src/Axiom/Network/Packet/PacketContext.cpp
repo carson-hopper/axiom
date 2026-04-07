@@ -4,6 +4,8 @@
 #include "Axiom/Core/PathUtil.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
+#include "Axiom/Config/ServerConfig.h"
+#include "Axiom/Environment/World/FlatChunkGenerator.h"
 
 namespace Axiom {
 
@@ -12,10 +14,13 @@ namespace Axiom {
 	PacketContext::PacketContext(ServerConfig& config, EventBus& eventBus, CommandRegistry& commands)
 		: m_Config(config)
 		, m_EventBus(eventBus)
-		, m_Commands(commands) {
+		, m_Commands(commands)
+		, m_ChunkManager(CreateRef<FlatChunkGenerator>(), config.ViewDistance()) {
 
 		auto dataPath = ResolvePath("data");
 		m_Registries.LoadAll(dataPath.string());
+		m_KeepAliveManager.Start();
+		m_WorldTime.Start();
 	}
 
 	void PacketContext::StorePendingLogin(Connection* connection, PendingLogin login) {
@@ -96,7 +101,12 @@ namespace Axiom {
 			connection->SendRawPacket(Clientbound::Login::LoginFinished, payload);
 		}
 
-		AX_CORE_INFO("{} has logged in [{}]", playerName, uuid);
+		// Create Player and register
+		int32_t entityId = m_PlayerManager.NextEntityId();
+		auto player = m_PlayerManager.AddPlayer(entityId, connection, playerName, uuid);
+		player->SetPosition({0.5, m_ChunkManager.Generator().SpawnY(), 0.5});
+
+		AX_CORE_INFO("{} has logged in [{}] (entity {})", playerName, uuid, entityId);
 	}
 
 }
