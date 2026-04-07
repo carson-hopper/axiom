@@ -3,10 +3,17 @@
 #include "Axiom/Core/Base.h"
 #include "Axiom/Environment/World/ChunkGenerator.h"
 #include "Axiom/Network/Connection.h"
+#include "Axiom/Network/Protocol.h"
 
+#include <atomic>
+#include <condition_variable>
+#include <functional>
 #include <mutex>
+#include <queue>
 #include <set>
+#include <thread>
 #include <unordered_map>
+#include <vector>
 
 namespace Axiom {
 
@@ -25,29 +32,19 @@ namespace Axiom {
 
 	/**
 	 * Manages chunk loading and unloading per connection.
-	 * Tracks which chunks each player has loaded, sends new chunks
-	 * when they move, and unloads chunks outside view distance.
+	 * Generates chunks asynchronously on worker threads and streams
+	 * them to clients as they complete.
 	 */
 	class ChunkManager {
 	public:
-		explicit ChunkManager(Ref<ChunkGenerator> generator, const int viewDistance = 10)
-			: m_Generator(std::move(generator))
-			, m_ViewDistance(viewDistance) {}
+		explicit ChunkManager(Ref<ChunkGenerator> generator, int viewDistance = 10);
+		~ChunkManager();
 
-		/**
-		 * Send initial chunks around spawn for a newly joined player.
-		 */
-		void SendInitialChunks(const Ref<Connection> &connection, double playerX, double playerZ);
+		ChunkManager(const ChunkManager&) = delete;
+		ChunkManager& operator=(const ChunkManager&) = delete;
 
-		/**
-		 * Called when a player moves. Sends new chunks and unloads old ones
-		 * if the player crossed a chunk border.
-		 */
-		void OnPlayerMove(const Ref<Connection> &connection, double playerX, double playerZ);
-
-		/**
-		 * Remove tracking data for a disconnected player.
-		 */
+		void SendInitialChunks(Ref<Connection> connection, double playerX, double playerZ);
+		void OnPlayerMove(Ref<Connection> connection, double playerX, double playerZ);
 		void RemovePlayer(Connection* connection);
 
 		ChunkGenerator& Generator() const { return *m_Generator; }
@@ -60,22 +57,32 @@ namespace Axiom {
 			std::set<ChunkPosition> loadedChunks;
 		};
 
-		void SendChunksInRadius(const Ref<Connection> &connection, int32_t centerX, int32_t centerZ,
+		void QueueChunksInRadius(Ref<Connection> connection, int32_t centerX, int32_t centerZ);
+		void UnloadDistantChunks(Ref<Connection> connection, int32_t centerX, int32_t centerZ,
 			PlayerChunkState& state);
-		void UnloadDistantChunks(const Ref<Connection> &connection, int32_t centerX, int32_t centerZ,
-			PlayerChunkState& state);
-		void SendChunk(const Ref<Connection> &connection, int32_t chunkX, int32_t chunkZ)const;
-		void UnloadChunk(const Ref<Connection> &connection, int32_t chunkX, int32_t chunkZ);
+		void SendChunk(const Ref<Connection>& connection, int32_t chunkX, int32_t chunkZ) const;
+		void UnloadChunk(const Ref<Connection>& connection, int32_t chunkX, int32_t chunkZ);
 
-		static int32_t BlockToChunk(const double blockCoord) {
+		// Worker thread pool
+		void WorkerLoop();
+		void SubmitTask(std::function<void()> task);
+
+		static int32_t BlockToChunk(double blockCoord) {
 			return static_cast<int32_t>(std::floor(blockCoord)) >> 4;
 		}
 
 		Ref<ChunkGenerator> m_Generator;
 		int m_ViewDistance;
 
-		std::mutex m_Mutex;
+		std::mutex m_StateMutex;
 		std::unordered_map<Connection*, PlayerChunkState> m_PlayerStates;
+
+		// Thread pool
+		std::vector<std::thread> m_Workers;
+		std::queue<std::function<void()>> m_TaskQueue;
+		std::mutex m_QueueMutex;
+		std::condition_variable m_QueueCondition;
+		std::atomic<bool> m_Stopping = false;
 	};
 
 }
