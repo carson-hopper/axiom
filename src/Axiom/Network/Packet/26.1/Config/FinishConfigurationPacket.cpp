@@ -17,7 +17,7 @@ namespace Axiom {
 			payload.WriteInt(1);           // Entity ID
 			payload.WriteBoolean(false);   // Is hardcore
 			payload.WriteVarInt(1);        // Dimension count
-			payload.WriteString("minecraft:overworld");  // Dimension names
+			payload.WriteString("minecraft:overworld");
 
 			payload.WriteVarInt(context.Config().MaxPlayers());
 			payload.WriteVarInt(context.Config().ViewDistance());
@@ -25,7 +25,7 @@ namespace Axiom {
 			payload.WriteBoolean(false);   // Reduced debug info
 			payload.WriteBoolean(true);    // Enable respawn screen
 			payload.WriteBoolean(false);   // Do limited crafting
-			payload.WriteVarInt(0);        // Dimension type (registry index for overworld)
+			payload.WriteVarInt(0);        // Dimension type (registry index)
 			payload.WriteString("minecraft:overworld");  // Dimension name
 			payload.WriteLong(0);          // Hashed seed
 			payload.WriteByte(1);          // Game mode (creative)
@@ -33,7 +33,6 @@ namespace Axiom {
 			payload.WriteBoolean(false);   // Is debug
 			payload.WriteBoolean(true);    // Is flat
 			payload.WriteBoolean(false);   // Has death location
-
 			payload.WriteVarInt(0);        // Portal cooldown
 			payload.WriteVarInt(0);        // Sea level
 			payload.WriteBoolean(false);   // Enforces secure chat
@@ -43,11 +42,17 @@ namespace Axiom {
 
 		void SendSpawnPosition(Ref<Connection>& connection) {
 			NetworkBuffer payload;
+
+			payload.WriteString("minecraft:overworld");  // Dimension name
+
 			// Position as packed long: x(26 bits) | z(26 bits) | y(12 bits)
 			int64_t x = 0, y = 0, z = 0;
 			int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
 			payload.WriteLong(position);
-			payload.WriteFloat(0.0f);  // Angle
+
+			payload.WriteFloat(0.0f);  // Yaw
+			payload.WriteFloat(0.0f);  // Pitch
+
 			connection->SendRawPacket(Clientbound::Play::SetDefaultSpawnPosition, payload);
 		}
 
@@ -56,7 +61,7 @@ namespace Axiom {
 
 			payload.WriteVarInt(0);    // Teleport ID
 			payload.WriteDouble(0.5);  // X
-			payload.WriteDouble(0.0);  // Y (will be on top of the flat world)
+			payload.WriteDouble(0.0);  // Y
 			payload.WriteDouble(0.5);  // Z
 			payload.WriteDouble(0.0);  // Velocity X
 			payload.WriteDouble(0.0);  // Velocity Y
@@ -72,8 +77,8 @@ namespace Axiom {
 			// Set chunk cache center
 			{
 				NetworkBuffer payload;
-				payload.WriteVarInt(0);  // Chunk X
-				payload.WriteVarInt(0);  // Chunk Z
+				payload.WriteVarInt(0);
+				payload.WriteVarInt(0);
 				connection->SendRawPacket(Clientbound::Play::SetChunkCacheCenter, payload);
 			}
 
@@ -83,8 +88,7 @@ namespace Axiom {
 				connection->SendRawPacket(Clientbound::Play::ChunkBatchStart, payload);
 			}
 
-			// Send flat chunks in a square around spawn
-			int radius = std::min(viewDistance, 3);  // Start with small radius
+			int radius = std::min(viewDistance, 3);
 			for (int x = -radius; x <= radius; x++) {
 				for (int z = -radius; z <= radius; z++) {
 					NetworkBuffer payload;
@@ -114,19 +118,12 @@ namespace Axiom {
 		AX_CORE_INFO("Configuration complete for {}", connection->RemoteAddress());
 		connection->State(ConnectionState::Play);
 
-		// Send Login (join game) packet
 		SendLoginPacket(connection, context);
-
-		// Send spawn position
 		SendSpawnPosition(connection);
-
-		// Send player position
 		SendPlayerPosition(connection);
-
-		// Send chunks around spawn
 		SendChunks(connection, context.Config().ViewDistance());
 
-		// Game event 13 = "Start waiting for level chunks" — tells client it can render
+		// Game event 13 = "Start waiting for level chunks"
 		SendGameEvent(connection, 13, 0.0f);
 
 		AX_CORE_INFO("Player joined the world from {}", connection->RemoteAddress());
