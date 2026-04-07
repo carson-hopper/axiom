@@ -1,0 +1,74 @@
+#pragma once
+
+#include "Axiom/Core/Base.h"
+#include "Axiom/Environment/Entity/PlayerManager.h"
+#include "Axiom/Network/Connection.h"
+#include "Axiom/Network/Protocol.h"
+
+#include <atomic>
+#include <cstdint>
+#include <thread>
+
+namespace Axiom {
+
+	enum class WeatherType {
+		Clear,
+		Rain,
+		Thunder
+	};
+
+	/**
+	 * Manages world time and weather, broadcasting updates to players.
+	 * Runs on its own thread at 20 ticks per second.
+	 */
+	class WorldTime {
+	public:
+		static constexpr int64_t TicksPerDay = 24000;
+		static constexpr int64_t Sunrise = 0;
+		static constexpr int64_t Noon = 6000;
+		static constexpr int64_t Sunset = 12000;
+		static constexpr int64_t Midnight = 18000;
+
+		explicit WorldTime(PlayerManager& playerManager)
+			: m_PlayerManager(playerManager) {}
+
+		~WorldTime() { Stop(); }
+
+		WorldTime(const WorldTime&) = delete;
+		WorldTime& operator=(const WorldTime&) = delete;
+
+		void Start();
+		void Stop();
+
+		// ----- Time -----------------------------------------------------
+
+		int64_t WorldAge() const { return m_WorldAge; }
+		int64_t TimeOfDay() const { return m_TimeOfDay; }
+
+		void SetTimeOfDay(int64_t time) { m_TimeOfDay = time % TicksPerDay; }
+		void SetTimeFrozen(bool frozen) { m_TimeFrozen = frozen; }
+		bool IsTimeFrozen() const { return m_TimeFrozen; }
+
+		// ----- Weather --------------------------------------------------
+
+		WeatherType Weather() const { return m_Weather; }
+		void SetWeather(WeatherType weather);
+
+	private:
+		void TickLoop();
+		void BroadcastTime();
+		void BroadcastWeatherChange(WeatherType newWeather);
+
+		PlayerManager& m_PlayerManager;
+
+		std::atomic<int64_t> m_WorldAge = 0;
+		std::atomic<int64_t> m_TimeOfDay = 6000; // Start at noon
+		std::atomic<bool> m_TimeFrozen = false;
+		std::atomic<WeatherType> m_Weather = WeatherType::Clear;
+
+		std::thread m_Thread;
+		std::atomic<bool> m_Running = false;
+		int m_TickCounter = 0;
+	};
+
+}
