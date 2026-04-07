@@ -94,7 +94,9 @@ namespace Axiom {
 
 			// Chunk batch finished
 			{
+				int chunkCount = (radius * 2 + 1) * (radius * 2 + 1);
 				NetworkBuffer payload;
+				payload.WriteVarInt(chunkCount);
 				connection->SendRawPacket(Clientbound::Play::ChunkBatchFinished, payload);
 			}
 		}
