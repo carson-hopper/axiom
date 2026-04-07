@@ -11,6 +11,7 @@
 #include <mutex>
 #include <atomic>
 #include <chrono>
+#include <functional>
 
 namespace Axiom {
 
@@ -136,6 +137,7 @@ private:
 	void ProcessMainThreadTasks();
 	void ExecuteAsyncTasks();
 	void SortTickablesByPhase();
+	void WorkerThreadLoop();
 
 private:
 	std::vector<Tickable*> m_Tickables;

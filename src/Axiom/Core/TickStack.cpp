@@ -10,7 +10,7 @@ namespace Axiom {
 		unsigned int threadCount = std::max(1u, std::thread::hardware_concurrency() - 1);
 		
 		for (unsigned int i = 0; i < threadCount; i++) {
-			m_WorkerThreads.emplace_back([this]() {
+			m_WorkerThreads.emplace_back([this] {
 				WorkerThreadLoop();
 			});
 		}

@@ -67,11 +67,6 @@ namespace Axiom {
 		m_LayerStack.PopTick(tick);
 	}
 
-	void Application::PushTick(Tickable* tick) {
-		m_LayerStack.PushTick(tick);
-		tick->OnTickRegistered();
-	}
-
 	void Application::Init() {
 		AX_CORE_INFO("Axiom Server v0.1.0 starting...");
 
@@ -215,13 +210,10 @@ namespace Axiom {
 
 		ConsoleSender consoleSender;
 
-		// Start the tick loop at 20 TPS
-		// This runs synchronously but supports Async() for background work
 		m_LayerStack.RunSyncLoop([this, &consoleSender]() -> bool {
 			// Process console input each tick
-			std::string input;
 			if (std::cin.peek() != EOF) {
-				if (std::getline(std::cin, input)) {
+				if (std::string input ;std::getline(std::cin, input)) {
 					if (!input.empty()) {
 						if (input == "stop") {
 							m_Running = false;
@@ -233,7 +225,7 @@ namespace Axiom {
 			}
 
 			return m_Running;
-		}, 20.0f); // 20 TPS = 50ms per tick
+		}, 20.0f);
 	}
 
 }
