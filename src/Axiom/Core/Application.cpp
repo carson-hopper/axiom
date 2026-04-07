@@ -11,6 +11,10 @@
 #include "Axiom/Network/Packet/26.1/Login/LoginHelloPacket.h"
 #include "Axiom/Network/Packet/26.1/Login/EncryptionResponsePacket.h"
 #include "Axiom/Network/Packet/26.1/Login/LoginAcknowledgedPacket.h"
+#include "Axiom/Network/Packet/26.1/Config/ClientInformationPacket.h"
+#include "Axiom/Network/Packet/26.1/Config/SelectKnownPacksPacket.h"
+#include "Axiom/Network/Packet/26.1/Config/FinishConfigurationPacket.h"
+#include "Axiom/Network/Packet/26.1/Config/KeepAlivePacket.h"
 
 #include <iostream>
 #include <string>
@@ -64,6 +68,12 @@ namespace Axiom {
 		m_PacketRegistry.Register<775, LoginHelloPacket<775>>();
 		m_PacketRegistry.Register<775, EncryptionResponsePacket<775>>();
 		m_PacketRegistry.Register<775, LoginAcknowledgedPacket<775>>();
+
+		// Configuration
+		m_PacketRegistry.Register<775, ClientInformationPacket<775>>();
+		m_PacketRegistry.Register<775, SelectKnownPacksPacket<775>>();
+		m_PacketRegistry.Register<775, FinishConfigurationPacket<775>>();
+		m_PacketRegistry.Register<775, ConfigKeepAlivePacket<775>>();
 	}
 
 	void Application::Run() {
