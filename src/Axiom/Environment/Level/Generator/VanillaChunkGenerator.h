@@ -2,8 +2,11 @@
 
 #include "Axiom/Environment/Level/Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Level/Generator/AnvilReader.h"
+#include "Axiom/Environment/Level/Generator/BlockRegistry.h"
 #include "Axiom/Environment/Level/Generator/BlockStates.h"
 #include "Axiom/Environment/Level/ChunkEncoder.h"
+#include "Axiom/Core/PathUtil.h"
+#include "Axiom/Core/Log.h"
 #include "Axiom/Network/Nbt/NbtReader.h"
 
 #include <string>
@@ -18,7 +21,13 @@ namespace Axiom {
 	class VanillaChunkGenerator : public ChunkGenerator {
 	public:
 		explicit VanillaChunkGenerator(const std::string& worldDirectory)
-			: m_AnvilReader(worldDirectory + "/dimensions/minecraft/overworld/region") {}
+			: m_AnvilReader(worldDirectory + "/dimensions/minecraft/overworld/region") {
+
+			const auto dataPath = ResolvePath("data");
+			m_BlockRegistry.LoadFromExtractorData(dataPath.string());
+			AX_CORE_INFO("VanillaChunkGenerator: loaded {} blocks, {} biomes",
+				m_BlockRegistry.BlockCount(), m_BlockRegistry.BiomeCount());
+		}
 
 		ChunkData Generate(const int32_t chunkX, const int32_t chunkZ) override {
 			auto nbtData = m_AnvilReader.ReadChunkNbt(chunkX, chunkZ);
@@ -323,46 +332,16 @@ namespace Axiom {
 			}
 		}
 
-		static int32_t BlockNameToStateId(const std::string& name) {
-			// Common block name → default state ID mapping
-			// This is a simplified mapping — full mapping would load from blocks.json
-			static const std::unordered_map<std::string, int32_t> mapping = {
-				{"minecraft:air", 0}, {"minecraft:cave_air", 0}, {"minecraft:void_air", 0},
-				{"minecraft:stone", 1}, {"minecraft:granite", 2}, {"minecraft:polished_granite", 3},
-				{"minecraft:diorite", 4}, {"minecraft:polished_diorite", 5},
-				{"minecraft:andesite", 6}, {"minecraft:polished_andesite", 7},
-				{"minecraft:grass_block", 9}, {"minecraft:dirt", 10},
-				{"minecraft:coarse_dirt", 11}, {"minecraft:podzol", 13},
-				{"minecraft:cobblestone", 14}, {"minecraft:bedrock", 85},
-				{"minecraft:water", 86}, {"minecraft:lava", 102},
-				{"minecraft:sand", 118}, {"minecraft:gravel", 124},
-				{"minecraft:gold_ore", 129}, {"minecraft:iron_ore", 131},
-				{"minecraft:coal_ore", 133}, {"minecraft:oak_log", 137},
-				{"minecraft:oak_leaves", 279}, {"minecraft:deepslate", 27924},
-			};
-
-			auto iterator = mapping.find(name);
-			if (iterator != mapping.end()) return iterator->second;
-			return 0; // Unknown = air
+		int32_t BlockNameToStateId(const std::string& name) const {
+			return m_BlockRegistry.GetBlockStateId(name);
 		}
 
-		static int32_t BiomeNameToId(const std::string& name) {
-			static const std::unordered_map<std::string, int32_t> mapping = {
-				{"minecraft:plains", 40}, {"minecraft:desert", 14}, {"minecraft:forest", 21},
-				{"minecraft:ocean", 35}, {"minecraft:river", 41}, {"minecraft:beach", 3},
-				{"minecraft:taiga", 55}, {"minecraft:swamp", 54}, {"minecraft:jungle", 28},
-				{"minecraft:birch_forest", 4}, {"minecraft:dark_forest", 8},
-				{"minecraft:snowy_plains", 46}, {"minecraft:savanna", 42},
-				{"minecraft:badlands", 0}, {"minecraft:deep_ocean", 13},
-				{"minecraft:meadow", 32}, {"minecraft:frozen_ocean", 22},
-			};
-
-			auto iterator = mapping.find(name);
-			if (iterator != mapping.end()) return iterator->second;
-			return 40; // Default = plains
+		int32_t BiomeNameToId(const std::string& name) const {
+			return m_BlockRegistry.GetBiomeId(name);
 		}
 
 		mutable AnvilReader m_AnvilReader;
+		BlockRegistry m_BlockRegistry;
 	};
 
 }
