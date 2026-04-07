@@ -87,27 +87,29 @@ namespace Axiom {
 		const double adjustedTarget = targetHeight + offsetValue;
 
 		// Vertical gradient: positive below target, negative above
+		// Gentler gradient (0.04) creates smoother, rounder hills
+		// Vanilla uses ~0.03-0.05 depending on the density function composition
 		const double heightDelta = adjustedTarget - blockY;
-		double density = heightDelta * 0.15;
+		double density = heightDelta * 0.04;
 
-		// Clamp density to prevent extreme values
-		density = std::clamp(density, -4.0, 4.0);
+		// Soft clamp using tanh to keep smooth transitions
+		density = std::tanh(density);
 
 		// Cave carving (subtracts from density)
-		if (worldY > MinY + 5 && worldY < adjustedTarget - 2) {
+		// Caves are integrated into the density before block placement
+		if (worldY > MinY + 5 && worldY < adjustedTarget - 1) {
 			const double caveDensity = m_CaveCarver.SampleCaveDensity(worldX, worldY, worldZ);
 			density -= caveDensity;
 		}
 
-		// Bedrock floor
+		// Bedrock floor: guaranteed solid
 		if (worldY <= MinY + 5) {
-			density = 4.0;
+			density = 1.0;
 		}
 
-		// Squeeze: vanilla applies this to prevent floating islands
-		// Reduces density above surface more aggressively
-		if (density > 0 && blockY > adjustedTarget + 8) {
-			const double squeezeAmount = (blockY - adjustedTarget - 8) * 0.05;
+		// Squeeze above surface to prevent floating terrain
+		if (blockY > adjustedTarget + 4) {
+			const double squeezeAmount = (blockY - adjustedTarget - 4) * 0.02;
 			density -= squeezeAmount;
 		}
 

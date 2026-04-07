@@ -81,59 +81,50 @@ namespace Axiom {
 
 			// Layer noise controls which Y levels have caves
 			const double layerValue = m_LayerNoise.GetValue(blockX, blockZ);
-			const double targetY = layerValue * 64.0; // Center caves around this Y
-			const double yDistance = std::abs(blockY - targetY) / 40.0;
-			const double yFactor = std::max(0.0, 1.0 - yDistance);
+			const double targetY = layerValue * 40.0;
+			const double yDistance = std::abs(blockY - targetY) / 50.0;
+			const double yFactor = std::max(0.0, 1.0 - yDistance * yDistance);
 
-			// Cheese caves are strongest in the middle underground
-			const double depthFactor = std::clamp((64.0 - blockY) / 64.0, 0.0, 1.0);
+			// Cheese caves form where noise exceeds a low threshold
+			const double depthFactor = std::clamp((63.0 - blockY) / 40.0, 0.0, 1.0);
 
-			const double density = (std::abs(cheeseValue) - 0.3) * yFactor * depthFactor;
-			return std::max(0.0, density * 2.0);
+			const double caveStrength = (std::abs(cheeseValue) - 0.08) * yFactor * depthFactor;
+			return std::max(0.0, caveStrength * 4.0);
 		}
 
 		/**
 		 * Spaghetti caves: long winding tunnels.
-		 * Uses two 2D noise fields whose intersection creates tunnel shapes.
 		 */
 		double SampleSpaghettiCave(const double blockX, const double blockY, const double blockZ) const {
-			// Two perpendicular noise fields — tunnels form at their intersection
 			const double noise2D = m_Spaghetti2DNoise.GetValue(blockX * 2.0, blockY * 2.0, blockZ * 2.0);
 
-			// Roughness adds variation to tunnel width
 			const double roughness = m_SpaghettiRoughnessNoise.GetValue(blockX, blockY, blockZ);
-			const double tunnelWidth = 0.03 + std::abs(roughness) * 0.02;
+			const double tunnelWidth = 0.08 + std::abs(roughness) * 0.04;
 
-			// Tunnel forms where the absolute noise value is near zero
-			const double tunnelDensity = tunnelWidth - std::abs(noise2D);
+			const double tunnelStrength = tunnelWidth - std::abs(noise2D);
 
-			// Reduce near surface
-			const double depthFactor = std::clamp((50.0 - blockY) / 30.0, 0.0, 1.0);
-
-			return std::max(0.0, tunnelDensity * depthFactor * 3.0);
+			const double depthFactor = std::clamp((63.0 - blockY) / 20.0, 0.0, 1.0);
+			return std::max(0.0, tunnelStrength * depthFactor * 8.0);
 		}
 
 		/**
 		 * Noodle caves: thin winding passages.
 		 */
 		double SampleNoodleCave(const double blockX, const double blockY, const double blockZ) const {
-			// Toggle noise determines if noodles exist here
 			const double toggleValue = m_NoodleNoise.GetValue(blockX, blockY, blockZ);
-			if (toggleValue < -0.2) return 0.0;
+			if (toggleValue < -0.3) return 0.0;
 
-			// Thickness determines tunnel radius
 			const double thickness = m_NoodleThicknessNoise.GetValue(blockX, blockY, blockZ);
-			const double tunnelWidth = 0.015 + thickness * 0.01;
+			const double tunnelWidth = 0.04 + std::abs(thickness) * 0.03;
 
-			// Two ridge noises create the tunnel shape via intersection
 			const double ridgeA = m_NoodleRidgeANoise.GetValue(blockX * 2.5, blockY * 2.5, blockZ * 2.5);
 			const double ridgeB = m_NoodleRidgeBNoise.GetValue(blockX * 2.5, blockY * 2.5, blockZ * 2.5);
 
-			const double ridgeDensity = std::sqrt(ridgeA * ridgeA + ridgeB * ridgeB);
-			const double noodleDensity = tunnelWidth - ridgeDensity;
+			const double ridgeDistance = std::sqrt(ridgeA * ridgeA + ridgeB * ridgeB);
+			const double tunnelStrength = tunnelWidth - ridgeDistance;
 
-			const double depthFactor = std::clamp((60.0 - blockY) / 40.0, 0.0, 1.0);
-			return std::max(0.0, noodleDensity * depthFactor * 4.0);
+			const double depthFactor = std::clamp((63.0 - blockY) / 30.0, 0.0, 1.0);
+			return std::max(0.0, tunnelStrength * depthFactor * 6.0);
 		}
 
 		/**
@@ -142,11 +133,11 @@ namespace Axiom {
 		double SampleCaveEntrance(const double blockX, const double blockY, const double blockZ) const {
 			const double entranceValue = m_EntranceNoise.GetValue(blockX, blockY / 1.5, blockZ);
 
-			// Entrances are strongest near sea level
-			const double yFactor = std::exp(-std::pow((blockY - 20.0) / 30.0, 2.0));
+			// Gaussian centered around Y=30 with wide spread
+			const double yFactor = std::exp(-std::pow((blockY - 30.0) / 40.0, 2.0));
 
-			const double density = (std::abs(entranceValue) - 0.2) * yFactor;
-			return std::max(0.0, density * 1.5);
+			const double entranceStrength = (std::abs(entranceValue) - 0.05) * yFactor;
+			return std::max(0.0, entranceStrength * 3.0);
 		}
 
 		NormalNoise m_CheeseNoise;
