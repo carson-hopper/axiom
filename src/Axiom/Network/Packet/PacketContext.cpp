@@ -11,7 +11,10 @@ namespace Axiom {
 	PacketContext::PacketContext(ServerConfig& config, EventBus& eventBus, CommandRegistry& commands)
 		: m_Config(config)
 		, m_EventBus(eventBus)
-		, m_Commands(commands) {}
+		, m_Commands(commands) {
+
+		m_Registries.LoadAll("data");
+	}
 
 	void PacketContext::StorePendingLogin(Connection* connection, PendingLogin login) {
 		std::lock_guard<std::mutex> lock(m_PendingLoginsMutex);

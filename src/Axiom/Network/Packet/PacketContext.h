@@ -2,6 +2,7 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Network/Crypto/ServerKeyPair.h"
+#include "Axiom/Network/RegistryDataService.h"
 
 #include <array>
 #include <cstdint>
@@ -30,6 +31,7 @@ namespace Axiom {
 		EventBus& Events() { return m_EventBus; }
 		CommandRegistry& Commands() { return m_Commands; }
 		ServerKeyPair& KeyPair() { return m_KeyPair; }
+		RegistryDataService& Registries() { return m_Registries; }
 
 		// ----- Pending logins -------------------------------------------
 
@@ -48,6 +50,7 @@ namespace Axiom {
 		EventBus& m_EventBus;
 		CommandRegistry& m_Commands;
 		ServerKeyPair m_KeyPair;
+		RegistryDataService m_Registries;
 
 		std::mutex m_PendingLoginsMutex;
 		std::unordered_map<Connection*, PendingLogin> m_PendingLogins;
