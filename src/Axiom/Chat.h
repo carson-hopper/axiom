@@ -6,3 +6,4 @@
  */
 
 #include "Axiom/Chat/ChatComponent.h"
+#include "Axiom/Chat/MiniMessage.h"

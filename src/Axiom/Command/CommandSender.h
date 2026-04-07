@@ -20,6 +20,14 @@ public:
 	 */
 	void SendPlainMessage(const std::string& text);
 
+	/**
+	 * Send a MiniMessage format message (convenience method).
+	 * Supports tags like <red>, <bold>, <click:run_command:/help>, etc.
+	 *
+	 * @param miniMessage The MiniMessage format string.
+	 */
+	void SendMiniMessage(const std::string& miniMessage);
+
 	virtual const std::string& Name() const = 0;
 	virtual bool IsPlayer() const = 0;
 	virtual bool HasPermission(const std::string& permission) const = 0;

@@ -2,6 +2,7 @@
 #include "CommandSender.h"
 
 #include "Axiom/Chat/ChatComponent.h"
+#include "Axiom/Chat/MiniMessage.h"
 #include "Axiom/Core/Log.h"
 
 namespace Axiom {
@@ -12,6 +13,11 @@ namespace Axiom {
 		auto component = ChatComponent::Create()
 			.Text(text)
 			.Build();
+		SendMessage(component);
+	}
+
+	void CommandSender::SendMiniMessage(const std::string& miniMessage) {
+		auto component = MiniMessage::Parse(miniMessage);
 		SendMessage(component);
 	}
 
