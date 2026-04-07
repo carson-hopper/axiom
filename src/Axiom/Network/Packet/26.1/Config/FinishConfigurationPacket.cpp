@@ -25,7 +25,7 @@ namespace Axiom {
 			payload.WriteBoolean(false);   // Reduced debug info
 			payload.WriteBoolean(true);    // Enable respawn screen
 			payload.WriteBoolean(false);   // Do limited crafting
-			payload.WriteVarInt(0);        // Dimension type (registry index)
+			payload.WriteVarInt(1);        // Dimension type (Holder: registry index 0 + 1)
 			payload.WriteString("minecraft:overworld");  // Dimension name
 			payload.WriteLong(0);          // Hashed seed
 			payload.WriteByte(1);          // Game mode (creative)
