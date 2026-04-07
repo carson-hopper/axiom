@@ -78,7 +78,7 @@ namespace Axiom {
 
 		// ----- Actions --------------------------------------------------
 
-		void SendMessage(const std::string& message) override;
+		void SendMessage(const Ref<ChatComponent>& message) override;
 		void Kick(const std::string& reason = "") const;
 
 		bool IsPlayer() const override { return true; }

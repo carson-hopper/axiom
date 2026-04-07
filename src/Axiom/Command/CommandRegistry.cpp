@@ -43,7 +43,7 @@ namespace Axiom {
 
 		auto iterator = m_Commands.find(commandName);
 		if (iterator == m_Commands.end()) {
-			sender.SendMessage("Unknown command: " + commandName);
+			sender.SendPlainMessage("Unknown command: " + commandName);
 			return false;
 		}
 

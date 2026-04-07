@@ -97,7 +97,7 @@ namespace Axiom {
 		m_CommandRegistry->Register("time", "Set time of day (0-24000 or day/noon/night/midnight)",
 	[this](CommandSender& sender, const std::vector<std::string>& arguments) {
 			if (arguments.empty()) {
-				sender.SendMessage("Time: " + std::to_string(m_PacketContext->Time().TimeOfDay()));
+				sender.SendPlainMessage("Time: " + std::to_string(m_PacketContext->Time().TimeOfDay()));
 				return;
 			}
 
@@ -114,7 +114,7 @@ namespace Axiom {
 			for (const auto& [name, value] : timeMap) {
 				if (argument == name) {
 					m_PacketContext->Time().SetTimeOfDay(value);
-					sender.SendMessage("Set time to " + std::to_string(value));
+					sender.SendPlainMessage("Set time to " + std::to_string(value));
 					return;
 				}
 			}
@@ -123,23 +123,23 @@ namespace Axiom {
 			auto [ptr, ec] = std::from_chars(argument.data(), argument.data() + argument.size(), parsed);
 
 			if (ec != std::errc() || ptr != argument.data() + argument.size()) {
-				sender.SendMessage("Invalid time: " + std::string(argument));
+				sender.SendPlainMessage("Invalid time: " + std::string(argument));
 				return;
 			}
 
 			if (parsed < 0 || parsed > 24000) {
-				sender.SendMessage("Time must be between 0 and 24000");
+				sender.SendPlainMessage("Time must be between 0 and 24000");
 				return;
 			}
 
 			m_PacketContext->Time().SetTimeOfDay(parsed);
-			sender.SendMessage("Set time to " + std::to_string(parsed));
+			sender.SendPlainMessage("Set time to " + std::to_string(parsed));
 		});
 
 		m_CommandRegistry->Register("weather", "Set weather (clear/rain/thunder)",
 	[this](CommandSender& sender, const std::vector<std::string>& arguments) {
 			if (arguments.empty()) {
-				sender.SendMessage("Usage: weather <clear|rain|thunder>");
+				sender.SendPlainMessage("Usage: weather <clear|rain|thunder>");
 				return;
 			}
 
@@ -154,12 +154,12 @@ namespace Axiom {
 			for (const auto& [name, type] : weatherMap) {
 				if (argument == name) {
 					m_PacketContext->Time().SetWeather(type);
-					sender.SendMessage("Weather set to " + std::string(name));
+					sender.SendPlainMessage("Weather set to " + std::string(name));
 					return;
 				}
 			}
 
-			sender.SendMessage("Unknown weather: " + std::string(argument));
+			sender.SendPlainMessage("Unknown weather: " + std::string(argument));
 		});
 
 		AX_CORE_INFO("Server initialized on port {}", m_Config->Port());

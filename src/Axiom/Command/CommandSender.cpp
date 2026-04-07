@@ -10,14 +10,14 @@ namespace Axiom {
 	const std::string ConsoleSender::s_Name = "Console";
 
 	void CommandSender::SendPlainMessage(const std::string& text) {
-		auto component = ChatComponent::Create()
+		const auto component = ChatComponent::Create()
 			.Text(text)
 			.Build();
 		SendMessage(component);
 	}
 
 	void CommandSender::SendMiniMessage(const std::string& miniMessage) {
-		auto component = MiniMessage::Parse(miniMessage);
+		const auto component = MiniMessage::Parse(miniMessage);
 		SendMessage(component);
 	}
 

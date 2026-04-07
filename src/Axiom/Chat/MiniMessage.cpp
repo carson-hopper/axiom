@@ -5,7 +5,7 @@
 
 namespace Axiom {
 
-	Ref<ChatComponent> MiniMessage::Parse(const std::string> message) {
+	Ref<ChatComponent> MiniMessage::Parse(const std::string& message) {
 		ParseState state;
 		state.Input = message;
 		state.Root = CreateRef<ChatComponent>();
@@ -40,7 +40,7 @@ namespace Axiom {
 		return state.Root;
 	}
 
-	Ref<ChatComponent> MiniMessage::ParseOrPlain(const std::string> message) {
+	Ref<ChatComponent> MiniMessage::ParseOrPlain(const std::string& message) {
 		try {
 			return Parse(message);
 		} catch (...) {
@@ -52,7 +52,7 @@ namespace Axiom {
 	}
 
 	MiniMessage::Tag MiniMessage::ParseTag(ParseState& state) {
-		Tag tag;
+		Tag tag = {};
 		tag.IsClosing = false;
 
 		// Skip the opening '<'
@@ -108,7 +108,7 @@ namespace Axiom {
 				break;
 			}
 
-			if (c == '"' || c == ''') {
+			if (c == '"' || c == '\'') {
 				inQuotes = !inQuotes;
 				state.Position++;
 				continue;
@@ -215,7 +215,7 @@ namespace Axiom {
 		}
 	}
 
-	void MiniMessage::ProcessText(ParseState& state, const std::string> text) {
+	void MiniMessage::ProcessText(ParseState& state, const std::string& text) {
 		if (state.ComponentStack.empty()) {
 			// Add to root
 			state.Root->Text += text;
@@ -233,7 +233,7 @@ namespace Axiom {
 		}
 	}
 
-	std::optional<ChatColor> MiniMessage::ParseColor(const std::string> name) {
+	std::optional<ChatColor> MiniMessage::ParseColor(const std::string& name) {
 		static const std::unordered_map<std::string, ChatColor> colorMap = {
 			{"black", ChatColor::Black},
 			{"dark_blue", ChatColor::DarkBlue},
@@ -259,19 +259,18 @@ namespace Axiom {
 			{"reset", ChatColor::Reset}
 		};
 
-		auto it = colorMap.find(name);
-		if (it != colorMap.end()) {
+		if (auto it = colorMap.find(name);it != colorMap.end()) {
 			return it->second;
 		}
 		return std::nullopt;
 	}
 
-	std::optional<ChatColor> MiniMessage::ParseHexColor(const std::string> hex) {
+	std::optional<ChatColor> MiniMessage::ParseHexColor(const std::string& hex) {
 		// For now, return nullopt - true hex color support requires different approach
 		return std::nullopt;
 	}
 
-	std::optional<ClickAction> MiniMessage::ParseClickAction(const std::string> name) {
+	std::optional<ClickAction> MiniMessage::ParseClickAction(const std::string& name) {
 		static const std::unordered_map<std::string, ClickAction> actionMap = {
 			{"open_url", ClickAction::OpenUrl},
 			{"open_file", ClickAction::OpenFile},
@@ -288,7 +287,7 @@ namespace Axiom {
 		return std::nullopt;
 	}
 
-	std::optional<HoverAction> MiniMessage::ParseHoverAction(const std::string> name) {
+	std::optional<HoverAction> MiniMessage::ParseHoverAction(const std::string& name) {
 		static const std::unordered_map<std::string, HoverAction> actionMap = {
 			{"show_text", HoverAction::ShowText},
 			{"show_item", HoverAction::ShowItem},

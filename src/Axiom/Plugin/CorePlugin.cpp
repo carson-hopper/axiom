@@ -3,7 +3,7 @@
 #include "Axiom/Core/Log.h"
 #include "Axiom/Plugin/PluginContext.h"
 #include "Axiom/Command/CommandRegistry.h"
-#include "Axiom/Commands.h"
+#include "../Command/Commands.h"
 
 namespace Axiom {
 

@@ -3,19 +3,17 @@
 
 #include "Axiom/Core/Log.h"
 #include "Axiom/Network/Protocol.h"
+#include "Axiom/Chat/ChatComponent.h"
 
 #include <nlohmann/json.hpp>
 
 namespace Axiom {
 
-	void Player::SendMessage(const std::string& message) {
+	void Player::SendMessage(const Ref<ChatComponent>& message) {
 		if (!m_Connection || !m_Connection->IsConnected()) return;
 
-		nlohmann::json chatMessage;
-		chatMessage["text"] = message;
-
 		NetworkBuffer payload;
-		payload.WriteString(chatMessage.dump());
+		payload.WriteString(message->ToJson());
 		payload.WriteBoolean(false); // Is overlay (action bar)
 
 		m_Connection->SendRawPacket(Clientbound::Play::SystemChat, payload);
