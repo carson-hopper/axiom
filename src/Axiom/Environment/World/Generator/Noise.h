@@ -16,9 +16,15 @@ namespace Axiom {
 	class PerlinNoise {
 	public:
 		explicit PerlinNoise(uint64_t seed = 0) {
-			std::iota(m_Permutation.begin(), m_Permutation.end(), 0);
+			// Fill first 256 with 0-255, shuffle, then duplicate to second half
+			for (int index = 0; index < 256; index++) {
+				m_Permutation[index] = index;
+			}
 			std::mt19937_64 random(seed);
-			std::shuffle(m_Permutation.begin(), m_Permutation.end(), random);
+			std::shuffle(m_Permutation.begin(), m_Permutation.begin() + 256, random);
+			for (int index = 0; index < 256; index++) {
+				m_Permutation[index + 256] = m_Permutation[index];
+			}
 		}
 
 		double Noise(double x, double z) const {
