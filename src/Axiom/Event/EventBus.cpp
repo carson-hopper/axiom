@@ -9,6 +9,8 @@ namespace Axiom {
 	void EventBus::Subscribe(EventType type, EventCallback callback,
 		EventPriority priority, const std::string& owner) {
 
+		std::unique_lock lock(m_Mutex);
+
 		Subscription subscription{type, priority, std::move(callback), owner};
 
 		auto insertPosition = std::upper_bound(
@@ -21,6 +23,8 @@ namespace Axiom {
 	}
 
 	void EventBus::Publish(Event& event) {
+		std::shared_lock lock(m_Mutex);
+
 		for (auto& subscription : m_Subscriptions) {
 			if (subscription.type != event.Type()) {
 				continue;
@@ -35,6 +39,8 @@ namespace Axiom {
 	}
 
 	void EventBus::UnsubscribeAll(const std::string& owner) {
+		std::unique_lock lock(m_Mutex);
+
 		std::erase_if(m_Subscriptions, [&owner](const Subscription& subscription) {
 			return subscription.owner == owner;
 		});
