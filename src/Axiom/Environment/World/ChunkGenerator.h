@@ -1,0 +1,42 @@
+#pragma once
+
+#include "Axiom/Core/Base.h"
+#include "Axiom/Network/NetworkBuffer.h"
+
+#include <cstdint>
+#include <vector>
+
+namespace Axiom {
+
+	/**
+	 * Chunk data produced by a ChunkGenerator, ready to be sent to clients.
+	 */
+	struct ChunkData {
+		int32_t chunkX;
+		int32_t chunkZ;
+		std::vector<uint8_t> sectionData;
+		int32_t heightmapValue;   // Uniform height for all columns
+		int32_t biomeId;
+	};
+
+	/**
+	 * Abstract interface for world chunk generation.
+	 * Implement this to create different world types (flat, noise, void, etc.)
+	 */
+	class ChunkGenerator {
+	public:
+		virtual ~ChunkGenerator() = default;
+
+		/**
+		 * Generate chunk data for the given coordinates.
+		 * Called from any thread — must be thread-safe.
+		 */
+		virtual ChunkData Generate(int32_t chunkX, int32_t chunkZ) = 0;
+
+		/**
+		 * The Y coordinate where players should spawn.
+		 */
+		virtual double SpawnY() const = 0;
+	};
+
+}
