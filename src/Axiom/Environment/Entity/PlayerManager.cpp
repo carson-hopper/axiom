@@ -1,4 +1,5 @@
-#include "PlayerManager.h"
+#include "axpch.h"
+#include "Axiom/Environment/Entity/PlayerManager.h"
 
 #include "Axiom/Core/Log.h"
 
@@ -12,24 +13,24 @@ namespace Axiom {
 		auto player = CreateRef<Player>(entityId, std::move(connection), name, uuid);
 
 		std::lock_guard<std::mutex> lock(m_Mutex);
-		m_PlayersByConnection[player->GetConnection().get()] = player;
+		m_PlayersByConnection[player->GetConnection()->Id()] = player;
 
 		AX_CORE_INFO("Player {} [{}] added (entity {})", name, uuid, entityId);
 		return player;
 	}
 
-	void PlayerManager::RemovePlayer(Connection* connection) {
+	void PlayerManager::RemovePlayer(ConnectionId connectionId) {
 		std::lock_guard<std::mutex> lock(m_Mutex);
-		auto iterator = m_PlayersByConnection.find(connection);
+		auto iterator = m_PlayersByConnection.find(connectionId);
 		if (iterator != m_PlayersByConnection.end()) {
 			AX_CORE_INFO("Player {} removed", iterator->second->Name());
 			m_PlayersByConnection.erase(iterator);
 		}
 	}
 
-	Ref<Player> PlayerManager::GetPlayer(Connection* connection) {
+	Ref<Player> PlayerManager::GetPlayer(ConnectionId connectionId) {
 		std::lock_guard<std::mutex> lock(m_Mutex);
-		auto iterator = m_PlayersByConnection.find(connection);
+		auto iterator = m_PlayersByConnection.find(connectionId);
 		if (iterator != m_PlayersByConnection.end()) {
 			return iterator->second;
 		}

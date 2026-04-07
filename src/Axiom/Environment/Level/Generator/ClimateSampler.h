@@ -4,9 +4,6 @@
 #include "Axiom/Environment/Level/Generator/NormalNoise.h"
 #include "Axiom/Environment/Level/Generator/SplineFunction.h"
 
-#include <algorithm>
-#include <array>
-#include <cmath>
 #include <cstdint>
 #include <limits>
 #include <vector>

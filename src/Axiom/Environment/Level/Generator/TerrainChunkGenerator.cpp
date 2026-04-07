@@ -1,4 +1,7 @@
-#include "TerrainChunkGenerator.h"
+#include "axpch.h"
+#include "Axiom/Environment/Level/Generator/TerrainChunkGenerator.h"
+
+#include "Axiom/Environment/Level/BiomeEncoder.h"
 
 namespace Axiom {
 

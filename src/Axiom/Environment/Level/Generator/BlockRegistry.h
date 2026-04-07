@@ -4,7 +4,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include <cstdint>
 #include <fstream>
 #include <string>
 #include <unordered_map>

@@ -5,6 +5,7 @@
 
 #include <asio.hpp>
 
+#include <atomic>
 #include <cstdint>
 #include <thread>
 #include <vector>
@@ -33,7 +34,7 @@ namespace Axiom {
 		Scope<asio::ip::tcp::acceptor> m_Acceptor;
 		std::vector<std::thread> m_WorkerThreads;
 		Connection::PacketHandler m_PacketHandler;
-		bool m_Running = false;
+		std::atomic<bool> m_Running = false;
 	};
 
 }

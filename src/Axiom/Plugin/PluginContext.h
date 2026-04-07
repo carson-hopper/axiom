@@ -15,9 +15,9 @@ namespace Axiom {
 			, m_CommandRegistry(commandRegistry)
 			, m_Config(config) {}
 
-		EventBus& Events() { return m_EventBus; }
-		CommandRegistry& Commands() { return m_CommandRegistry; }
-		ServerConfig& Config() { return m_Config; }
+		EventBus& Events() const { return m_EventBus; }
+		CommandRegistry& Commands() const { return m_CommandRegistry; }
+		ServerConfig& Config() const { return m_Config; }
 
 	private:
 		EventBus& m_EventBus;

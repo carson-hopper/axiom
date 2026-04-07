@@ -2,6 +2,7 @@
 
 #include "Axiom/Core/PlatformDetection.h"
 
+#include <atomic>
 #include <memory>
 #include <utility>
 
@@ -51,5 +52,38 @@ namespace Axiom {
 	constexpr Ref<T> CreateRef(Args&&... arguments) {
 		return std::make_shared<T>(std::forward<Args>(arguments)...);
 	}
+
+	/**
+	 * Monotonic identifier for objects that should not
+	 * be keyed by raw pointer (e.g. connections).
+	 */
+	template<typename Tag>
+	class TypedId {
+	public:
+		TypedId() : m_Value(s_Next++) {}
+		explicit TypedId(uint64_t value) : m_Value(value) {}
+
+		uint64_t Value() const { return m_Value; }
+
+		bool operator==(const TypedId&) const = default;
+
+	private:
+		uint64_t m_Value;
+		static inline std::atomic<uint64_t> s_Next{1};
+	};
+
+	struct ConnectionIdTag {};
+	using ConnectionId = TypedId<ConnectionIdTag>;
+
+}
+
+namespace std {
+
+	template<typename Tag>
+	struct hash<Axiom::TypedId<Tag>> {
+		std::size_t operator()(const Axiom::TypedId<Tag>& identifier) const noexcept {
+			return std::hash<uint64_t>{}(identifier.Value());
+		}
+	};
 
 }

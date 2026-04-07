@@ -2,22 +2,17 @@
 
 #include "Axiom/Environment/Level/Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Level/Generator/AquiferSampler.h"
-#include "Axiom/Environment/Level/Generator/BlockStates.h"
 #include "Axiom/Environment/Level/Generator/CaveCarver.h"
 #include "Axiom/Environment/Level/Generator/CellInterpolator.h"
 #include "Axiom/Environment/Level/Generator/ClimateSampler.h"
 #include "Axiom/Environment/Level/Generator/NormalNoise.h"
 #include "Axiom/Environment/Level/Generator/OreDistributor.h"
-#include "Axiom/Environment/Level/Generator/SplineFunction.h"
 #include "Axiom/Environment/Level/Generator/SurfaceDecorator.h"
 #include "Axiom/Environment/Level/Generator/TreePlacer.h"
 #include "Axiom/Environment/Level/Generator/WaterDecorator.h"
-#include "Axiom/Environment/Level/BiomeEncoder.h"
 #include "Axiom/Environment/Level/ChunkEncoder.h"
 
-#include <algorithm>
 #include <array>
-#include <cmath>
 #include <vector>
 
 namespace Axiom {

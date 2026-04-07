@@ -16,9 +16,9 @@ namespace Axiom {
 		}
 	}
 
-	void KeepAliveManager::OnKeepAliveResponse(Connection* connection, const int64_t keepAliveId) {
+	void KeepAliveManager::OnKeepAliveResponse(ConnectionId connectionId, const int64_t keepAliveId) {
 		std::lock_guard<std::mutex> lock(m_Mutex);
-		auto iterator = m_Pending.find(connection);
+		auto iterator = m_Pending.find(connectionId);
 		if (iterator != m_Pending.end() && iterator->second.keepAliveId == keepAliveId) {
 			iterator->second.responded = true;
 		}
@@ -50,31 +50,37 @@ namespace Axiom {
 			payload.WriteLong(keepAliveId);
 			connection->SendRawPacket(Clientbound::Play::KeepAlive, payload);
 
-			m_Pending[connection.get()] = PendingKeepAlive{keepAliveId, now, false};
+			m_Pending[connection->Id()] = PendingKeepAlive{keepAliveId, now, false};
 		}
 	}
 
 	void KeepAliveManager::CheckTimeouts() {
 		int64_t now = NowMillis();
 
-		std::vector<Connection*> timedOut;
+		std::vector<ConnectionId> timedOut;
 
 		{
 			std::lock_guard<std::mutex> lock(m_Mutex);
-			for (auto& [connection, pending] : m_Pending) {
+			for (auto& [connectionId, pending] : m_Pending) {
 				if (!pending.responded && (now - pending.sentAtMs) > KeepAliveTimeoutMs) {
-					timedOut.push_back(connection);
+					timedOut.push_back(connectionId);
 				}
 			}
 
-			for (auto* connection : timedOut) {
-				m_Pending.erase(connection);
+			for (const auto& connectionId : timedOut) {
+				m_Pending.erase(connectionId);
 			}
 		}
 
-		for (auto* connection : timedOut) {
-			connection->Disconnect("Timed out");
-			m_PlayerManager.RemovePlayer(connection);
+		for (const auto& connectionId : timedOut) {
+			auto player = m_PlayerManager.GetPlayer(connectionId);
+			if (player) {
+				auto connection = player->GetConnection();
+				if (connection) {
+					connection->Disconnect("Timed out");
+				}
+			}
+			m_PlayerManager.RemovePlayer(connectionId);
 		}
 	}
 

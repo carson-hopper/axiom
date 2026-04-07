@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ChunkGenerator.h"
+#include "Axiom/Environment/Level/Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Level/ChunkEncoder.h"
 
 namespace Axiom {

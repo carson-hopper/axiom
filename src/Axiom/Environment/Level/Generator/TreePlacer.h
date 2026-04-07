@@ -5,7 +5,6 @@
 #include "Axiom/Environment/Level/Generator/Noise.h"
 
 #include <array>
-#include <cstdint>
 #include <vector>
 
 namespace Axiom {

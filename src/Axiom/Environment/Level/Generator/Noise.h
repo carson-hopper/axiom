@@ -4,7 +4,6 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <numeric>
 #include <random>
 
 namespace Axiom {

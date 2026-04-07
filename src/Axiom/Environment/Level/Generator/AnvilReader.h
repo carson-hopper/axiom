@@ -2,7 +2,6 @@
 
 #include "Axiom/Core/Base.h"
 
-#include <cstdint>
 #include <fstream>
 #include <mutex>
 #include <optional>

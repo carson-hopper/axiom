@@ -37,7 +37,7 @@ namespace Axiom {
 		/**
 		 * Called when a keep-alive response is received from a player.
 		 */
-		void OnKeepAliveResponse(Connection* connection, int64_t keepAliveId);
+		void OnKeepAliveResponse(ConnectionId connectionId, int64_t keepAliveId);
 
 	private:
 		void TickLoop();
@@ -58,7 +58,7 @@ namespace Axiom {
 		PlayerManager& m_PlayerManager;
 
 		std::mutex m_Mutex;
-		std::unordered_map<Connection*, PendingKeepAlive> m_Pending;
+		std::unordered_map<ConnectionId, PendingKeepAlive> m_Pending;
 
 		std::thread m_Thread;
 		std::atomic<bool> m_Running = false;

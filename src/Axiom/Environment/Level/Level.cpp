@@ -1,14 +1,15 @@
-#include "Level.h"
+#include "axpch.h"
+#include "Axiom/Environment/Level/Level.h"
 
 #include "Axiom/Core/Log.h"
 
 namespace Axiom {
 
-	Ref<Chunk> Level::GetOrGenerateChunk(int32_t chunkX, int32_t chunkZ) {
+	Ref<Chunk> Level::GetOrGenerateChunk(const int32_t chunkX, const int32_t chunkZ) {
 		const int64_t key = ChunkKey(chunkX, chunkZ);
 
 		std::lock_guard<std::mutex> lock(m_ChunkMutex);
-		if (const auto iterator = m_Chunks.find(key);iterator != m_Chunks.end()) {
+		if (const auto iterator = m_Chunks.find(key); iterator != m_Chunks.end()) {
 			return iterator->second;
 		}
 

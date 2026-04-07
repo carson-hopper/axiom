@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
+#include "Axiom/Core/Math.h"
 
 #include <stdexcept>
 #include <string>
@@ -15,7 +16,7 @@ namespace Axiom {
 		explicit NetworkBuffer(std::vector<uint8_t> data)
 			: m_Data(std::move(data)) {}
 
-		NetworkBuffer(const uint8_t* data, size_t length)
+		NetworkBuffer(const uint8_t* data, const size_t length)
 			: m_Data(data, data + length) {}
 
 		// ----- Reading --------------------------------------------------
@@ -69,16 +70,26 @@ namespace Axiom {
 		}
 
 		float ReadFloat() {
-			int32_t bits = ReadInt();
+			const int32_t bits = ReadInt();
 			float value;
 			std::memcpy(&value, &bits, sizeof(float));
 			return value;
 		}
 
 		double ReadDouble() {
-			int64_t bits = ReadLong();
+			const int64_t bits = ReadLong();
 			double value;
 			std::memcpy(&value, &bits, sizeof(double));
+			return value;
+		}
+
+		Vector2 ReadVector2() {
+			const Vector2 value(ReadFloat(), ReadFloat());
+			return value;
+		}
+
+		Vector3 ReadVector3() {
+			const Vector3 value(ReadDouble(), ReadDouble(), ReadDouble());
 			return value;
 		}
 
@@ -119,7 +130,7 @@ namespace Axiom {
 		}
 
 		std::string ReadString(const int32_t maxLength = 0x7FFF) {
-			int32_t length = ReadVarInt();
+			const int32_t length = ReadVarInt();
 			if (length < 0 || length > maxLength * 4) {
 				throw std::runtime_error("String length out of bounds");
 			}
@@ -186,25 +197,52 @@ namespace Axiom {
 			WriteLong(bits);
 		}
 
-		void WriteVector2(const float yaw, const float pitch) {
-			WriteFloat(yaw);
-			WriteFloat(pitch);
+		void WriteVector2(const Vector2& vector) {
+			WriteFloat(vector.x);
+			WriteFloat(vector.y);
 		}
 
-		void WriteVector2(const double x, const double z) {
-			WriteDouble(x);
-			WriteDouble(z);
+		void WriteVector2(const float valueX, const float valueY) {
+			WriteFloat(valueX);
+			WriteFloat(valueY);
 		}
 
-		void WriteVector3(const double x, const double y, const double z) {
-			WriteDouble(x);
-			WriteDouble(y);
-			WriteDouble(z);
+		void WriteVector3(const Vector3& vector) {
+			WriteDouble(vector.x);
+			WriteDouble(vector.y);
+			WriteDouble(vector.z);
 		}
 
-		void WriteVector3Encoded(const int64_t x, const int64_t y, const int64_t z) {
-			const int64_t position = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
-			WriteLong(position);
+		void WriteVector3(const double valueX, const double valueY, const double valueZ) {
+			WriteDouble(valueX);
+			WriteDouble(valueY);
+			WriteDouble(valueZ);
+		}
+
+		/**
+		 * Write a position as a packed 64-bit integer (MC Position type).
+		 * x: 26 bits | z: 26 bits | y: 12 bits
+		 */
+		void WriteBlockPosition(const int32_t blockX, const int32_t blockY, const int32_t blockZ) {
+			const int64_t encoded = (static_cast<int64_t>(blockX & 0x3FFFFFF) << 38)
+				| (static_cast<int64_t>(blockZ & 0x3FFFFFF) << 12)
+				| static_cast<int64_t>(blockY & 0xFFF);
+			WriteLong(encoded);
+		}
+
+		void WriteVector3Encoded(const int64_t positionX, const int64_t positionY, const int64_t positionZ) {
+			const int64_t encoded = ((positionX & 0x3FFFFFF) << 38) | ((positionZ & 0x3FFFFFF) << 12) | (positionY & 0xFFF);
+			WriteLong(encoded);
+		}
+
+		/**
+		 * Read a packed block position.
+		 */
+		void ReadBlockPosition(int32_t& blockX, int32_t& blockY, int32_t& blockZ) {
+			const int64_t encoded = ReadLong();
+			blockX = static_cast<int32_t>(encoded >> 38);
+			blockY = static_cast<int32_t>((encoded << 52) >> 52);
+			blockZ = static_cast<int32_t>((encoded << 26) >> 38);
 		}
 
 		void WriteVarInt(const int32_t value) {

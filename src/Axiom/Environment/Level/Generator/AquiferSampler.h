@@ -3,8 +3,6 @@
 #include "Axiom/Environment/Level/Generator/BlockStates.h"
 #include "Axiom/Environment/Level/Generator/NormalNoise.h"
 
-#include <algorithm>
-#include <cmath>
 #include <cstdint>
 
 namespace Axiom {

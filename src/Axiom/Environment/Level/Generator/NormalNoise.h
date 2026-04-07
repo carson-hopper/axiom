@@ -2,7 +2,6 @@
 
 #include "Axiom/Environment/Level/Generator/Noise.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <vector>

@@ -4,7 +4,6 @@
 #include "Axiom/Environment/Level/Generator/BlockStates.h"
 #include "Axiom/Environment/Level/Generator/Noise.h"
 
-#include <cmath>
 #include <cstdint>
 
 namespace Axiom {

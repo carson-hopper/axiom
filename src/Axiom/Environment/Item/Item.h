@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Axiom/Core/Base.h"
-
 #include <cstdint>
 #include <string>
 

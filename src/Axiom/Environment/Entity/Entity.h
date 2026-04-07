@@ -1,10 +1,7 @@
 #pragma once
 
-#include "Axiom/Core/Base.h"
 #include "Axiom/Core/Math.h"
 
-#include <cstdint>
-#include <string>
 
 namespace Axiom {
 
