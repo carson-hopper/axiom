@@ -10,97 +10,82 @@
 namespace Axiom {
 
 	/**
-	 * Simulates Minecraft's aquifer system: independent underground
-	 * fluid pockets with varying levels, separated by stone barriers.
+	 * Determines fluid placement in terrain.
 	 *
-	 * Uses a 3D grid of sample points. At each point, noise determines:
-	 * - Floodedness: whether the pocket is flooded (>1.0 = flooded)
-	 * - Spread: local fluid level variation
-	 * - Barrier: thin stone walls between adjacent fluid pockets
-	 *
-	 * Below Y=-54, fluid is lava instead of water.
+	 * Above sea level: air where density <= 0.
+	 * Below sea level: water fills only where the terrain naturally
+	 * has negative density (oceans, rivers) — NOT in carved caves.
+	 * Underground aquifer pockets use floodedness noise to create
+	 * rare isolated water/lava pools.
 	 */
 	class AquiferSampler {
 	public:
 		static constexpr int SeaLevel = 63;
 		static constexpr int LavaLevel = -54;
-		static constexpr int GridResolution = 16;  // Sample every 16 blocks
 
 		explicit AquiferSampler(const uint64_t seed)
-			: m_BarrierNoise(seed, NoiseParameters::AquiferBarrier())
-			, m_FloodednessNoise(seed + 100, NoiseParameters::AquiferFloodedness())
-			, m_SpreadNoise(seed + 200, NoiseParameters::AquiferSpread())
+			: m_FloodednessNoise(seed + 100, NoiseParameters::AquiferFloodedness())
 			, m_LavaNoise(seed + 300, NoiseParameters::AquiferLava()) {}
 
 		/**
-		 * Determine what fluid (if any) should be at this position.
+		 * Determine block state from terrain density.
 		 *
-		 * @param worldX, worldY, worldZ Block coordinates
-		 * @param terrainDensity The terrain density at this point (positive = solid)
-		 * @return Block state: Stone (keep terrain), Water, Lava, or Air
+		 * @param terrainDensity Raw density from the density function (before cave carving)
+		 * @param finalDensity Density after cave carving
 		 */
 		int32_t ComputeBlockState(const int worldX, const int worldY, const int worldZ,
-			const double terrainDensity) const {
+			const double terrainDensity, const double finalDensity) const {
 
-			// Above sea level: standard behavior
-			if (worldY > SeaLevel) {
-				if (terrainDensity > 0) return BlockState::Stone;
-				return BlockState::Air;
-			}
-
-			// Solid terrain above aquifer threshold
-			if (terrainDensity > 0.25) return BlockState::Stone;
-
-			// Sample aquifer at this position
-			const double floodedness = m_FloodednessNoise.GetValue(
-				static_cast<double>(worldX), static_cast<double>(worldY) * 0.67, static_cast<double>(worldZ));
-
-			// Not flooded — behave normally
-			if (floodedness < -0.3) {
-				if (terrainDensity > 0) return BlockState::Stone;
-				if (worldY <= SeaLevel) return BlockState::Water;
-				return BlockState::Air;
-			}
-
-			// Check barrier between fluid pockets
-			const double barrier = m_BarrierNoise.GetValue(
-				static_cast<double>(worldX), static_cast<double>(worldY) * 0.5, static_cast<double>(worldZ));
-
-			// Strong barrier = keep as stone even if terrain density is low
-			if (std::abs(barrier) > 0.3 && terrainDensity > -0.1) {
+			// Solid terrain
+			if (finalDensity > 0) {
+				if (worldY <= MinY + 5) return BlockState::Bedrock;
+				if (worldY <= 0) return BlockState::Deepslate;
 				return BlockState::Stone;
 			}
 
-			// Determine fluid level for this pocket
-			const double spread = m_SpreadNoise.GetValue(
-				static_cast<double>(worldX), static_cast<double>(worldY) * 0.714, static_cast<double>(worldZ));
+			// Above sea level: always air if not solid
+			if (worldY > SeaLevel) return BlockState::Air;
 
-			const int fluidLevel = SeaLevel + static_cast<int>(spread * 10.0);
+			// Terrain was originally solid but got carved by caves
+			const bool isCave = terrainDensity > 0 && finalDensity <= 0;
 
-			// Below lava level: lava
-			if (worldY < LavaLevel) {
+			if (isCave) {
+				// Caves above lava level are air, not water
+				if (worldY > LavaLevel) return BlockState::Air;
+
+				// Caves below lava level might have lava pools
 				const double lavaValue = m_LavaNoise.GetValue(
 					static_cast<double>(worldX), static_cast<double>(worldY), static_cast<double>(worldZ));
-				if (lavaValue > 0.0 && terrainDensity <= 0) {
-					return BlockState::Lava;
-				}
-			}
-
-			// Fluid placement
-			if (terrainDensity <= 0) {
-				if (worldY < fluidLevel) {
-					return (worldY < LavaLevel) ? BlockState::Lava : BlockState::Water;
-				}
+				if (lavaValue > 0.3) return BlockState::Lava;
 				return BlockState::Air;
 			}
 
-			return BlockState::Stone;
+			// Natural ocean/river: terrain was never solid here
+			// Fill with water up to sea level
+			if (worldY < LavaLevel) {
+				// Deep underground aquifer check
+				const double floodedness = m_FloodednessNoise.GetValue(
+					static_cast<double>(worldX), static_cast<double>(worldY) * 0.67,
+					static_cast<double>(worldZ));
+				if (floodedness > 0.5) return BlockState::Lava;
+			}
+
+			return BlockState::Water;
+		}
+
+		/**
+		 * Simplified version when we don't have separate pre/post cave density.
+		 */
+		int32_t ComputeBlockState(const int worldX, const int worldY, const int worldZ,
+			const double density) const {
+
+			return ComputeBlockState(worldX, worldY, worldZ, density, density);
 		}
 
 	private:
-		NormalNoise m_BarrierNoise;
+		static constexpr int MinY = -64;
+
 		NormalNoise m_FloodednessNoise;
-		NormalNoise m_SpreadNoise;
 		NormalNoise m_LavaNoise;
 	};
 

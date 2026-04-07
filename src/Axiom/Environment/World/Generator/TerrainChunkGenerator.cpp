@@ -86,17 +86,16 @@ namespace Axiom {
 		const double offsetValue = m_OffsetNoise.GetValue(blockX, 0, blockZ) * 3.0;
 		const double adjustedTarget = targetHeight + offsetValue;
 
-		// Vertical gradient: positive below target, negative above
-		// Gentler gradient (0.04) creates smoother, rounder hills
-		// Vanilla uses ~0.03-0.05 depending on the density function composition
+		// Vertical gradient: the core terrain shape function
+		// Very gentle gradient (0.025) with tanh creates the smooth,
+		// rounded hills that vanilla MC is known for
 		const double heightDelta = adjustedTarget - blockY;
-		double density = heightDelta * 0.04;
+		double density = std::tanh(heightDelta * 0.025);
 
-		// Soft clamp using tanh to keep smooth transitions
-		density = std::tanh(density);
+		// Cave carving: subtract cave density from terrain
+		// Store pre-cave density for aquifer to distinguish caves from natural voids
+		const double preCaveDensity = density;
 
-		// Cave carving (subtracts from density)
-		// Caves are integrated into the density before block placement
 		if (worldY > MinY + 5 && worldY < adjustedTarget - 1) {
 			const double caveDensity = m_CaveCarver.SampleCaveDensity(worldX, worldY, worldZ);
 			density -= caveDensity;
@@ -108,8 +107,8 @@ namespace Axiom {
 		}
 
 		// Squeeze above surface to prevent floating terrain
-		if (blockY > adjustedTarget + 4) {
-			const double squeezeAmount = (blockY - adjustedTarget - 4) * 0.02;
+		if (blockY > adjustedTarget + 6) {
+			const double squeezeAmount = (blockY - adjustedTarget - 6) * 0.015;
 			density -= squeezeAmount;
 		}
 
@@ -129,20 +128,42 @@ namespace Axiom {
 				const int worldX = chunkX * 16 + localX;
 				const int worldZ = chunkZ * 16 + localZ;
 
+				// Compute approximate surface height for this column
+				const double approximateSurfaceY = m_ClimateSampler.ComputeSurfaceY(worldX, worldZ);
+
 				for (int worldY = MinY; worldY <= MaxY; worldY++) {
 					const double density = interpolator.GetDensity(localX, worldY, localZ);
-
-					// Aquifer system determines final block
-					const int32_t blockState = m_AquiferSampler.ComputeBlockState(
-						worldX, worldY, worldZ, density);
-
 					const int absoluteY = worldY - MinY;
-					columnBlocks[absoluteY * 256 + columnIndex] = blockState;
 
-					// Track highest solid block for surface height
-					if (blockState == BlockState::Stone || blockState == BlockState::Deepslate
-						|| blockState == BlockState::Bedrock) {
+					if (density > 0) {
+						// Solid terrain
+						if (worldY <= MinY + 5) {
+							columnBlocks[absoluteY * 256 + columnIndex] = BlockState::Bedrock;
+						} else if (worldY <= 0) {
+							columnBlocks[absoluteY * 256 + columnIndex] = BlockState::Deepslate;
+						} else {
+							columnBlocks[absoluteY * 256 + columnIndex] = BlockState::Stone;
+						}
 						surfaceHeightmap[columnIndex] = worldY;
+					} else {
+						// Non-solid: determine air vs water vs lava
+						const bool isUnderground = worldY < approximateSurfaceY - 2;
+
+						if (worldY > SeaLevel) {
+							// Above sea level: always air
+							columnBlocks[absoluteY * 256 + columnIndex] = BlockState::Air;
+						} else if (isUnderground) {
+							// Underground cave: air (not water)
+							if (worldY < AquiferSampler::LavaLevel) {
+								// Deep underground: occasional lava
+								columnBlocks[absoluteY * 256 + columnIndex] = BlockState::Lava;
+							} else {
+								columnBlocks[absoluteY * 256 + columnIndex] = BlockState::Air;
+							}
+						} else {
+							// Ocean/river: water up to sea level
+							columnBlocks[absoluteY * 256 + columnIndex] = BlockState::Water;
+						}
 					}
 				}
 
