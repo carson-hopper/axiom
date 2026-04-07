@@ -4,6 +4,7 @@
 #include "Axiom/Environment/World/Generator/BiomeProvider.h"
 #include "Axiom/Environment/World/Generator/BlockStates.h"
 #include "Axiom/Environment/World/Generator/CaveCarver.h"
+#include "Axiom/Environment/World/Generator/DensityProvider.h"
 #include "Axiom/Environment/World/Generator/Noise.h"
 #include "Axiom/Environment/World/Generator/OreDistributor.h"
 #include "Axiom/Environment/World/Generator/SurfaceDecorator.h"
@@ -17,6 +18,10 @@
 
 namespace Axiom {
 
+	/**
+	 * Generates terrain using 3D density functions for natural
+	 * overhangs, cliffs, and varied terrain shapes.
+	 */
 	class TerrainChunkGenerator : public ChunkGenerator {
 	public:
 		static constexpr int SeaLevel = 62;
@@ -29,24 +34,29 @@ namespace Axiom {
 		double SpawnY() const override;
 
 	private:
-		double GetContinentalness(int worldX, int worldZ) const;
-		double GetErosion(int worldX, int worldZ) const;
 		bool IsRiver(int worldX, int worldZ) const;
-		int CalculateHeight(int worldX, int worldZ, BiomeType biome) const;
-		void FillTerrain(int32_t chunkX, int32_t chunkZ,
-			const std::array<int, 256>& heightmap, const std::array<BiomeType, 256>& biomeMap,
-			const std::array<bool, 256>& riverMap, std::vector<int32_t>& columnBlocks) const;
-		int32_t GetTerrainBlock(int worldY, int surfaceHeight, BiomeType biome, bool isRiver) const;
-		void PlaceVegetation(int32_t chunkX, int32_t chunkZ,
-			const std::array<int, 256>& heightmap, const std::array<BiomeType, 256>& biomeMap,
+
+		void FillTerrainDensity(int32_t chunkX, int32_t chunkZ,
+			std::array<int, 256>& surfaceHeightmap,
+			const std::array<BiomeType, 256>& biomeMap,
+			const std::array<bool, 256>& riverMap,
 			std::vector<int32_t>& columnBlocks) const;
+
+		void ApplySurfaceBlocks(int32_t chunkX, int32_t chunkZ,
+			const std::array<int, 256>& surfaceHeightmap,
+			const std::array<BiomeType, 256>& biomeMap,
+			const std::array<bool, 256>& riverMap,
+			std::vector<int32_t>& columnBlocks) const;
+
+		void PlaceVegetation(int32_t chunkX, int32_t chunkZ,
+			const std::array<int, 256>& surfaceHeightmap,
+			const std::array<BiomeType, 256>& biomeMap,
+			std::vector<int32_t>& columnBlocks) const;
+
 		static void EncodeSection(NetworkBuffer& buffer, int sectionMinY,
 			const std::vector<int32_t>& columnBlocks, int32_t biomeId);
 
-		PerlinNoise m_TerrainNoise;
-		PerlinNoise m_DetailNoise;
-		PerlinNoise m_ContinentNoise;
-		PerlinNoise m_ErosionNoise;
+		DensityProvider m_DensityProvider;
 		PerlinNoise m_RiverNoise;
 		BiomeProvider m_BiomeProvider;
 		CaveCarver m_CaveCarver;
