@@ -48,14 +48,14 @@ namespace Axiom {
 
 		// ----- Pending logins -------------------------------------------
 
-		void StorePendingLogin(Connection* connection, PendingLogin login);
-		std::optional<PendingLogin> TakePendingLogin(Connection* connection);
+		void StorePendingLogin(ConnectionId connectionId, PendingLogin login);
+		std::optional<PendingLogin> TakePendingLogin(ConnectionId connectionId);
 
 		// ----- Utility --------------------------------------------------
 
 		std::array<uint8_t, 4> GenerateVerifyToken();
 		std::string FormatUuid(const std::string& trimmedUuid) const;
-		void CompleteLogin(Ref<Connection> connection, const std::string& uuid,
+		void CompleteLogin(const Ref<Connection> &connection, const std::string& uuid,
 			const std::string& playerName);
 
 	private:
@@ -72,7 +72,7 @@ namespace Axiom {
 		WorldTicker m_WorldTicker{m_PlayerManager};
 
 		std::mutex m_PendingLoginsMutex;
-		std::unordered_map<Connection*, PendingLogin> m_PendingLogins;
+		std::unordered_map<ConnectionId, PendingLogin> m_PendingLogins;
 
 		std::mt19937 m_Random{std::random_device{}()};
 	};

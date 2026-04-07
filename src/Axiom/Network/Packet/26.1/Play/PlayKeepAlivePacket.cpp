@@ -5,11 +5,14 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void PlayKeepAlivePacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		context.KeepAlive().OnKeepAliveResponse(connection.get(), keepAliveId);
-	}
+PACKET_DECODE_BEGIN(PlayKeepAlivePacket)
+    READ_INT64(m_KeepAliveId)
+PACKET_DECODE_END()
 
-	template class PlayKeepAlivePacket<775>;
+PACKET_HANDLE_BEGIN(PlayKeepAlivePacket)
+    context.KeepAlive().OnKeepAliveResponse(connection->Id(), m_KeepAliveId);
+PACKET_HANDLE_END()
+
+PACKET_INSTANTIATE(PlayKeepAlivePacket, 775)
 
 }

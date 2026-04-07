@@ -5,32 +5,56 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void MovePlayerPositionPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		context.ChunkManagement().OnPlayerMove(connection, x, z);
-	}
+	// ----- MovePlayerPosition ---------------------------------------
 
-	template class MovePlayerPositionPacket<775>;
+	PACKET_DECODE_BEGIN(MovePlayerPositionPacket)
+		m_Position = buffer.ReadVector3();
+		READ_BYTE(m_Flags);
+	PACKET_DECODE_END()
 
-	template<int32_t Version>
-	void MovePlayerPositionRotationPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		context.ChunkManagement().OnPlayerMove(connection, x, z);
-	}
+	PACKET_HANDLE_BEGIN(MovePlayerPositionPacket)
+		context.ChunkManagement().OnPlayerMove(connection, m_Position.x, m_Position.z);
+	PACKET_HANDLE_END()
 
-	template class MovePlayerPositionRotationPacket<775>;
+	PACKET_INSTANTIATE(MovePlayerPositionPacket, 775)
 
-	template<int32_t Version>
-	void MovePlayerRotationPacket<Version>::Handle(const Ref<Connection> /*connection*/, PacketContext& /*context*/) {
-		// No position change — nothing to do for chunks
-	}
+	// ----- MovePlayerPositionRotation -------------------------------
 
-	template class MovePlayerRotationPacket<775>;
+	PACKET_DECODE_BEGIN(MovePlayerPositionRotationPacket)
+		m_Position = buffer.ReadVector3();
+		m_Rotation = buffer.ReadVector2();
+		READ_BYTE(m_Flags);
+	PACKET_DECODE_END()
 
-	template<int32_t Version>
-	void MovePlayerStatusOnlyPacket<Version>::Handle(const Ref<Connection> /*connection*/, PacketContext& /*context*/) {
-		// No position change
-	}
+	PACKET_HANDLE_BEGIN(MovePlayerPositionRotationPacket)
+		context.ChunkManagement().OnPlayerMove(connection, m_Position.x, m_Position.z);
+	PACKET_HANDLE_END()
 
-	template class MovePlayerStatusOnlyPacket<775>;
+	PACKET_INSTANTIATE(MovePlayerPositionRotationPacket, 775)
+
+	// ----- MovePlayerRotation ---------------------------------------
+
+	PACKET_DECODE_BEGIN(MovePlayerRotationPacket)
+		m_Rotation = buffer.ReadVector2();
+		READ_BYTE(m_Flags);
+	PACKET_DECODE_END()
+
+	PACKET_HANDLE_BEGIN(MovePlayerRotationPacket)
+		// Rotation only - no chunk updates needed
+	PACKET_HANDLE_END()
+
+	PACKET_INSTANTIATE(MovePlayerRotationPacket, 775)
+
+	// ----- MovePlayerStatusOnly -------------------------------------
+
+	PACKET_DECODE_BEGIN(MovePlayerStatusOnlyPacket)
+		READ_BYTE(m_Flags);
+	PACKET_DECODE_END()
+
+	PACKET_HANDLE_BEGIN(MovePlayerStatusOnlyPacket)
+		// Status only - no position data
+	PACKET_HANDLE_END()
+
+	PACKET_INSTANTIATE(MovePlayerStatusOnlyPacket, 775)
 
 }

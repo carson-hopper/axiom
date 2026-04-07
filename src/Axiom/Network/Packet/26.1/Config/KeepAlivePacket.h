@@ -1,25 +1,17 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file KeepAlivePacket.h
+ *
+ * Client responds to server's keep-alive ping during configuration.
+ */
 
-#include <cstdint>
+#include "Axiom/Network/Packet/PacketMacros.h"
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class ConfigKeepAlivePacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = Serverbound::Config::KeepAlive;
-		static constexpr ConnectionState PacketState = ConnectionState::Configuration;
-
-		void Decode(NetworkBuffer& buffer) override {
-			keepAliveId = buffer.ReadLong();
-		}
-
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-
-		int64_t keepAliveId = 0;
-	};
+PACKET_DECL_BEGIN(ConfigKeepAlivePacket, Configuration, Serverbound::Config::KeepAlive)
+    PACKET_FIELD_INT64(KeepAliveId)
+PACKET_DECL_END()
 
 }

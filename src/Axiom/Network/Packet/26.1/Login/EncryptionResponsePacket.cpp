@@ -10,51 +10,58 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void EncryptionResponsePacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		std::vector<uint8_t> sharedSecret;
-		std::vector<uint8_t> verifyToken;
-		try {
-			sharedSecret = context.KeyPair().Decrypt(encryptedSharedSecret);
-			verifyToken = context.KeyPair().Decrypt(encryptedVerifyToken);
-		} catch (const std::exception& exception) {
-			AX_CORE_ERROR("Decryption failed for {}: {}", connection->RemoteAddress(), exception.what());
-			connection->Disconnect("Encryption error");
-			return;
-		}
+PACKET_DECODE_BEGIN(EncryptionResponsePacket)
+    const int32_t secretLength = buffer.ReadVarInt();
+    m_EncryptedSharedSecret = buffer.ReadBytes(secretLength);
 
-		auto pendingLogin = context.TakePendingLogin(connection.get());
-		if (!pendingLogin) {
-			connection->Disconnect("No pending login");
-			return;
-		}
+    const int32_t tokenLength = buffer.ReadVarInt();
+    m_EncryptedVerifyToken = buffer.ReadBytes(tokenLength);
+PACKET_DECODE_END()
 
-		if (verifyToken.size() != pendingLogin->verifyToken.size() ||
-			!std::equal(verifyToken.begin(), verifyToken.end(), pendingLogin->verifyToken.begin())) {
-			connection->Disconnect("Verify token mismatch");
-			return;
-		}
+PACKET_HANDLE_BEGIN(EncryptionResponsePacket)
+    std::vector<uint8_t> sharedSecret;
+    std::vector<uint8_t> verifyToken;
+    try {
+        sharedSecret = context.KeyPair().Decrypt(m_EncryptedSharedSecret);
+        verifyToken = context.KeyPair().Decrypt(m_EncryptedVerifyToken);
+    } catch (const std::exception& exception) {
+        AX_CORE_ERROR("Decryption failed for {}: {}", connection->RemoteAddress(), exception.what());
+        connection->Disconnect("Encryption error");
+        return;
+    }
 
-		connection->EnableEncryption(sharedSecret);
+    auto pendingLogin = context.TakePendingLogin(connection->Id());
+    if (!pendingLogin) {
+        connection->Disconnect("No pending login");
+        return;
+    }
 
-		const auto& connectionRef = connection;
-		std::string playerName = pendingLogin->playerName;
-		auto publicKey = context.KeyPair().PublicKeyDer();
+    if (verifyToken.size() != pendingLogin->verifyToken.size() ||
+        !std::equal(verifyToken.begin(), verifyToken.end(), pendingLogin->verifyToken.begin())) {
+        connection->Disconnect("Verify token mismatch");
+        return;
+    }
 
-		std::thread([&context, connectionRef, playerName, sharedSecret, publicKey]() {
-			const std::string serverHash = MinecraftServerHash("", sharedSecret, publicKey);
+    connection->EnableEncryption(sharedSecret);
 
-			auto profile = MojangAuth::HasJoined(playerName, serverHash);
-			if (!profile) {
-				connectionRef->Disconnect("Failed to verify username");
-				return;
-			}
+    const auto& connectionRef = connection;
+    std::string playerName = pendingLogin->playerName;
+    auto publicKey = context.KeyPair().PublicKeyDer();
 
-			AX_CORE_INFO("Authenticated {} (UUID: {})", profile->name, profile->uuid);
-			context.CompleteLogin(connectionRef, context.FormatUuid(profile->uuid), profile->name);
-		}).detach();
-	}
+    std::thread([&context, connectionRef, playerName, sharedSecret, publicKey]() {
+        const std::string serverHash = MinecraftServerHash("", sharedSecret, publicKey);
 
-	template class EncryptionResponsePacket<775>;
+        auto profile = MojangAuth::HasJoined(playerName, serverHash);
+        if (!profile) {
+            connectionRef->Disconnect("Failed to verify username");
+            return;
+        }
+
+        AX_CORE_INFO("Authenticated {} (UUID: {})", profile->name, profile->uuid);
+        context.CompleteLogin(connectionRef, context.FormatUuid(profile->uuid), profile->name);
+    }).detach();
+PACKET_HANDLE_END()
+
+PACKET_INSTANTIATE(EncryptionResponsePacket, 775)
 
 }

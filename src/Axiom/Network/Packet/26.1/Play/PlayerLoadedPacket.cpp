@@ -6,11 +6,10 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void PlayerLoadedPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
-		AX_CORE_INFO("Player fully loaded from {}", connection->RemoteAddress());
-	}
+PACKET_HANDLE_BEGIN(PlayerLoadedPacket)
+    AX_CORE_INFO("Player fully loaded from {}", connection->RemoteAddress());
+PACKET_HANDLE_END()
 
-	template class PlayerLoadedPacket<775>;
+PACKET_INSTANTIATE(PlayerLoadedPacket, 775)
 
 }

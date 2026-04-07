@@ -6,12 +6,15 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void ChunkBatchReceivedPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
-		AX_CORE_TRACE("Chunk batch received from {}: {} chunks/tick",
-			connection->RemoteAddress(), chunksPerTick);
-	}
+PACKET_DECODE_BEGIN(ChunkBatchReceivedPacket)
+    READ_FLOAT(m_ChunksPerTick)
+PACKET_DECODE_END()
 
-	template class ChunkBatchReceivedPacket<775>;
+PACKET_HANDLE_BEGIN(ChunkBatchReceivedPacket)
+    AX_CORE_TRACE("Chunk batch received from {}: {} chunks/tick",
+        connection->RemoteAddress(), m_ChunksPerTick);
+PACKET_HANDLE_END()
+
+PACKET_INSTANTIATE(ChunkBatchReceivedPacket, 775)
 
 }

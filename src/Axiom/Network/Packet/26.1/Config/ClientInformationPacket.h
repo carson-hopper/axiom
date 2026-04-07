@@ -1,41 +1,28 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file ClientInformationPacket.h
+ * @brief Client settings packet.
+ *
+ * Contains player preferences like locale, view distance, chat settings, etc.
+ */
+
+#include "Axiom/Network/Packet/PacketMacros.h"
 
 #include <string>
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class ClientInformationPacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = Serverbound::Config::ClientInformation;
-		static constexpr ConnectionState PacketState = ConnectionState::Configuration;
-
-		void Decode(NetworkBuffer& buffer) override {
-			locale = buffer.ReadString(16);
-			viewDistance = buffer.ReadByte();
-			chatMode = buffer.ReadVarInt();
-			chatColors = buffer.ReadBoolean();
-			displayedSkinParts = buffer.ReadByte();
-			mainHand = buffer.ReadVarInt();
-			enableTextFiltering = buffer.ReadBoolean();
-			allowServerListings = buffer.ReadBoolean();
-			particleStatus = buffer.ReadVarInt();
-		}
-
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-
-		std::string locale;
-		int8_t viewDistance = 0;
-		int32_t chatMode = 0;
-		bool chatColors = true;
-		uint8_t displayedSkinParts = 0;
-		int32_t mainHand = 0;
-		bool enableTextFiltering = false;
-		bool allowServerListings = true;
-		int32_t particleStatus = 0;
-	};
+	PACKET_DECL_BEGIN(ClientInformationPacket, Configuration, Serverbound::Config::ClientInformation)
+		PACKET_FIELD_STRING(Locale)
+		PACKET_FIELD_INT8(ViewDistance)
+		PACKET_FIELD_INT32(ChatMode)
+		PACKET_FIELD_BOOL(ChatColors)
+		PACKET_FIELD_INT8(DisplayedSkinParts)
+		PACKET_FIELD_INT32(MainHand)
+		PACKET_FIELD_BOOL(EnableTextFiltering)
+		PACKET_FIELD_BOOL(AllowServerListings)
+		PACKET_FIELD_INT32(ParticleStatus)
+	PACKET_DECL_END()
 
 }

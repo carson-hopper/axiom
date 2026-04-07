@@ -19,7 +19,7 @@ namespace Axiom {
 		, m_Commands(commands)
 		, m_ChunkManager(CreateRef<VanillaChunkGenerator>("/Users/carson/Desktop/server/world"), config.ViewDistance()) {
 
-		auto dataPath = ResolvePath("data");
+		const auto dataPath = ResolvePath("data");
 		m_Registries.LoadAll(dataPath.string());
 		m_ItemToBlock.LoadFromExtractorData(dataPath.string());
 		m_KeepAliveManager.Start();
@@ -29,20 +29,20 @@ namespace Axiom {
 				return m_ChunkManager.Generator().GetBlockAt(worldX, worldY, worldZ);
 			});
 		m_ChunkManager.SetChunkSentCallback(
-			[this](const int32_t chunkX, const int32_t chunkZ) {
-				m_WorldTicker.ScanChunkForPhysics(chunkX, chunkZ);
+			[this](const ChunkPosition chunkPosition) {
+				m_WorldTicker.ScanChunkForPhysics(chunkPosition.x, chunkPosition.z);
 			});
 		m_WorldTicker.Start();
 	}
 
-	void PacketContext::StorePendingLogin(Connection* connection, PendingLogin login) {
+	void PacketContext::StorePendingLogin(ConnectionId connectionId, PendingLogin login) {
 		std::lock_guard<std::mutex> lock(m_PendingLoginsMutex);
-		m_PendingLogins[connection] = std::move(login);
+		m_PendingLogins[connectionId] = std::move(login);
 	}
 
-	std::optional<PendingLogin> PacketContext::TakePendingLogin(Connection* connection) {
+	std::optional<PendingLogin> PacketContext::TakePendingLogin(ConnectionId connectionId) {
 		std::lock_guard<std::mutex> lock(m_PendingLoginsMutex);
-		auto iterator = m_PendingLogins.find(connection);
+		const auto iterator = m_PendingLogins.find(connectionId);
 		if (iterator == m_PendingLogins.end()) {
 			return std::nullopt;
 		}
@@ -71,7 +71,7 @@ namespace Axiom {
 			+ trimmedUuid.substr(20, 12);
 	}
 
-	void PacketContext::CompleteLogin(Ref<Connection> connection, const std::string& uuid,
+	void PacketContext::CompleteLogin(const Ref<Connection> &connection, const std::string& uuid,
 		const std::string& playerName) {
 
 		// Send Set Compression
@@ -115,7 +115,7 @@ namespace Axiom {
 
 		// Create Player and register
 		int32_t entityId = m_PlayerManager.NextEntityId();
-		auto player = m_PlayerManager.AddPlayer(entityId, connection, playerName, uuid);
+		const auto player = m_PlayerManager.AddPlayer(entityId, connection, playerName, uuid);
 		player->SetPosition({0.5, m_ChunkManager.Generator().SpawnY(), 0.5});
 
 		AX_CORE_INFO("{} has logged in [{}] (entity {})", playerName, uuid, entityId);

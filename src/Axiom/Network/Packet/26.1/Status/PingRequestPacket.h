@@ -1,25 +1,18 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file PingRequestPacket.h
+ * @brief Ping request packet for latency measurement.
+ */
+
+#include "Axiom/Network/Packet/PacketMacros.h"
 
 #include <cstdint>
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class PingRequestPacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = Serverbound::Status::PingRequest;
-		static constexpr ConnectionState PacketState = ConnectionState::Status;
-
-		void Decode(NetworkBuffer& buffer) override {
-			timestamp = buffer.ReadLong();
-		}
-
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-
-		int64_t timestamp = 0;
-	};
+	PACKET_DECL_BEGIN(PingRequestPacket, Status, Serverbound::Status::PingRequest)
+		PACKET_FIELD_INT64(Timestamp)
+	PACKET_DECL_END()
 
 }

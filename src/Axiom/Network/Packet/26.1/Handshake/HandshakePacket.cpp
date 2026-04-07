@@ -6,22 +6,34 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void HandshakePacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
+	// ----- Packet Decoding ------------------------------------------
+
+	PACKET_DECODE_BEGIN(HandshakePacket)
+		READ_VARINT(m_ProtocolVersion);
+		READ_STRING_MAX(m_ServerAddress, 255);
+		READ_USHORT(m_ServerPort);
+		READ_VARINT(m_NextState);
+	PACKET_DECODE_END()
+
+	// ----- Packet Handling ------------------------------------------
+
+	PACKET_HANDLE_BEGIN(HandshakePacket)
 		AX_CORE_TRACE("Handshake from {}: protocol={}, address={}:{}, nextState={}",
-			connection->RemoteAddress(), protocolVersion, serverAddress, serverPort, nextState);
+			connection->RemoteAddress(), m_ProtocolVersion, m_ServerAddress, m_ServerPort, m_NextState);
 
-		connection->ProtocolVersion(protocolVersion);
+		connection->ProtocolVersion(m_ProtocolVersion);
 
-		if (nextState == 1) {
+		if (m_NextState == 1) {
 			connection->State(ConnectionState::Status);
-		} else if (nextState == 2) {
+		} else if (m_NextState == 2) {
 			connection->State(ConnectionState::Login);
 		} else {
 			connection->Disconnect("Invalid next state");
 		}
-	}
+	PACKET_HANDLE_END()
 
-	template class HandshakePacket<775>;
+	// ----- Template Instantiation -----------------------------------
+
+	PACKET_INSTANTIATE(HandshakePacket, 775)
 
 }

@@ -89,7 +89,7 @@ namespace Axiom {
 				protocolVersion = PROTOCOL_VERSION;
 			}
 
-			auto packet = Create(protocolVersion, state, packetId);
+			const auto packet = Create(protocolVersion, state, packetId);
 			if (!packet) {
 				AX_CORE_WARN("Unhandled packet 0x{:02X} in state {} for protocol {}",
 					packetId, static_cast<int>(state), protocolVersion);

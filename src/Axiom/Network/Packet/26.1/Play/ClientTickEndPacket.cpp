@@ -5,11 +5,10 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void ClientTickEndPacket<Version>::Handle(const Ref<Connection> /*connection*/, PacketContext& /*context*/) {
-		// No-op — client signals end of tick processing
-	}
+PACKET_HANDLE_BEGIN(ClientTickEndPacket)
+    // No-op - client signals end of tick processing
+PACKET_HANDLE_END()
 
-	template class ClientTickEndPacket<775>;
+PACKET_INSTANTIATE(ClientTickEndPacket, 775)
 
 }

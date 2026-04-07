@@ -7,24 +7,23 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void LoginAcknowledgedPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		AX_CORE_TRACE("Login acknowledged from {}", connection->RemoteAddress());
-		connection->State(ConnectionState::Configuration);
+PACKET_HANDLE_BEGIN(LoginAcknowledgedPacket)
+    AX_CORE_TRACE("Login acknowledged from {}", connection->RemoteAddress());
+    connection->State(ConnectionState::Configuration);
 
-		// Send all registry data
-		context.Registries().SendRegistries(connection);
+    // Send all registry data
+    context.Registries().SendRegistries(connection);
 
-		// Send all tags
-		context.Registries().SendTags(connection);
+    // Send all tags
+    context.Registries().SendTags(connection);
 
-		// Send FinishConfiguration
-		{
-			const NetworkBuffer payload;
-			connection->SendRawPacket(Clientbound::Config::FinishConfiguration, payload);
-		}
-	}
+    // Send FinishConfiguration
+    {
+        const NetworkBuffer payload;
+        connection->SendRawPacket(Clientbound::Config::FinishConfiguration, payload);
+    }
+PACKET_HANDLE_END()
 
-	template class LoginAcknowledgedPacket<775>;
+PACKET_INSTANTIATE(LoginAcknowledgedPacket, 775)
 
 }

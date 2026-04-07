@@ -5,14 +5,17 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void SetCarriedItemPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		auto player = context.Players().GetPlayer(connection.get());
-		if (player) {
-			player->SetSelectedSlot(m_Slot);
-		}
-	}
+PACKET_DECODE_BEGIN(SetCarriedItemPacket)
+    READ_SHORT(m_Slot)
+PACKET_DECODE_END()
 
-	template class SetCarriedItemPacket<775>;
+PACKET_HANDLE_BEGIN(SetCarriedItemPacket)
+    auto player = context.Players().GetPlayer(connection->Id());
+    if (player) {
+        player->SetSelectedSlot(m_Slot);
+    }
+PACKET_HANDLE_END()
+
+PACKET_INSTANTIATE(SetCarriedItemPacket, 775)
 
 }

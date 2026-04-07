@@ -1,26 +1,17 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file AcceptTeleportationPacket.h
+ *
+ * Client confirms it has teleported to the requested position.
+ */
 
-#include <cstdint>
+#include "Axiom/Network/Packet/PacketMacros.h"
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class ConfirmTeleportationPacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = Serverbound::Play::AcceptTeleportation;
-		static constexpr auto PacketState = ConnectionState::Play;
-
-		void Decode(NetworkBuffer& buffer) override {
-			m_TeleportId = buffer.ReadVarInt();
-		}
-
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-
-	private:
-		int32_t m_TeleportId = 0;
-	};
+PACKET_DECL_BEGIN(AcceptTeleportationPacket, Play, Serverbound::Play::AcceptTeleportation)
+    PACKET_FIELD_INT32(TeleportId)
+PACKET_DECL_END()
 
 }

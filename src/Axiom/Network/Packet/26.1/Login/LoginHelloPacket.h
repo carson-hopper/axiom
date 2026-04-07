@@ -1,25 +1,18 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file LoginHelloPacket.h
+ * @brief Login start packet sent by the client.
+ */
+
+#include "Axiom/Network/Packet/PacketMacros.h"
 
 #include <string>
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class LoginHelloPacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = Serverbound::Login::Hello;
-		static constexpr ConnectionState PacketState = ConnectionState::Login;
-
-		void Decode(NetworkBuffer& buffer) override {
-			playerName = buffer.ReadString(16);
-		}
-
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-
-		std::string playerName;
-	};
+	PACKET_DECL_BEGIN(LoginHelloPacket, Login, Serverbound::Login::Hello)
+		PACKET_FIELD_STRING(PlayerName)
+	PACKET_DECL_END()
 
 }

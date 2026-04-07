@@ -7,13 +7,20 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void LoginHelloPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		AX_CORE_INFO("Login request from {} ({})", playerName, connection->RemoteAddress());
+	// ----- Packet Decoding ------------------------------------------
+
+	PACKET_DECODE_BEGIN(LoginHelloPacket)
+		READ_STRING_MAX(m_PlayerName, 16);
+	PACKET_DECODE_END()
+
+	// ----- Packet Handling ------------------------------------------
+
+	PACKET_HANDLE_BEGIN(LoginHelloPacket)
+		AX_CORE_INFO("Login request from {} ({})", m_PlayerName, connection->RemoteAddress());
 
 		if (context.Config().OnlineMode()) {
-			auto verifyToken = context.GenerateVerifyToken();
-			context.StorePendingLogin(connection.get(), PendingLogin{playerName, verifyToken});
+			const auto verifyToken = context.GenerateVerifyToken();
+			context.StorePendingLogin(connection->Id(), PendingLogin{m_PlayerName, verifyToken});
 
 			NetworkBuffer payload;
 			payload.WriteString("");  // Server ID (empty)
@@ -25,14 +32,16 @@ namespace Axiom {
 
 			connection->SendRawPacket(Clientbound::Login::Hello, payload);
 		} else {
-			std::string offlineUuid = "00000000-0000-3000-8000-" + playerName.substr(0, 12);
+			std::string offlineUuid = "00000000-0000-3000-8000-" + m_PlayerName.substr(0, 12);
 			while (offlineUuid.size() < 36) {
 				offlineUuid += "0";
 			}
-			context.CompleteLogin(connection, offlineUuid, playerName);
+			context.CompleteLogin(connection, offlineUuid, m_PlayerName);
 		}
-	}
+	PACKET_HANDLE_END()
 
-	template class LoginHelloPacket<775>;
+	// ----- Template Instantiation -----------------------------------
+
+	PACKET_INSTANTIATE(LoginHelloPacket, 775)
 
 }

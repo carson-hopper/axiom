@@ -1,18 +1,15 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file PlayerLoadedPacket.h
+ *
+ * Client signals that it has finished loading the world.
+ */
+
+#include "Axiom/Network/Packet/PacketMacros.h"
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class PlayerLoadedPacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = Serverbound::Play::PlayerLoaded;
-		static constexpr ConnectionState PacketState = ConnectionState::Play;
-
-		void Decode(NetworkBuffer& /*buffer*/) override {}
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-	};
+DEFINE_SIMPLE_PACKET(PlayerLoadedPacket, Play, Serverbound::Play::PlayerLoaded)
 
 }

@@ -1,32 +1,21 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file HandshakePacket.h
+ * @brief Initial handshake packet sent by the client.
+ */
 
-#include <cstdint>
+#include "Axiom/Network/Packet/PacketMacros.h"
+
 #include <string>
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class HandshakePacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = 0x00;
-		static constexpr ConnectionState PacketState = ConnectionState::Handshake;
-
-		void Decode(NetworkBuffer& buffer) override {
-			protocolVersion = buffer.ReadVarInt();
-			serverAddress = buffer.ReadString(255);
-			serverPort = buffer.ReadUnsignedShort();
-			nextState = buffer.ReadVarInt();
-		}
-
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-
-		int32_t protocolVersion = 0;
-		std::string serverAddress;
-		uint16_t serverPort = 0;
-		int32_t nextState = 0;
-	};
+	PACKET_DECL_BEGIN(HandshakePacket, Handshake, 0x00)
+		PACKET_FIELD_INT32(ProtocolVersion)
+		PACKET_FIELD_STRING(ServerAddress)
+		PACKET_FIELD_UINT16(ServerPort)
+		PACKET_FIELD_INT32(NextState)
+	PACKET_DECL_END()
 
 }

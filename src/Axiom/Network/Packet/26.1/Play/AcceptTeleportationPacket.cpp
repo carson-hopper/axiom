@@ -1,4 +1,4 @@
-#include "ConfirmTeleportationPacket.h"
+#include "AcceptTeleportationPacket.h"
 
 #include "Axiom/Core/Log.h"
 #include "Axiom/Network/Connection.h"
@@ -6,11 +6,14 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void ConfirmTeleportationPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
-		AX_CORE_TRACE("Teleport accepted from {}: id={}", connection->RemoteAddress(), teleportId);
-	}
+PACKET_DECODE_BEGIN(AcceptTeleportationPacket)
+    READ_VARINT(m_TeleportId)
+PACKET_DECODE_END()
 
-	template class ConfirmTeleportationPacket<775>;
+PACKET_HANDLE_BEGIN(AcceptTeleportationPacket)
+    AX_CORE_TRACE("Teleport accepted from {}: id={}", connection->RemoteAddress(), m_TeleportId);
+PACKET_HANDLE_END()
+
+PACKET_INSTANTIATE(AcceptTeleportationPacket, 775)
 
 }

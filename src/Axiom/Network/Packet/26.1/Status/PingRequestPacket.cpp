@@ -5,13 +5,22 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void PingRequestPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
-		NetworkBuffer payload;
-		payload.WriteLong(timestamp);
-		connection->SendRawPacket(Clientbound::Status::PongResponse, payload);
-	}
+	// ----- Packet Decoding ------------------------------------------
 
-	template class PingRequestPacket<775>;
+	PACKET_DECODE_BEGIN(PingRequestPacket)
+		READ_INT64(m_Timestamp);
+	PACKET_DECODE_END()
+
+	// ----- Packet Handling ------------------------------------------
+
+	PACKET_HANDLE_BEGIN(PingRequestPacket)
+		NetworkBuffer payload;
+		payload.WriteLong(m_Timestamp);
+		connection->SendRawPacket(Clientbound::Status::PongResponse, payload);
+	PACKET_HANDLE_END()
+
+	// ----- Template Instantiation -----------------------------------
+
+	PACKET_INSTANTIATE(PingRequestPacket, 775)
 
 }

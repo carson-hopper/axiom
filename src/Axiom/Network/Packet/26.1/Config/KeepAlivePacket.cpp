@@ -6,11 +6,14 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void ConfigKeepAlivePacket<Version>::Handle(const Ref<Connection> connection, PacketContext& /*context*/) {
-		AX_CORE_TRACE("Config keep-alive response from {}: {}", connection->RemoteAddress(), keepAliveId);
-	}
+PACKET_DECODE_BEGIN(ConfigKeepAlivePacket)
+    READ_INT64(m_KeepAliveId)
+PACKET_DECODE_END()
 
-	template class ConfigKeepAlivePacket<775>;
+PACKET_HANDLE_BEGIN(ConfigKeepAlivePacket)
+    AX_CORE_TRACE("Config keep-alive response from {}: {}", connection->RemoteAddress(), m_KeepAliveId);
+PACKET_HANDLE_END()
+
+PACKET_INSTANTIATE(ConfigKeepAlivePacket, 775)
 
 }

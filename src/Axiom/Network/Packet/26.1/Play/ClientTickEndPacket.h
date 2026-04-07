@@ -1,18 +1,15 @@
 #pragma once
 
-#include "Axiom/Network/Packet/ServerboundPacket.h"
-#include "Axiom/Network/Protocol.h"
+/**
+ * @file ClientTickEndPacket.h
+ *
+ * Client signals end of tick processing.
+ */
+
+#include "Axiom/Network/Packet/PacketMacros.h"
 
 namespace Axiom {
 
-	template<int32_t Version = PROTOCOL_VERSION>
-	class ClientTickEndPacket : public ServerboundPacket {
-	public:
-		static constexpr int32_t PacketId = Serverbound::Play::ClientTickEnd;
-		static constexpr ConnectionState PacketState = ConnectionState::Play;
-
-		void Decode(NetworkBuffer& /*buffer*/) override {}
-		void Handle(Ref<Connection> connection, PacketContext& context) override;
-	};
+DEFINE_SIMPLE_PACKET(ClientTickEndPacket, Play, Serverbound::Play::ClientTickEnd)
 
 }
