@@ -21,6 +21,7 @@ namespace Axiom {
 
 		auto dataPath = ResolvePath("data");
 		m_Registries.LoadAll(dataPath.string());
+		m_ItemToBlock.LoadFromExtractorData(dataPath.string());
 		m_KeepAliveManager.Start();
 		m_WorldTime.Start();
 		m_WorldTicker.SetTerrainLookup(

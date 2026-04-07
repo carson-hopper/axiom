@@ -5,6 +5,8 @@
 #include "Axiom/Environment/Level/Level.h"
 #include "Axiom/Network/Connection.h"
 
+#include <algorithm>
+#include <array>
 #include <memory>
 #include <string>
 #include <utility>
@@ -56,8 +58,28 @@ namespace Axiom {
 		int GetTotalExperience() const { return m_TotalExperience; }
 		void SetTotalExperience(const int total) { m_TotalExperience = total; }
 
+		// ----- Inventory ------------------------------------------------
+
+		int GetSelectedSlot() const { return m_SelectedSlot; }
+		void SetSelectedSlot(const int slot) { m_SelectedSlot = std::clamp(slot, 0, 8); }
+
+		int32_t GetHeldItemId() const { return m_HotbarItems[m_SelectedSlot].itemId; }
+
+		struct HotbarSlot {
+			int32_t itemId = 0;
+			int32_t count = 0;
+		};
+
+		void SetHotbarItem(const int slot, const int32_t itemId, const int32_t count) {
+			if (slot >= 0 && slot < 9) {
+				m_HotbarItems[slot] = {itemId, count};
+			}
+		}
+
+		// ----- Actions --------------------------------------------------
+
 		void SendMessage(const std::string& message) override;
-		void Kick(const std::string& reason = "")const;
+		void Kick(const std::string& reason = "") const;
 
 		bool IsPlayer() const override { return true; }
 		bool HasPermission(const std::string& /*permission*/) const override { return true; }
@@ -71,6 +93,8 @@ namespace Axiom {
 		std::string m_Name;
 		std::string m_Uuid;
 		GameMode m_GameMode = GameMode::Spectator;
+		int m_SelectedSlot = 0;
+		std::array<HotbarSlot, 9> m_HotbarItems{};
 		int m_FoodLevel = 20;
 		float m_SaturationLevel = 5.0f;
 		int m_ExperienceLevel = 0;

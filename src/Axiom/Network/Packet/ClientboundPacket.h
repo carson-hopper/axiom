@@ -11,7 +11,7 @@ namespace Axiom {
 	public:
 		virtual ~ClientboundPacket() = default;
 
-		virtual int32_t PacketId() const = 0;
+		virtual int32_t GetPacketId() const = 0;
 		virtual void Encode(NetworkBuffer& buffer) const = 0;
 	};
 

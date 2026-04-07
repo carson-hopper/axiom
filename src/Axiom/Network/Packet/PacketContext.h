@@ -8,6 +8,7 @@
 #include "Axiom/Network/KeepAliveManager.h"
 #include "Axiom/Environment/Level/LevelTime.h"
 #include "Axiom/Environment/Level/Physics/WorldTicker.h"
+#include "Axiom/Environment/Level/Generator/ItemToBlockMapping.h"
 
 #include <array>
 #include <cstdint>
@@ -43,6 +44,7 @@ namespace Axiom {
 		KeepAliveManager& KeepAlive() { return m_KeepAliveManager; }
 		LevelTime& Time() { return m_WorldTime; }
 		WorldTicker& Ticker() { return m_WorldTicker; }
+		const ItemToBlockMapping& ItemBlocks() const { return m_ItemToBlock; }
 
 		// ----- Pending logins -------------------------------------------
 
@@ -65,6 +67,7 @@ namespace Axiom {
 		ChunkManager m_ChunkManager;
 		PlayerManager m_PlayerManager;
 		KeepAliveManager m_KeepAliveManager{m_PlayerManager};
+		ItemToBlockMapping m_ItemToBlock;
 		LevelTime m_WorldTime{m_PlayerManager};
 		WorldTicker m_WorldTicker{m_PlayerManager};
 

@@ -9,32 +9,44 @@ namespace Axiom {
 
 	template<int32_t Version>
 	void UseItemOnPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
-		// Calculate the position where the new block should be placed
-		int32_t placeX = blockX;
-		int32_t placeY = blockY;
-		int32_t placeZ = blockZ;
+		int32_t placeX = m_BlockX;
+		int32_t placeY = m_BlockY;
+		int32_t placeZ = m_BlockZ;
 
-		// Offset by face direction
-		switch (face) {
-			case 0: placeY--; break;  // Bottom
-			case 1: placeY++; break;  // Top
-			case 2: placeZ--; break;  // North
-			case 3: placeZ++; break;  // South
-			case 4: placeX--; break;  // West
-			case 5: placeX++; break;  // East
+		switch (m_Face) {
+			case 0: placeY--; break;
+			case 1: placeY++; break;
+			case 2: placeZ--; break;
+			case 3: placeZ++; break;
+			case 4: placeX--; break;
+			case 5: placeX++; break;
 			default: break;
 		}
 
-		AX_CORE_TRACE("Block place at ({}, {}, {}) face={} from {}", placeX, placeY, placeZ,
-			face, connection->RemoteAddress());
+		// Look up the held item and convert to block state
+		auto player = context.Players().GetPlayer(connection.get());
+		int32_t blockState = 0;
 
-		// For now, place stone (proper item handling would check held item)
-		// The client already shows the block, we just need to confirm and track it
-		context.Ticker().SetBlock(placeX, placeY, placeZ, BlockState::Stone);
+		if (player) {
+			const int32_t heldItemId = player->GetHeldItemId();
+			blockState = context.ItemBlocks().GetBlockState(heldItemId);
+		}
 
-		// Send block changed ack
+		if (blockState == 0) {
+			// Not a block item — just ack and return
+			NetworkBuffer ackPayload;
+			ackPayload.WriteVarInt(m_Sequence);
+			connection->SendRawPacket(Clientbound::Play::BlockChangedAck, ackPayload);
+			return;
+		}
+
+		AX_CORE_TRACE("Block place at ({}, {}, {}) state={} from {}",
+			placeX, placeY, placeZ, blockState, connection->RemoteAddress());
+
+		context.Ticker().SetBlock(placeX, placeY, placeZ, blockState);
+
 		NetworkBuffer ackPayload;
-		ackPayload.WriteVarInt(sequence);
+		ackPayload.WriteVarInt(m_Sequence);
 		connection->SendRawPacket(Clientbound::Play::BlockChangedAck, ackPayload);
 	}
 

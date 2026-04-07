@@ -17,33 +17,34 @@ namespace Axiom {
 		static constexpr ConnectionState PacketState = ConnectionState::Play;
 
 		void Decode(NetworkBuffer& buffer) override {
-			hand = buffer.ReadVarInt();
+			m_Hand = buffer.ReadVarInt();
 			const int64_t encoded = buffer.ReadLong();
-			blockX = static_cast<int32_t>(encoded >> 38);
-			blockY = static_cast<int32_t>((encoded << 52) >> 52);
-			blockZ = static_cast<int32_t>((encoded << 26) >> 38);
-			face = buffer.ReadVarInt();
-			cursorX = buffer.ReadFloat();
-			cursorY = buffer.ReadFloat();
-			cursorZ = buffer.ReadFloat();
-			insideBlock = buffer.ReadBoolean();
-			worldBorderHit = buffer.ReadBoolean();
-			sequence = buffer.ReadVarInt();
+			m_BlockX = static_cast<int32_t>(encoded >> 38);
+			m_BlockY = static_cast<int32_t>((encoded << 52) >> 52);
+			m_BlockZ = static_cast<int32_t>((encoded << 26) >> 38);
+			m_Face = buffer.ReadVarInt();
+			m_CursorX = buffer.ReadFloat();
+			m_CursorY = buffer.ReadFloat();
+			m_CursorZ = buffer.ReadFloat();
+			m_InsideBlock = buffer.ReadBoolean();
+			m_WorldBorderHit = buffer.ReadBoolean();
+			m_Sequence = buffer.ReadVarInt();
 		}
 
 		void Handle(Ref<Connection> connection, PacketContext& context) override;
 
-		int32_t hand = 0;
-		int32_t blockX = 0;
-		int32_t blockY = 0;
-		int32_t blockZ = 0;
-		int32_t face = 0;
-		float cursorX = 0;
-		float cursorY = 0;
-		float cursorZ = 0;
-		bool insideBlock = false;
-		bool worldBorderHit = false;
-		int32_t sequence = 0;
+	private:
+		int32_t m_Hand = 0;
+		int32_t m_BlockX = 0;
+		int32_t m_BlockY = 0;
+		int32_t m_BlockZ = 0;
+		int32_t m_Face = 0;
+		float m_CursorX = 0;
+		float m_CursorY = 0;
+		float m_CursorZ = 0;
+		bool m_InsideBlock = false;
+		bool m_WorldBorderHit = false;
+		int32_t m_Sequence = 0;
 	};
 
 }

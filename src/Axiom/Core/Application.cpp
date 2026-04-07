@@ -23,6 +23,8 @@
 #include "Axiom/Network/Packet/26.1/Play/MovePlayerPositionPacket.h"
 #include "Axiom/Network/Packet/26.1/Play/PlayerActionPacket.h"
 #include "Axiom/Network/Packet/26.1/Play/UseItemOnPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/SetCarriedItemPacket.h"
+#include "Axiom/Network/Packet/26.1/Play/SetCreativeModeSlotPacket.h"
 #include "Axiom/Environment/Level/LevelTime.h"
 
 #include <iostream>
@@ -166,6 +168,8 @@ namespace Axiom {
 		m_PacketRegistry.Register<775, MovePlayerStatusOnlyPacket<775>>();
 		m_PacketRegistry.Register<775, PlayerActionPacket<775>>();
 		m_PacketRegistry.Register<775, UseItemOnPacket<775>>();
+		m_PacketRegistry.Register<775, SetCarriedItemPacket<775>>();
+		m_PacketRegistry.Register<775, SetCreativeModeSlotPacket<775>>();
 	}
 
 	void Application::Run() {
