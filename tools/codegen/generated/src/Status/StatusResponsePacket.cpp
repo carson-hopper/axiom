@@ -2,7 +2,7 @@
 namespace Axiom {
 
 void StatusResponsePacket::Serialize(NetworkBuffer& buffer) const {
-    buffer.WriteString(m_json_response);
+    buffer.WriteString(mJsonResponse);
 }
 
 template class StatusResponsePacket<775>;

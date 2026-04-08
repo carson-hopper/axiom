@@ -16,17 +16,17 @@ public:
     LoginStartPacket& operator=(LoginStartPacket&&) = default;
 
     LoginStartPacket(std::string username)
-        : m_username(std::move(username))
+        : mUsername(std::move(username))
     {}
 
-    std::string GetUsername() const { return m_username; }
-    void SetUsername(std::string value) { m_username = std::move(value); }
+    std::string GetUsername() const { return mUsername; }
+    void SetUsername(std::string value) { mUsername = std::move(value); }
 
     void Deserialize(NetworkBuffer& buffer) override;
     void Handle(Ref<Connection> connection, PacketContext& context) override;
 
 private:
-    std::string m_username;
+    std::string mUsername;
 };
 
 } // namespace Axiom

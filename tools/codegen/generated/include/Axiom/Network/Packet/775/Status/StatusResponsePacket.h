@@ -15,18 +15,18 @@ public:
     StatusResponsePacket(StatusResponsePacket&&) = default;
     StatusResponsePacket& operator=(StatusResponsePacket&&) = default;
 
-    StatusResponsePacket(std::string json_response)
-        : m_json_response(std::move(json_response))
+    StatusResponsePacket(std::string jsonResponse)
+        : mJsonResponse(std::move(jsonResponse))
     {}
 
-    std::string GetJsonResponse() const { return m_json_response; }
-    void SetJsonResponse(std::string value) { m_json_response = std::move(value); }
+    std::string GetJsonResponse() const { return mJsonResponse; }
+    void SetJsonResponse(std::string value) { mJsonResponse = std::move(value); }
 
     int32_t GetPacketId() const override { return PacketId; }
     void Serialize(NetworkBuffer& buffer) const override;
 
 private:
-    std::string m_json_response;
+    std::string mJsonResponse;
 };
 
 } // namespace Axiom

@@ -2,7 +2,7 @@
 namespace Axiom {
 
 void StatusPongPacket::Serialize(NetworkBuffer& buffer) const {
-    buffer.WriteLong(m_payload);
+    buffer.WriteLong(mPayload);
 }
 
 template class StatusPongPacket<775>;

@@ -17,20 +17,20 @@ public:
     LoginSuccessPacket& operator=(LoginSuccessPacket&&) = default;
 
     LoginSuccessPacket(UUID uuid, std::string username)
-        : m_uuid(std::move(uuid)), m_username(std::move(username))
+        : mUuid(std::move(uuid)), mUsername(std::move(username))
     {}
 
-    UUID GetUuid() const { return m_uuid; }
-    void SetUuid(UUID value) { m_uuid = std::move(value); }
-    std::string GetUsername() const { return m_username; }
-    void SetUsername(std::string value) { m_username = std::move(value); }
+    UUID GetUuid() const { return mUuid; }
+    void SetUuid(UUID value) { mUuid = std::move(value); }
+    std::string GetUsername() const { return mUsername; }
+    void SetUsername(std::string value) { mUsername = std::move(value); }
 
     int32_t GetPacketId() const override { return PacketId; }
     void Serialize(NetworkBuffer& buffer) const override;
 
 private:
-    UUID m_uuid;
-    std::string m_username;
+    UUID mUuid;
+    std::string mUsername;
 };
 
 } // namespace Axiom

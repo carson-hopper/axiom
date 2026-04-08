@@ -2,7 +2,7 @@
 namespace Axiom {
 
 void KeepAliveResponsePacket::Serialize(NetworkBuffer& buffer) const {
-    buffer.WriteLong(m_id);
+    buffer.WriteLong(mId);
 }
 
 template class KeepAliveResponsePacket<775>;

@@ -2,10 +2,10 @@
 namespace Axiom {
 
 void HandshakePacket::Deserialize(NetworkBuffer& buffer) {
-    m_protocol_version = buffer.ReadVarInt;
-    m_server_address = buffer.ReadString;
-    m_server_port = buffer.ReadUnsignedShort;
-    m_next_state = buffer.ReadVarInt;
+    mProtocolVersion = buffer.ReadVarInt;
+    mServerAddress = buffer.ReadString;
+    mServerPort = buffer.ReadUnsignedShort;
+    mNextState = buffer.ReadVarInt;
 }
 
 void HandshakePacket::Handle(Ref<Connection> connection, PacketContext& context) {

@@ -17,20 +17,20 @@ public:
     SystemChatPacket& operator=(SystemChatPacket&&) = default;
 
     SystemChatPacket(Ref<ChatComponent> message, bool overlay)
-        : m_message(std::move(message)), m_overlay(std::move(overlay))
+        : mMessage(std::move(message)), mOverlay(std::move(overlay))
     {}
 
-    Ref<ChatComponent> GetMessage() const { return m_message; }
-    void SetMessage(Ref<ChatComponent> value) { m_message = std::move(value); }
-    bool IsOverlay() const { return m_overlay; }
-    void SetOverlay(bool value) { m_overlay = std::move(value); }
+    Ref<ChatComponent> GetMessage() const { return mMessage; }
+    void SetMessage(Ref<ChatComponent> value) { mMessage = std::move(value); }
+    bool IsOverlay() const { return mOverlay; }
+    void SetOverlay(bool value) { mOverlay = std::move(value); }
 
     int32_t GetPacketId() const override { return PacketId; }
     void Serialize(NetworkBuffer& buffer) const override;
 
 private:
-    Ref<ChatComponent> m_message;
-    bool m_overlay;
+    Ref<ChatComponent> mMessage;
+    bool mOverlay;
 };
 
 } // namespace Axiom

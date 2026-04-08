@@ -2,8 +2,8 @@
 namespace Axiom {
 
 void SystemChatPacket::Serialize(NetworkBuffer& buffer) const {
-    buffer.WriteChatComponent(m_message);
-    buffer.WriteBoolean(m_overlay);
+    buffer.WriteChatComponent(mMessage);
+    buffer.WriteBoolean(mOverlay);
 }
 
 template class SystemChatPacket<775>;

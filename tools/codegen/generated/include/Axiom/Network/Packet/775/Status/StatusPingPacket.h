@@ -16,17 +16,17 @@ public:
     StatusPingPacket& operator=(StatusPingPacket&&) = default;
 
     StatusPingPacket(int64_t payload)
-        : m_payload(std::move(payload))
+        : mPayload(std::move(payload))
     {}
 
-    int64_t GetPayload() const { return m_payload; }
-    void SetPayload(int64_t value) { m_payload = std::move(value); }
+    int64_t GetPayload() const { return mPayload; }
+    void SetPayload(int64_t value) { mPayload = std::move(value); }
 
     void Deserialize(NetworkBuffer& buffer) override;
     void Handle(Ref<Connection> connection, PacketContext& context) override;
 
 private:
-    int64_t m_payload;
+    int64_t mPayload;
 };
 
 } // namespace Axiom

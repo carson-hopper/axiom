@@ -2,7 +2,7 @@
 namespace Axiom {
 
 void StatusPingPacket::Deserialize(NetworkBuffer& buffer) {
-    m_payload = buffer.ReadLong;
+    mPayload = buffer.ReadLong;
 }
 
 void StatusPingPacket::Handle(Ref<Connection> connection, PacketContext& context) {

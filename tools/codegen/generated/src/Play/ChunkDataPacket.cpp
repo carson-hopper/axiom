@@ -2,11 +2,11 @@
 namespace Axiom {
 
 void ChunkDataPacket::Serialize(NetworkBuffer& buffer) const {
-    buffer.WriteInt(m_chunk_x);
-    buffer.WriteInt(m_chunk_z);
-    buffer.WriteNBT(m_heightmaps);
-    buffer.WriteByteArray(m_chunk_sections);
-    buffer.WriteBlockEntities(m_block_entities);
+    buffer.WriteInt(mChunkX);
+    buffer.WriteInt(mChunkZ);
+    buffer.WriteNBT(mHeightmaps);
+    buffer.WriteByteArray(mChunkSections);
+    buffer.WriteBlockEntities(mBlockEntities);
 }
 
 template class ChunkDataPacket<775>;

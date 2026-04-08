@@ -16,17 +16,17 @@ public:
     StatusPongPacket& operator=(StatusPongPacket&&) = default;
 
     StatusPongPacket(int64_t payload)
-        : m_payload(std::move(payload))
+        : mPayload(std::move(payload))
     {}
 
-    int64_t GetPayload() const { return m_payload; }
-    void SetPayload(int64_t value) { m_payload = std::move(value); }
+    int64_t GetPayload() const { return mPayload; }
+    void SetPayload(int64_t value) { mPayload = std::move(value); }
 
     int32_t GetPacketId() const override { return PacketId; }
     void Serialize(NetworkBuffer& buffer) const override;
 
 private:
-    int64_t m_payload;
+    int64_t mPayload;
 };
 
 } // namespace Axiom

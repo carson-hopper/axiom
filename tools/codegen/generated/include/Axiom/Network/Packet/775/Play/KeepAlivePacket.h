@@ -16,17 +16,17 @@ public:
     KeepAlivePacket& operator=(KeepAlivePacket&&) = default;
 
     KeepAlivePacket(int64_t id)
-        : m_id(std::move(id))
+        : mId(std::move(id))
     {}
 
-    int64_t GetId() const { return m_id; }
-    void SetId(int64_t value) { m_id = std::move(value); }
+    int64_t GetId() const { return mId; }
+    void SetId(int64_t value) { mId = std::move(value); }
 
     void Deserialize(NetworkBuffer& buffer) override;
     void Handle(Ref<Connection> connection, PacketContext& context) override;
 
 private:
-    int64_t m_id;
+    int64_t mId;
 };
 
 } // namespace Axiom

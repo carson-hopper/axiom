@@ -2,17 +2,17 @@
 namespace Axiom {
 
 void PlayerChatPacket::Serialize(NetworkBuffer& buffer) const {
-    buffer.WriteUUID(m_sender_uuid);
-    buffer.WriteOptional(&NetworkBuffer::WriteByteArray)(m_signature);
-    buffer.WriteChatComponent(m_message);
-    buffer.WriteLong(m_timestamp);
-    buffer.WriteLong(m_salt);
-    buffer.WriteVarIntArray(m_previous_messages);
-    buffer.WriteOptional(&NetworkBuffer::WriteChatComponent)(m_unsigned_content);
-    buffer.WriteVarInt(m_filter_type);
-    buffer.WriteVarInt(m_chat_type);
-    buffer.WriteString(m_sender_name);
-    buffer.WriteOptional(&NetworkBuffer::WriteString)(m_target_name);
+    buffer.WriteUUID(mSenderUuid);
+    buffer.WriteOptional(&NetworkBuffer::WriteByteArray)(mSignature);
+    buffer.WriteChatComponent(mMessage);
+    buffer.WriteLong(mTimestamp);
+    buffer.WriteLong(mSalt);
+    buffer.WriteVarIntArray(mPreviousMessages);
+    buffer.WriteOptional(&NetworkBuffer::WriteChatComponent)(mUnsignedContent);
+    buffer.WriteVarInt(mFilterType);
+    buffer.WriteVarInt(mChatType);
+    buffer.WriteString(mSenderName);
+    buffer.WriteOptional(&NetworkBuffer::WriteString)(mTargetName);
 }
 
 template class PlayerChatPacket<775>;

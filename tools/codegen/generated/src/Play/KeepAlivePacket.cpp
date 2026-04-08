@@ -2,7 +2,7 @@
 namespace Axiom {
 
 void KeepAlivePacket::Deserialize(NetworkBuffer& buffer) {
-    m_id = buffer.ReadLong;
+    mId = buffer.ReadLong;
 }
 
 void KeepAlivePacket::Handle(Ref<Connection> connection, PacketContext& context) {

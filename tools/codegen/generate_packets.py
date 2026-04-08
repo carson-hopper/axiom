@@ -12,6 +12,23 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 
 
+def to_camel_case(snake_str: str) -> str:
+    """Convert snake_case to camelCase."""
+    components = snake_str.split("_")
+    return components[0] + "".join(x.capitalize() for x in components[1:])
+
+
+def to_pascal_case(name: str) -> str:
+    """Convert snake_case or camelCase to PascalCase."""
+    if "_" in name:
+        # snake_case input
+        components = name.split("_")
+        return "".join(x.capitalize() for x in components)
+    else:
+        # camelCase input - capitalize first letter
+        return name[0].upper() + name[1:]
+
+
 class TypeMapper:
     """Maps schema types to C++ types and serialization methods."""
 
@@ -91,15 +108,15 @@ def generate_packet_header(packet_name: str, packet_def: Dict, version: int) -> 
     getter_setters = []
 
     for field in fields:
-        name = field["name"]
+        raw_name = field["name"]
+        name = to_camel_case(raw_name)
         schema_type = field["type"]
         cpp_type = TypeMapper.get_cpp_type(schema_type)
 
-        # Member variable
-        field_decls.append(f"    {cpp_type} m_{name};")
+        member_name = f"m{to_pascal_case(name)}"
+        field_decls.append(f"    {cpp_type} {member_name};")
 
-        # Getter
-        getter_name = "".join(word.capitalize() for word in name.split("_"))
+        getter_name = to_pascal_case(raw_name)
         if cpp_type == "bool":
             getter_name = f"Is{getter_name}"
         else:
@@ -107,16 +124,16 @@ def generate_packet_header(packet_name: str, packet_def: Dict, version: int) -> 
 
         if schema_type.startswith("Optional<"):
             getter_setters.append(
-                f"    const {cpp_type}& {getter_name}() const {{ return m_{name}; }}"
+                f"    const {cpp_type}& {getter_name}() const {{ return {member_name}; }}"
             )
         else:
             getter_setters.append(
-                f"    {cpp_type} {getter_name}() const {{ return m_{name}; }}"
+                f"    {cpp_type} {getter_name}() const {{ return {member_name}; }}"
             )
 
         setter_name = f"Set{getter_name[3:] if not getter_name.startswith('Is') else getter_name[2:]}"
         getter_setters.append(
-            f"    void {setter_name}({cpp_type} value) {{ m_{name} = std::move(value); }}"
+            f"    void {setter_name}({cpp_type} value) {{ {member_name} = std::move(value); }}"
         )
 
     # Generate includes
@@ -159,13 +176,18 @@ def generate_packet_header(packet_name: str, packet_def: Dict, version: int) -> 
     lines.append("")
 
     if fields:
-        # Constructor with all fields
-        params = [f"{TypeMapper.get_cpp_type(f['type'])} {f['name']}" for f in fields]
+        params = []
+        inits = []
+        for f in fields:
+            raw_name = f["name"]
+            name = to_camel_case(raw_name)
+            cpp_type = TypeMapper.get_cpp_type(f["type"])
+            member_name = f"m{name[0].upper() + name[1:]}"
+            params.append(f"{cpp_type} {name}")
+            inits.append(f"{member_name}(std::move({name}))")
+
         lines.append(f"    {packet_name}({', '.join(params)})")
-        lines.append(
-            "        : "
-            + ", ".join(f"m_{f['name']}(std::move({f['name']}))" for f in fields)
-        )
+        lines.append("        : " + ", ".join(inits))
         lines.append("    {}")
 
     lines.append("")
@@ -203,36 +225,37 @@ def generate_packet_impl(packet_name: str, packet_def: Dict, version: int) -> st
     lines = [f'#include "{packet_name}.h"', "namespace Axiom {", ""]
 
     if direction == "Serverbound":
-        # Deserialize
         lines.append(f"void {packet_name}::Deserialize(NetworkBuffer& buffer) {{")
         for field in fields:
-            name = field["name"]
+            raw_name = field["name"]
+            name = to_camel_case(raw_name)
             schema_type = field["type"]
             read_method = TypeMapper.get_read_method(schema_type)
-            lines.append(f"    m_{name} = buffer.{read_method};")
+            member_name = f"m{name[0].upper() + name[1:]}"
+            lines.append(f"    {member_name} = buffer.{read_method};")
         lines.append("}")
         lines.append("")
 
-        # Handle stub
         lines.append(
             f"void {packet_name}::Handle(Ref<Connection> connection, PacketContext& context) {{"
         )
         lines.append("    // TODO: Implement packet handling")
         lines.append("}")
     else:
-        # Serialize
         lines.append(f"void {packet_name}::Serialize(NetworkBuffer& buffer) const {{")
         for field in fields:
-            name = field["name"]
+            raw_name = field["name"]
+            name = to_camel_case(raw_name)
             schema_type = field["type"]
             write_method = TypeMapper.get_write_method(schema_type)
+            member_name = f"m{name[0].upper() + name[1:]}"
 
             if schema_type.startswith("Optional<"):
-                lines.append(f"    buffer.{write_method}(m_{name});")
+                lines.append(f"    buffer.{write_method}({member_name});")
             elif schema_type.startswith("ByteArray<"):
-                lines.append(f"    buffer.{write_method}(m_{name});")
+                lines.append(f"    buffer.{write_method}({member_name});")
             else:
-                lines.append(f"    buffer.{write_method}(m_{name});")
+                lines.append(f"    buffer.{write_method}({member_name});")
         lines.append("}")
 
     lines.append("")

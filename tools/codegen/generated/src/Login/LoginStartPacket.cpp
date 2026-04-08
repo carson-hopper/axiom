@@ -2,7 +2,7 @@
 namespace Axiom {
 
 void LoginStartPacket::Deserialize(NetworkBuffer& buffer) {
-    m_username = buffer.ReadString;
+    mUsername = buffer.ReadString;
 }
 
 void LoginStartPacket::Handle(Ref<Connection> connection, PacketContext& context) {

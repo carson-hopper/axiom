@@ -2,10 +2,10 @@
 namespace Axiom {
 
 void SetPlayerPositionPacket::Deserialize(NetworkBuffer& buffer) {
-    m_x = buffer.ReadDouble;
-    m_y = buffer.ReadDouble;
-    m_z = buffer.ReadDouble;
-    m_on_ground = buffer.ReadBoolean;
+    mX = buffer.ReadDouble;
+    mY = buffer.ReadDouble;
+    mZ = buffer.ReadDouble;
+    mOnGround = buffer.ReadBoolean;
 }
 
 void SetPlayerPositionPacket::Handle(Ref<Connection> connection, PacketContext& context) {
