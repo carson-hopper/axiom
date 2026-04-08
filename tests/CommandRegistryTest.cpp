@@ -16,6 +16,11 @@ public:
 		Messages.push_back(message->GetPlainText());
 	}
 
+	const std::string& Name() const override {
+		static std::string name = "MockSender";
+		return name;
+	}
+
 	bool IsPlayer() const override { return false; }
 	bool HasPermission(const std::string&) const override { return true; }
 };

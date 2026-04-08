@@ -19,6 +19,14 @@ public:
 		return static_cast<EventType>(TestEventType::TestEventA);
 	}
 
+	const char* Name() const override {
+		return "TestEvent";
+	}
+
+	int CategoryFlags() const override {
+		return 0;
+	}
+
 	int Value() const { return m_Value; }
 
 private:
@@ -31,6 +39,14 @@ public:
 
 	EventType Type() const override {
 		return static_cast<EventType>(TestEventType::TestEventB);
+	}
+
+	const char* Name() const override {
+		return "AnotherTestEvent";
+	}
+
+	int CategoryFlags() const override {
+		return 0;
 	}
 
 	const std::string& Message() const { return m_Message; }

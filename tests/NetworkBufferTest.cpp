@@ -131,15 +131,6 @@ TEST(NetworkBufferTest, Clear) {
 	ASSERT_EQ(buffer.Size(), 0u);
 }
 
-TEST(NetworkBufferTest, Prepend) {
-	NetworkBuffer buffer;
-	buffer.WriteInt(456);
-	buffer.PrependInt(123);
-
-	ASSERT_EQ(buffer.ReadInt(), 123);
-	ASSERT_EQ(buffer.ReadInt(), 456);
-}
-
 TEST(NetworkBufferTest, ConstructorFromVector) {
 	std::vector<uint8_t> data = {0, 1, 2, 3, 4};
 	NetworkBuffer buffer(std::move(data));

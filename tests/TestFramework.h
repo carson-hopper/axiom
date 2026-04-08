@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iostream>
 #include <stdexcept>
+#include <sstream>
 
 namespace Axiom::Test {
 
@@ -52,6 +53,22 @@ struct TestRegistrar {
 	}
 };
 
+// Helper to convert values to strings
+template<typename T>
+std::string ToString(const T& value) {
+	std::ostringstream oss;
+	oss << value;
+	return oss.str();
+}
+
+inline std::string ToString(const std::string& value) {
+	return value;
+}
+
+inline std::string ToString(const char* value) {
+	return value;
+}
+
 // Assertion macros
 #define TEST_ASSERT(condition) \
 	if (!(condition)) { \
@@ -60,14 +77,14 @@ struct TestRegistrar {
 
 #define ASSERT_EQ(expected, actual) \
 	if ((expected) != (actual)) { \
-		throw std::runtime_error("Expected " + std::to_string(expected) + \
-			" but got " + std::to_string(actual)); \
+		throw std::runtime_error("Expected: " + Axiom::Test::ToString(expected) + \
+			" but got: " + Axiom::Test::ToString(actual)); \
 	}
 
 #define ASSERT_NE(expected, actual) \
 	if ((expected) == (actual)) { \
-		throw std::runtime_error("Expected values to differ, but both were " + \
-			std::to_string(expected)); \
+		throw std::runtime_error("Expected values to differ, but both were: " + \
+			Axiom::Test::ToString(expected)); \
 	}
 
 #define ASSERT_TRUE(condition) \
