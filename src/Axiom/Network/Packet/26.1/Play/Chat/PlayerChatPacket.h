@@ -11,7 +11,7 @@
  */
 
 #include "Axiom/Chat/ChatComponent.h"
-#include "Axiom/Network/Packet/ServerboundPacket.h"
+#include "Axiom/Network/Packet/ClientboundPacket.h"
 #include "Axiom/Network/Packet/PacketMacros.h"
 #include "Axiom/Network/Protocol.h"
 
@@ -20,49 +20,99 @@
 
 namespace Axiom {
 
+/**
+ * Clientbound packet for player chat messages.
+ *
+ * Unlike SystemChatPacket, this includes sender information and is used
+ * for actual player chat messages that appear in the chat log.
+ */
+CLIENTBOUND_PACKET_DECL_BEGIN(PlayerChatPacket, Play, Clientbound::Play::PlayerChat)
+
 	/**
-	 * Clientbound packet for player chat messages.
-	 *
-	 * Unlike SystemChatPacket, this includes sender information and is used
-	 * for actual player chat messages that appear in the chat log.
+	 * Set the chat component (message content).
 	 */
-	CLIENTBOUND_PACKET_DECL_BEGIN(PlayerChatPacket, Play, Clientbound::Play::PlayerChat)
+	void SetMessage(const Ref<ChatComponent>& message) {
+		m_Message = message;
+	}
 
-		/**
-		 * Set the chat component (message content).
-		 */
-		void SetMessage(const Ref<ChatComponent>& message) {
-			m_Message = message;
-		}
+	/**
+	 * Get the chat component (message content).
+	 */
+	const Ref<ChatComponent>& GetMessage() const {
+		return m_Message;
+	}
 
-		/**
-		 * Set the sender's UUID.
-		 */
-		void SetSenderUUID(const std::string& uuid) {
-			m_SenderUUID = uuid;
-		}
+	/**
+	 * Set the sender's UUID.
+	 */
+	void SetSenderUUID(const std::string& uuid) {
+		m_SenderUUID = uuid;
+	}
 
-		/**
-		 * Set the sender's display name.
-		 */
-		void SetSenderName(const std::string& name) {
-			m_SenderName = name;
-		}
+	/**
+	 * Get the sender's UUID.
+	 */
+	const std::string& GetSenderUUID() const {
+		return m_SenderUUID;
+	}
 
-		/**
-		 * Set the message timestamp.
-		 */
-		void SetTimestamp(const int64_t timestamp) {
-			m_Timestamp = timestamp;
-		}
+	/**
+	 * Set the sender's display name.
+	 */
+	void SetSenderName(const std::string& name) {
+		m_SenderName = name;
+	}
 
-	private:
-		Ref<ChatComponent> m_Message;
-		std::string m_SenderUUID;
-		std::string m_SenderName;
-		int64_t m_Timestamp = 0;
-		std::vector<uint8_t> m_Signature;
-		bool m_Signed = false;
-	CLIENTBOUND_PACKET_DECL_END()
+	/**
+	 * Get the sender's display name.
+	 */
+	const std::string& GetSenderName() const {
+		return m_SenderName;
+	}
+
+	/**
+	 * Set the message timestamp.
+	 */
+	void SetTimestamp(const int64_t timestamp) {
+		m_Timestamp = timestamp;
+	}
+
+	/**
+	 * Get the message timestamp.
+	 */
+	int64_t GetTimestamp() const {
+		return m_Timestamp;
+	}
+
+	/**
+	 * Set the message signature (for signed chat).
+	 */
+	void SetSignature(const std::vector<uint8_t>& signature) {
+		m_Signature = signature;
+		m_Signed = !signature.empty();
+	}
+
+	/**
+	 * Get the message signature.
+	 */
+	const std::vector<uint8_t>& GetSignature() const {
+		return m_Signature;
+	}
+
+	/**
+	 * Check if the message is signed.
+	 */
+	bool IsSigned() const {
+		return m_Signed;
+	}
+
+private:
+	Ref<ChatComponent> m_Message;
+	std::string m_SenderUUID;
+	std::string m_SenderName;
+	int64_t m_Timestamp = 0;
+	std::vector<uint8_t> m_Signature;
+	bool m_Signed = false;
+CLIENTBOUND_PACKET_DECL_END()
 
 }
