@@ -2,6 +2,7 @@
 #include "Axiom/Core/TickStack.h"
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Core/Time.h"
 
 namespace Axiom {
 
@@ -36,28 +37,29 @@ namespace Axiom {
 		ProcessMainThreadTasks();
 
 		// Notify remaining tickables
-		for (Tickable* tick : m_Tickables) {
+		for (auto& tick : m_Tickables) {
 			if (tick) {
 				tick->OnTickUnregistered();
 			}
 		}
 	}
 
-	void TickStack::PushTick(Tickable* tickable) {
+	void TickStack::PushTick(Ref<Tickable> tickable) {
 		std::lock_guard<std::mutex> lock(m_TickablesMutex);
-		
+
 		auto it = std::find(m_Tickables.begin(), m_Tickables.end(), tickable);
 		if (it == m_Tickables.end()) {
-			m_Tickables.push_back(tickable);
+			m_Tickables.push_back(std::move(tickable));
 			m_TickablesDirty = true;
-			tickable->OnTickRegistered();
+			m_Tickables.back()->OnTickRegistered();
 		}
 	}
 
 	void TickStack::PopTick(Tickable* tickable) {
 		std::lock_guard<std::mutex> lock(m_TickablesMutex);
-		
-		auto it = std::find(m_Tickables.begin(), m_Tickables.end(), tickable);
+
+		auto it = std::find_if(m_Tickables.begin(), m_Tickables.end(),
+			[tickable](const Ref<Tickable>& ref) { return ref.get() == tickable; });
 		if (it != m_Tickables.end()) {
 			tickable->OnTickUnregistered();
 			m_Tickables.erase(it);
@@ -72,39 +74,35 @@ namespace Axiom {
 		}
 	}
 
-	void TickStack::RunSyncLoop(std::function<bool()> shouldContinue, float targetTPS) {
+	void TickStack::RunSyncLoop(const std::function<bool()> &shouldContinue, float targetTPS) {
 		m_Running = true;
 		m_TargetDeltaTime = 1.0f / targetTPS;
+		m_LastTickTime = Time::GetTime();
 		
 		AX_CORE_INFO("TickStack started at {:.1f} TPS ({}ms per tick)", targetTPS, m_TargetDeltaTime * 1000.0f);
 
-		auto lastTickTime = std::chrono::steady_clock::now();
-		m_LastTPSCalcTime = lastTickTime;
+		m_LastTPSCalcTime = std::chrono::steady_clock::now();
 		m_TickCountSinceLastCalc = 0;
 
 		while (m_Running && shouldContinue()) {
-			auto currentTime = std::chrono::steady_clock::now();
-			
-			// Calculate elapsed time
-			float deltaTime = std::chrono::duration<float>(currentTime - lastTickTime).count();
-			
-			// If enough time has passed, execute a tick
-			if (deltaTime >= m_TargetDeltaTime) {
-				lastTickTime = currentTime;
-				
-				Tick(Timestep(deltaTime));
-				
-				// Calculate TPS
-				m_TickCountSinceLastCalc++;
-				auto timeSinceLastCalc = std::chrono::duration<float>(currentTime - m_LastTPSCalcTime).count();
-				if (timeSinceLastCalc >= 1.0f) {
-					m_ActualTPS.store(static_cast<float>(m_TickCountSinceLastCalc) / timeSinceLastCalc);
-					m_TickCountSinceLastCalc = 0;
-					m_LastTPSCalcTime = currentTime;
-				}
-			} else {
-				// Small sleep to prevent busy-waiting
+			const float currentTime = Time::GetTime();
+			const Timestep timestep = currentTime - m_LastTickTime;
+
+			if (timestep.GetSeconds() < m_TargetDeltaTime) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				continue;
+			}
+
+			m_LastTickTime = currentTime;
+			Tick(timestep);
+
+			m_TickCountSinceLastCalc++;
+			const auto now = std::chrono::steady_clock::now();
+			const float timeSinceLastCalc = std::chrono::duration<float>(now - m_LastTPSCalcTime).count();
+			if (timeSinceLastCalc >= 1.0f) {
+				m_ActualTPS.store(static_cast<float>(m_TickCountSinceLastCalc) / timeSinceLastCalc);
+				m_TickCountSinceLastCalc = 0;
+				m_LastTPSCalcTime = now;
 			}
 		}
 
@@ -112,12 +110,16 @@ namespace Axiom {
 		AX_CORE_INFO("TickStack stopped. Final TPS: {:.2f}", m_ActualTPS.load());
 	}
 
-	void TickStack::Tick(Timestep timestep) {
-		m_CurrentTick++;
+	void TickStack::Tick(const Timestep timestep) {
+		++m_CurrentTick;
 
 		// Sort tickables by phase if needed
 		if (m_TickablesDirty) {
-			SortTickablesByPhase();
+			std::lock_guard<std::mutex> lock(m_TickablesMutex);
+			std::sort(m_Tickables.begin(), m_Tickables.end(),
+				[](const Ref<Tickable>& a, const Ref<Tickable>& b) {
+					return a->GetTickPhase() < b->GetTickPhase();
+				});
 			m_TickablesDirty = false;
 		}
 
@@ -125,13 +127,13 @@ namespace Axiom {
 		ProcessMainThreadTasks();
 
 		// Execute tickables
-		std::vector<Tickable*> tickablesCopy;
+		std::vector<Ref<Tickable>> tickablesCopy;
 		{
 			std::lock_guard<std::mutex> lock(m_TickablesMutex);
 			tickablesCopy = m_Tickables;
 		}
 
-		for (auto* tickable : tickablesCopy) {
+		for (auto& tickable : tickablesCopy) {
 			if (tickable && tickable->IsTickEnabled()) {
 				tickable->OnTick(timestep);
 			}
@@ -154,30 +156,18 @@ namespace Axiom {
 
 	void TickStack::WorkerThreadLoop() {
 		while (!m_StopWorkers) {
-			std::function<void()> task;
-			
-			{
-				std::unique_lock<std::mutex> lock(m_TaskMutex);
-				m_TaskCV.wait(lock, [this] { return !m_AsyncTasks.empty() || m_StopWorkers; });
-				
-				if (m_StopWorkers) break;
-				
-				task = std::move(m_AsyncTasks.front());
-				m_AsyncTasks.pop();
-			}
-			
+			std::unique_lock<std::mutex> lock(m_TaskMutex);
+			m_TaskCV.wait(lock, [this] { return !m_AsyncTasks.empty() || m_StopWorkers; });
+
+			if (m_StopWorkers) break;
+
+			std::function<void()> task = std::move(m_AsyncTasks.front());
+			m_AsyncTasks.pop();
+
 			if (task) {
 				task();
 			}
 		}
-	}
-
-	void TickStack::SortTickablesByPhase() {
-		std::lock_guard<std::mutex> lock(m_TickablesMutex);
-		
-		std::sort(m_Tickables.begin(), m_Tickables.end(), [](Tickable* a, Tickable* b) {
-			return a->GetTickPhase() < b->GetTickPhase();
-		});
 	}
 
 }

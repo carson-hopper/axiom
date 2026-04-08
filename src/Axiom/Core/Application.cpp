@@ -34,19 +34,19 @@ namespace Axiom {
 		AX_CORE_TRACE("Shutting down Axiom Server");
 		
 		// Stop the tick stack first
-		m_LayerStack.Stop();
+		m_TickStack.Stop();
 		
 		s_Instance = nullptr;
 	}
 
-	void Application::PushTick(Tickable* tick)
+	void Application::PushTick(Ref<Tickable> tick)
 	{
-		m_LayerStack.PushTick(tick);
+		m_TickStack.PushTick(std::move(tick));
 	}
 
 	void Application::PopTick(Tickable* tick)
 	{
-		m_LayerStack.PopTick(tick);
+		m_TickStack.PopTick(tick);
 	}
 
 	void Application::Init() {
@@ -191,8 +191,7 @@ namespace Axiom {
 		AX_CORE_INFO("Server is running. Type 'help' for commands, 'stop' to exit.");
 
 		ConsoleSender consoleSender;
-
-		m_LayerStack.RunSyncLoop([this, &consoleSender]() -> bool {
+		m_TickStack.RunSyncLoop([this, &consoleSender]() -> bool {
 			// Process console input each tick
 			if (std::cin.peek() != EOF) {
 				if (std::string input ;std::getline(std::cin, input)) {

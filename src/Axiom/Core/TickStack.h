@@ -38,7 +38,7 @@ public:
 	 * Add a Tickable to the stack.
 	 * Thread-safe.
 	 */
-	void PushTick(Tickable* tickable);
+	void PushTick(Ref<Tickable> tickable);
 
 	/**
 	 * Remove a Tickable from the stack.
@@ -95,7 +95,7 @@ public:
 	 * @param shouldContinue Function returning true while loop should continue
 	 * @param targetTPS Target ticks per second (default: 20 TPS = 50ms)
 	 */
-	void RunSyncLoop(std::function<bool()> shouldContinue, float targetTPS = 20.0f);
+	void RunSyncLoop(const std::function<bool()> &shouldContinue, float targetTPS = 20.0f);
 
 	/**
 	 * Process a single tick manually.
@@ -124,23 +124,22 @@ public:
 	void Stop() { m_Running = false; }
 
 	// Iterators for range-based for loops
-	std::vector<Tickable*>::iterator begin() { return m_Tickables.begin(); }
-	std::vector<Tickable*>::iterator end() { return m_Tickables.end(); }
-	std::vector<Tickable*>::reverse_iterator rbegin() { return m_Tickables.rbegin(); }
-	std::vector<Tickable*>::reverse_iterator rend() { return m_Tickables.rend(); }
-	std::vector<Tickable*>::const_iterator begin() const { return m_Tickables.begin(); }
-	std::vector<Tickable*>::const_iterator end()	const { return m_Tickables.end(); }
-	std::vector<Tickable*>::const_reverse_iterator rbegin() const { return m_Tickables.rbegin(); }
-	std::vector<Tickable*>::const_reverse_iterator rend() const { return m_Tickables.rend(); }
+	std::vector<Ref<Tickable>>::iterator begin() { return m_Tickables.begin(); }
+	std::vector<Ref<Tickable>>::iterator end() { return m_Tickables.end(); }
+	std::vector<Ref<Tickable>>::reverse_iterator rbegin() { return m_Tickables.rbegin(); }
+	std::vector<Ref<Tickable>>::reverse_iterator rend() { return m_Tickables.rend(); }
+	std::vector<Ref<Tickable>>::const_iterator begin() const { return m_Tickables.begin(); }
+	std::vector<Ref<Tickable>>::const_iterator end() const { return m_Tickables.end(); }
+	std::vector<Ref<Tickable>>::const_reverse_iterator rbegin() const { return m_Tickables.rbegin(); }
+	std::vector<Ref<Tickable>>::const_reverse_iterator rend() const { return m_Tickables.rend(); }
 
 private:
 	void ProcessMainThreadTasks();
 	void ExecuteAsyncTasks();
-	void SortTickablesByPhase();
 	void WorkerThreadLoop();
 
 private:
-	std::vector<Tickable*> m_Tickables;
+	std::vector<Ref<Tickable>> m_Tickables;
 	std::mutex m_TickablesMutex;
 	bool m_TickablesDirty = false;
 
@@ -160,6 +159,7 @@ private:
 	std::atomic<float> m_ActualTPS{20.0f};
 	std::atomic<bool> m_Running{false};
 	float m_TargetDeltaTime = 0.05f; // 50ms for 20 TPS
+	float m_LastTickTime = 0.0f;
 
 	// TPS calculation
 	std::chrono::steady_clock::time_point m_LastTPSCalcTime;

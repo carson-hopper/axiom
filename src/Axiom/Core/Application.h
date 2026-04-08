@@ -41,10 +41,10 @@ namespace Axiom {
 		Application(const Application&) = delete;
 		Application& operator=(const Application&) = delete;
 
-		void PushTick(Tickable* tick);
+		void PushTick(Ref<Tickable> tick);
 		void PopTick(Tickable* tick);
 
-		TickStack& GetTickStack() { return m_LayerStack; }
+		TickStack& GetTickStack() { return m_TickStack; }
 
 		void Init();
 		void Run();
@@ -71,10 +71,9 @@ namespace Axiom {
 		Scope<PacketContext> m_PacketContext;
 		PacketRegistry m_PacketRegistry;
 
-		TickStack m_LayerStack;
+		TickStack m_TickStack;
 
 		bool m_Running = false;
-		float m_LastFrameTime = 0.0f;
 	private:
 		static Application* s_Instance;
 	};
