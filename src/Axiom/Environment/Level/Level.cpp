@@ -3,6 +3,8 @@
 
 #include "Axiom/Core/Log.h"
 
+#include <ranges>
+
 namespace Axiom {
 
 	Ref<Chunk> Level::GetOrGenerateChunk(const int32_t chunkX, const int32_t chunkZ) {
@@ -79,19 +81,32 @@ namespace Axiom {
 		return nullptr;
 	}
 
-	void Level::Tick() {
-		std::lock_guard<std::mutex> lock(m_EntityMutex);
-
-		std::vector<int32_t> toRemove;
-		for (auto& [entityId, entity] : m_Entities) {
-			entity->Tick();
-			if (entity->IsRemoved()) {
-				toRemove.push_back(entityId);
+	void Level::OnTick(const Timestep timestep) {
+		{
+			std::lock_guard<std::mutex> lock(m_ChunkMutex);
+			for (auto& chunk : m_Chunks | std::views::values) {
+				if (chunk) {
+					chunk->OnTick(timestep);
+				}
 			}
 		}
 
-		for (int32_t entityId : toRemove) {
-			m_Entities.erase(entityId);
+		{
+			std::lock_guard<std::mutex> lock(m_EntityMutex);
+
+			std::vector<int32_t> toRemove;
+			for (auto& [entityId, entity] : m_Entities) {
+				if (entity && !entity->IsRemoved()) {
+					entity->Tick();
+				}
+				if (entity && entity->IsRemoved()) {
+					toRemove.push_back(entityId);
+				}
+			}
+
+			for (int32_t entityId : toRemove) {
+				m_Entities.erase(entityId);
+			}
 		}
 	}
 

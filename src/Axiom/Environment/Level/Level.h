@@ -2,6 +2,7 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Core/Math.h"
+#include "Axiom/Core/Tickable.h"
 #include "Axiom/Environment/Level/Chunk.h"
 #include "Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Entity/Entity.h"
@@ -15,12 +16,19 @@ namespace Axiom {
 
 	/**
 	 * Represents a dimension/world containing chunks and entities.
+	 * Ticks all loaded chunks and entities each game tick.
 	 */
-	class Level {
+	class Level : public Tickable {
 	public:
 		Level(std::string name, Ref<ChunkGenerator> generator)
 			: m_Name(std::move(name))
 			, m_Generator(std::move(generator)) {}
+
+		/**
+		 * Called every game tick (50ms interval, 20 TPS).
+		 * Ticks all loaded chunks and entities.
+		 */
+		void OnTick(Timestep timestep) override;
 
 		const std::string& Name() const { return m_Name; }
 
@@ -53,11 +61,6 @@ namespace Axiom {
 		void AddEntity(Ref<Entity> entity);
 		void RemoveEntity(int32_t entityId);
 		Entity* GetEntity(int32_t entityId);
-
-		/**
-		 * Tick all entities in this world.
-		 */
-		void Tick();
 
 		[[nodiscard]]
 		ChunkGenerator& Generator() const { return *m_Generator; }

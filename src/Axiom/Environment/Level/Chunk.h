@@ -2,6 +2,7 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Core/Error.h"
+#include "Axiom/Core/Tickable.h"
 
 #include <array>
 #include <cstdint>
@@ -22,11 +23,11 @@ namespace Axiom {
 			std::memset(m_Blocks, 0, sizeof(m_Blocks));
 		}
 
-		int32_t GetBlockState(int localX, int localY, int localZ) const {
+		int32_t GetBlockState(const int localX, const int localY, const int localZ) const {
 			return m_Blocks[localY * 256 + localZ * 16 + localX];
 		}
 
-		void SetBlockState(int localX, int localY, int localZ, int32_t stateId) {
+		void SetBlockState(const int localX, const int localY, const int localZ, const int32_t stateId) {
 			m_Blocks[localY * 256 + localZ * 16 + localX] = stateId;
 		}
 
@@ -56,7 +57,7 @@ namespace Axiom {
 	 * Sections are lazy-allocated — empty sections use zero memory.
 	 * The overworld has 24 sections from y=-64 to y=319.
 	 */
-	class Chunk {
+	class Chunk : public Tickable {
 	public:
 		static constexpr int SectionCount = 24;
 		static constexpr int SectionSize = 16;
@@ -67,6 +68,12 @@ namespace Axiom {
 			: m_ChunkX(chunkX)
 			, m_ChunkZ(chunkZ) {}
 
+		/**
+		 * Called every game tick (50ms interval, 20 TPS).
+		 * Override to implement chunk-specific ticking logic.
+		 */
+		void OnTick(Timestep timestep) override;
+
 		int32_t ChunkX() const { return m_ChunkX; }
 		int32_t ChunkZ() const { return m_ChunkZ; }
 
@@ -75,7 +82,7 @@ namespace Axiom {
 		 * Returns 0 (air) for unallocated sections.
 		 */
 		int32_t GetBlockState(int x, int y, int z) const {
-			int sectionIndex = (y - MinY) / SectionSize;
+			const int sectionIndex = (y - MinY) / SectionSize;
 			if (sectionIndex < 0 || sectionIndex >= SectionCount) return 0;
 
 			const auto& section = m_Sections[sectionIndex];
