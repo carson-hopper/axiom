@@ -84,17 +84,17 @@
 
 // ----- Read Operations ------------------------------------------
 
-#define READ_VARINT(var) var = buffer.ReadVarInt();
-#define READ_INT64(var) var = buffer.ReadLong();
-#define READ_BYTE(var) var = buffer.ReadByte();
-#define READ_SHORT(var) var = buffer.ReadShort();
-#define READ_USHORT(var) var = buffer.ReadUnsignedShort();
-#define READ_FLOAT(var) var = buffer.ReadFloat();
-#define READ_DOUBLE(var) var = buffer.ReadDouble();
-#define READ_BOOL(var) var = buffer.ReadBoolean();
-#define READ_STRING(var) var = buffer.ReadString();
-#define READ_STRING_MAX(var, maxLen) var = buffer.ReadString(maxLen);
-#define READ_BLOCK_POS(x, y, z) buffer.ReadBlockPosition(x, y, z);
+#define READ_VARINT(var) var = buffer.ReadVarInt()
+#define READ_INT64(var) var = buffer.ReadLong()
+#define READ_BYTE(var) var = buffer.ReadByte()
+#define READ_SHORT(var) var = buffer.ReadShort()
+#define READ_USHORT(var) var = buffer.ReadUnsignedShort()
+#define READ_FLOAT(var) var = buffer.ReadFloat()
+#define READ_DOUBLE(var) var = buffer.ReadDouble()
+#define READ_BOOL(var) var = buffer.ReadBoolean()
+#define READ_STRING(var) var = buffer.ReadString()
+#define READ_STRING_MAX(var, maxLen) var = buffer.ReadString(maxLen)
+#define READ_BLOCK_POS(x, y, z) buffer.ReadBlockPosition(x, y, z)
 
 // ----- Simple Packet (no fields) --------------------------------
 
@@ -108,3 +108,61 @@
 		void Decode(NetworkBuffer& /*buffer*/) override {} \
 		void Handle(Ref<Connection> connection, PacketContext& context) override; \
 	};
+// ----- Clientbound Packet Declaration Macros --------------------
+
+/**
+ * Begins a clientbound packet class declaration.
+ *
+ * Clientbound packets are sent from server to client.
+ * They have Encode() instead of Decode()/Handle().
+ *
+ * @param name The class name for the packet
+ * @param state Connection state (Handshake, Status, Login, Configuration, Play)
+ * @param id The packet ID constant from Protocol.h
+ */
+#define CLIENTBOUND_PACKET_DECL_BEGIN(name, state, id) \
+	template<int32_t Version = PROTOCOL_VERSION> \
+	class name { \
+	public: \
+		static constexpr int32_t PacketId = id; \
+		static constexpr ConnectionState PacketState = ConnectionState::state; \
+		void Encode(NetworkBuffer& buffer) const; \
+	private:
+
+/**
+ * Ends a clientbound packet class declaration.
+ */
+#define CLIENTBOUND_PACKET_DECL_END() };
+
+// ----- Clientbound Implementation Macros ------------------------
+
+#define CLIENTBOUND_PACKET_ENCODE_BEGIN(name) template<int32_t Version> void name<Version>::Encode(NetworkBuffer& buffer) const {
+
+#define CLIENTBOUND_PACKET_ENCODE_END() }
+
+#define CLIENTBOUND_PACKET_INSTANTIATE(name, version) template class name<version>;
+
+// ----- Clientbound Simple Packet (no fields) ----------------------
+
+#define CLIENTBOUND_DEFINE_SIMPLE_PACKET(name, state, id) \
+	template<int32_t Version = PROTOCOL_VERSION> \
+	class name { \
+	public: \
+		static constexpr int32_t PacketId = id; \
+		static constexpr ConnectionState PacketState = ConnectionState::state; \
+		void Encode(NetworkBuffer& /*buffer*/) const {} \
+	};
+
+// ----- Write Operations (for clientbound packets) ---------------
+
+#define WRITE_VARINT(val) buffer.WriteVarInt(val)
+#define WRITE_INT64(val) buffer.WriteLong(val)
+#define WRITE_BYTE(val) buffer.WriteByte(val)
+#define WRITE_SHORT(val) buffer.WriteShort(val)
+#define WRITE_USHORT(val) buffer.WriteUnsignedShort(val)
+#define WRITE_FLOAT(val) buffer.WriteFloat(val)
+#define WRITE_DOUBLE(val) buffer.WriteDouble(val)
+#define WRITE_BOOL(val) buffer.WriteBoolean(val)
+#define WRITE_STRING(val) buffer.WriteString(val)
+#define WRITE_BYTES(val) buffer.WriteBytes(val)
+#define WRITE_BLOCK_POS(x, y, z) buffer.WriteBlockPosition(x, y, z)
