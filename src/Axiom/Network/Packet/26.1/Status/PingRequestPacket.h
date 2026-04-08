@@ -1,16 +1,13 @@
 #pragma once
 
-/**
- * @file PingRequestPacket.h
- * @brief Ping request packet for latency measurement.
- */
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include <cstdint>
 
 namespace Axiom {
 
-	PACKET_DECL_BEGIN(PingRequestPacket, Status, Serverbound::Status::PingRequest)
-		PACKET_FIELD_INT64(Timestamp)
-	PACKET_DECL_END()
+PACKET_VERSIONED_SB(PingRequestPacket, 775, Status, 0x01)
+	FIELD(int64_t, Payload, 0)
+PACKET_VERSIONED_END(PingRequestPacket, 775)
 
 }

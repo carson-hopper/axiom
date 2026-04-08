@@ -1,40 +1,27 @@
 #pragma once
 
-/**
- * @file MovePlayerPositionPacket.h
- * @brief Player position and rotation update packets.
- */
-
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-// ----- Position Only --------------------------------------------
+PACKET_VERSIONED_SB(MovePlayerPositionPacket, 775, Play, Serverbound::Play::MovePlayerPosition)
+	FIELD(Vector3, Position, {})
+	FIELD_BYTE_ARRAY(1, OnGround)
+PACKET_VERSIONED_END(MovePlayerPositionPacket, 775)
 
-PACKET_DECL_BEGIN(MovePlayerPositionPacket, Play, Serverbound::Play::MovePlayerPosition)
-	PACKET_FIELD(Vector3, Position, {})
-	PACKET_FIELD_UINT8(Flags)
-PACKET_DECL_END()
+PACKET_VERSIONED_SB(MovePlayerPositionRotationPacket, 775, Play, Serverbound::Play::MovePlayerPositionRotation)
+	FIELD(Vector3, Position, {})
+	FIELD(Vector2, Rotation, {})
+	FIELD_BYTE_ARRAY(1, OnGround)
+PACKET_VERSIONED_END(MovePlayerPositionRotationPacket, 775)
 
-// ----- Position and Rotation ------------------------------------
+PACKET_VERSIONED_SB(MovePlayerRotationPacket, 775, Play, Serverbound::Play::MovePlayerRotation)
+	FIELD(Vector2, Rotation, {})
+	FIELD_BYTE_ARRAY(1, OnGround)
+PACKET_VERSIONED_END(MovePlayerRotationPacket, 775)
 
-PACKET_DECL_BEGIN(MovePlayerPositionRotationPacket, Play, Serverbound::Play::MovePlayerPositionRotation)
-	PACKET_FIELD(Vector3, Position, {})
-	PACKET_FIELD(Vector2, Rotation, {})
-	PACKET_FIELD_UINT8(Flags)
-PACKET_DECL_END()
-
-// ----- Rotation Only --------------------------------------------
-
-PACKET_DECL_BEGIN(MovePlayerRotationPacket, Play, Serverbound::Play::MovePlayerRotation)
-	PACKET_FIELD(Vector2, Rotation, {})
-	PACKET_FIELD_UINT8(Flags)
-PACKET_DECL_END()
-
-// ----- Status Only (On Ground) ----------------------------------
-
-PACKET_DECL_BEGIN(MovePlayerStatusOnlyPacket, Play, Serverbound::Play::MovePlayerStatusOnly)
-	PACKET_FIELD_UINT8(Flags)
-PACKET_DECL_END()
+PACKET_VERSIONED_SB(MovePlayerStatusOnlyPacket, 775, Play, Serverbound::Play::MovePlayerStatusOnly)
+	FIELD_BYTE_ARRAY(1, OnGround)
+PACKET_VERSIONED_END(MovePlayerStatusOnlyPacket, 775)
 
 }

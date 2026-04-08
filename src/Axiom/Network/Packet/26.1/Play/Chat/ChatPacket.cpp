@@ -12,8 +12,10 @@ namespace Axiom {
 
 		// Check if message is signed
 		if (bool hasSignature = buffer.ReadBoolean()) {
-			// Read signature (256 bytes for signed messages)
-			m_Signature = buffer.ReadBytes(256);
+			auto signatureBytes = buffer.ReadBytes(256);
+			std::copy_n(signatureBytes.begin(),
+				std::min(signatureBytes.size(), m_Signature.size()),
+				m_Signature.begin());
 		}
 	PACKET_DECODE_END()
 

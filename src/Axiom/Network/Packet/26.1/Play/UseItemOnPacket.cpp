@@ -11,14 +11,14 @@ namespace Axiom {
 	// ----- Packet Decoding ------------------------------------------
 
 	PACKET_DECODE_BEGIN(UseItemOnPacket)
-		READ_VARINT(m_Hand)
-		READ_BLOCK_POS(m_BlockX, m_BlockY, m_BlockZ)
-		READ_FLOAT(m_CursorX)
-		READ_FLOAT(m_CursorY)
-		READ_FLOAT(m_CursorZ)
-		READ_BOOL(m_InsideBlock)
-		READ_BOOL(m_WorldBorderHit)
-		READ_VARINT(m_Sequence)
+		READ_VARINT(m_Hand);
+		READ_BLOCK_POS(m_BlockX, m_BlockY, m_BlockZ);
+		READ_FLOAT(m_CursorX);
+		READ_FLOAT(m_CursorY);
+		READ_FLOAT(m_CursorZ);
+		READ_BOOL(m_InsideBlock);
+		READ_BOOL(m_WorldBorderHit);
+		READ_VARINT(m_Sequence);
 	PACKET_DECODE_END()
 
 	// ----- Packet Handling ------------------------------------------

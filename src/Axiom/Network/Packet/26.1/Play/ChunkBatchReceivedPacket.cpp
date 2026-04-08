@@ -7,7 +7,7 @@
 namespace Axiom {
 
 PACKET_DECODE_BEGIN(ChunkBatchReceivedPacket)
-    READ_FLOAT(m_ChunksPerTick)
+    READ_FLOAT(m_ChunksPerTick);
 PACKET_DECODE_END()
 
 PACKET_HANDLE_BEGIN(ChunkBatchReceivedPacket)

@@ -6,15 +6,15 @@
  * Client sends encrypted shared secret and verify token during login.
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 #include <vector>
 
 namespace Axiom {
 
-PACKET_DECL_BEGIN(EncryptionResponsePacket, Login, Serverbound::Login::Key)
-	PACKET_FIELD(std::vector<uint8_t>, EncryptedSharedSecret, {})
-	PACKET_FIELD(std::vector<uint8_t>, EncryptedVerifyToken, {})
-PACKET_DECL_END()
+PACKET_VERSIONED(EncryptionResponsePacket, 775, Serverbound, Login, 0x01)
+	FIELD_ARRAY(uint8_t, EncryptedSharedSecret)
+	FIELD_ARRAY(uint8_t, EncryptedVerifyToken)
+PACKET_VERSIONED_END(EncryptionResponsePacket, 775)
 
 }

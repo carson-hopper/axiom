@@ -71,6 +71,9 @@ namespace {
 
 } // anonymous namespace
 
+PACKET_DECODE_BEGIN(FinishConfigurationPacket)
+PACKET_DECODE_END()
+
 PACKET_HANDLE_BEGIN(FinishConfigurationPacket)
     AX_CORE_INFO("Configuration complete for {}", connection->RemoteAddress());
     connection->State(ConnectionState::Play);

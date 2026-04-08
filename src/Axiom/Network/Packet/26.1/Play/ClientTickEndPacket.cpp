@@ -5,6 +5,9 @@
 
 namespace Axiom {
 
+PACKET_DECODE_BEGIN(ClientTickEndPacket)
+PACKET_DECODE_END()
+
 PACKET_HANDLE_BEGIN(ClientTickEndPacket)
     // No-op - client signals end of tick processing
 PACKET_HANDLE_END()

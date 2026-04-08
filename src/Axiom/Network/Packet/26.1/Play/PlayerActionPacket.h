@@ -10,15 +10,17 @@
  * - 2 = Finished digging
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-	PACKET_DECL_BEGIN(PlayerActionPacket, Play, Serverbound::Play::PlayerAction)
-		PACKET_FIELD_INT32(Action)
-		PACKET_FIELD_COORDS(Block)
-		PACKET_FIELD_UINT8(Face)
-		PACKET_FIELD_INT32(Sequence)
-	PACKET_DECL_END()
+PACKET_VERSIONED_SB(PlayerActionPacket, 775, Play, Serverbound::Play::PlayerAction)
+	FIELD(int32_t, Action, 0)
+	FIELD(int32_t, BlockX, 0)
+	FIELD(int32_t, BlockY, 0)
+	FIELD(int32_t, BlockZ, 0)
+	FIELD(uint8_t, Face, 0)
+	FIELD(int32_t, Sequence, 0)
+PACKET_VERSIONED_END(PlayerActionPacket, 775)
 
 }

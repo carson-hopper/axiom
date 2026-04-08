@@ -1,15 +1,10 @@
 #pragma once
 
-/**
- * @file LoginAcknowledgedPacket.h
- *
- * Client acknowledges successful login and transitions to configuration.
- */
-
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-DEFINE_SIMPLE_PACKET(LoginAcknowledgedPacket, Login, Serverbound::Login::LoginAcknowledged)
+PACKET_VERSIONED(LoginAcknowledgedPacket, 775, Serverbound, Login, 0x03)
+PACKET_VERSIONED_END(LoginAcknowledgedPacket, 775)
 
 }

@@ -1,17 +1,11 @@
 #pragma once
 
-/**
- * @file PlayKeepAlivePacket.h
- *
- * Client responds to server's keep-alive ping with the same ID.
- */
-
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-PACKET_DECL_BEGIN(PlayKeepAlivePacket, Play, Serverbound::Play::KeepAlive)
-    PACKET_FIELD_INT64(KeepAliveId)
-PACKET_DECL_END()
+PACKET_VERSIONED_SB(PlayKeepAlivePacket, 775, Play, 0x24)
+	FIELD(int64_t, KeepAliveId, 0)
+PACKET_VERSIONED_END(PlayKeepAlivePacket, 775)
 
 }

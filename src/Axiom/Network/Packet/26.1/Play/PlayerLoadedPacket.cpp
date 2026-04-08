@@ -6,6 +6,9 @@
 
 namespace Axiom {
 
+PACKET_DECODE_BEGIN(PlayerLoadedPacket)
+PACKET_DECODE_END()
+
 PACKET_HANDLE_BEGIN(PlayerLoadedPacket)
     AX_CORE_INFO("Player fully loaded from {}", connection->RemoteAddress());
 PACKET_HANDLE_END()

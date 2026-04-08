@@ -9,7 +9,7 @@ namespace Axiom {
 
 	PACKET_DECODE_BEGIN(MovePlayerPositionPacket)
 		m_Position = buffer.ReadVector3();
-		READ_BYTE(m_Flags);
+		READ_BYTE(m_OnGround[0]);
 	PACKET_DECODE_END()
 
 	PACKET_HANDLE_BEGIN(MovePlayerPositionPacket)
@@ -23,7 +23,7 @@ namespace Axiom {
 	PACKET_DECODE_BEGIN(MovePlayerPositionRotationPacket)
 		m_Position = buffer.ReadVector3();
 		m_Rotation = buffer.ReadVector2();
-		READ_BYTE(m_Flags);
+		READ_BYTE(m_OnGround[0]);
 	PACKET_DECODE_END()
 
 	PACKET_HANDLE_BEGIN(MovePlayerPositionRotationPacket)
@@ -36,7 +36,7 @@ namespace Axiom {
 
 	PACKET_DECODE_BEGIN(MovePlayerRotationPacket)
 		m_Rotation = buffer.ReadVector2();
-		READ_BYTE(m_Flags);
+		READ_BYTE(m_OnGround[0]);
 	PACKET_DECODE_END()
 
 	PACKET_HANDLE_BEGIN(MovePlayerRotationPacket)
@@ -48,7 +48,7 @@ namespace Axiom {
 	// ----- MovePlayerStatusOnly -------------------------------------
 
 	PACKET_DECODE_BEGIN(MovePlayerStatusOnlyPacket)
-		READ_BYTE(m_Flags);
+		READ_BYTE(m_OnGround[0]);
 	PACKET_DECODE_END()
 
 	PACKET_HANDLE_BEGIN(MovePlayerStatusOnlyPacket)

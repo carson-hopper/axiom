@@ -5,22 +5,22 @@
  * @brief Player right-clicks on a block face to place a block or interact.
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-PACKET_DECL_BEGIN(UseItemOnPacket, Play, Serverbound::Play::UseItemOn)
-	PACKET_FIELD_INT32(Hand)
-	PACKET_FIELD_INT32(BlockX)
-	PACKET_FIELD_INT32(BlockY)
-	PACKET_FIELD_INT32(BlockZ)
-	PACKET_FIELD_INT32(Face)
-	PACKET_FIELD_FLOAT(CursorX)
-	PACKET_FIELD_FLOAT(CursorY)
-	PACKET_FIELD_FLOAT(CursorZ)
-	PACKET_FIELD_BOOL(InsideBlock)
-	PACKET_FIELD_BOOL(WorldBorderHit)
-	PACKET_FIELD_INT32(Sequence)
-PACKET_DECL_END()
+PACKET_VERSIONED_SB(UseItemOnPacket, 775, Play, Serverbound::Play::UseItemOn)
+	FIELD(int32_t, Hand, 0)
+	FIELD(int32_t, BlockX, 0)
+	FIELD(int32_t, BlockY, 0)
+	FIELD(int32_t, BlockZ, 0)
+	FIELD(int32_t, Face, 0)
+	FIELD(float, CursorX, 0)
+	FIELD(float, CursorY, 0)
+	FIELD(float, CursorZ, 0)
+	FIELD(bool, InsideBlock, 0)
+	FIELD(bool, WorldBorderHit, 0)
+	FIELD(int32_t, Sequence, 0)
+PACKET_VERSIONED_END(UseItemOnPacket, 775)
 
 }

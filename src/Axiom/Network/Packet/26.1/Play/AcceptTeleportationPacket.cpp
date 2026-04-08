@@ -7,7 +7,7 @@
 namespace Axiom {
 
 PACKET_DECODE_BEGIN(AcceptTeleportationPacket)
-    READ_VARINT(m_TeleportId)
+    READ_VARINT(m_TeleportId);
 PACKET_DECODE_END()
 
 PACKET_HANDLE_BEGIN(AcceptTeleportationPacket)

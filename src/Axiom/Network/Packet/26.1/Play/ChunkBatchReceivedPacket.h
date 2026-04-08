@@ -6,12 +6,12 @@
  * Client reports chunk batch processing rate.
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-PACKET_DECL_BEGIN(ChunkBatchReceivedPacket, Play, Serverbound::Play::ChunkBatchReceived)
-    PACKET_FIELD_FLOAT(ChunksPerTick)
-PACKET_DECL_END()
+PACKET_VERSIONED_SB(ChunkBatchReceivedPacket, 775, Play, Serverbound::Play::ChunkBatchReceived)
+	FIELD(float, ChunksPerTick, 0.0f)
+PACKET_VERSIONED_END(ChunkBatchReceivedPacket, 775)
 
 }

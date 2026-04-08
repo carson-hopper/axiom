@@ -17,6 +17,6 @@ namespace Axiom {
 		buffer.WriteBoolean(m_ActionBar);
 	CLIENTBOUND_PACKET_ENCODE_END()
 
-	CLIENTBOUND_PACKET_INSTANTIATE(SystemChatPacket, 775)
+	PACKET_INSTANTIATE(SystemChatPacket, 775)
 
 }

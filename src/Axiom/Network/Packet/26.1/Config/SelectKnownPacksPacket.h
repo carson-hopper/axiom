@@ -6,22 +6,23 @@
  * Client selects which data packs it already knows to avoid resending.
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
 namespace Axiom {
 
 struct KnownPack {
-	std::string namespaceName;
-	std::string identifier;
-	std::string version;
+	std::string m_namespaceName;
+	std::string m_identifier;
+	std::string m_version;
 };
 
-PACKET_DECL_BEGIN(SelectKnownPacksPacket, Configuration, Serverbound::Config::SelectKnownPacks)
-	PACKET_FIELD_UINT8(Flags)
-	PACKET_FIELD(std::vector<KnownPack>, KnownPacks, {})
-PACKET_DECL_END()
+PACKET_VERSIONED(SelectKnownPacksPacket, 775, Serverbound, Configuration, 0)
+	FIELD(uint8_t, Flags, 0)
+	FIELD_ARRAY(KnownPack, KnownPacks)
+PACKET_VERSIONED_END(SelectKnownPacksPacket, 775)
 
 }

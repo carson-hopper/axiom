@@ -6,12 +6,12 @@
  * Client tells the server which hotbar slot is selected (0-8).
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-PACKET_DECL_BEGIN(SetCarriedItemPacket, Play, Serverbound::Play::SetCarriedItem)
-    PACKET_FIELD_INT32(Slot)
-PACKET_DECL_END()
+PACKET_VERSIONED_SB(SetCarriedItemPacket, 775, Play, Serverbound::Play::SetCarriedItem)
+	FIELD(int32_t, Slot, 0)
+PACKET_VERSIONED_END(SetCarriedItemPacket, 775)
 
 }

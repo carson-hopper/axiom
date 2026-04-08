@@ -6,10 +6,13 @@
  * Client acknowledges configuration is complete and is ready to enter play.
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
+
+#include <cstdint>
 
 namespace Axiom {
 
-DEFINE_SIMPLE_PACKET(FinishConfigurationPacket, Configuration, Serverbound::Config::FinishConfiguration)
+PACKET_VERSIONED(FinishConfigurationPacket, 775, Serverbound, Configuration, 0)
+PACKET_VERSIONED_END(FinishConfigurationPacket, 775)
 
 }

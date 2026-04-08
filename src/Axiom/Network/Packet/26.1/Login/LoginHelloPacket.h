@@ -1,18 +1,13 @@
 #pragma once
 
-/**
- * @file LoginHelloPacket.h
- * @brief Login start packet sent by the client.
- */
-
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 #include <string>
 
 namespace Axiom {
 
-	PACKET_DECL_BEGIN(LoginHelloPacket, Login, Serverbound::Login::Hello)
-		PACKET_FIELD_STRING(PlayerName)
-	PACKET_DECL_END()
+PACKET_VERSIONED(LoginHelloPacket, 775, Serverbound, Login, 0x00)
+	FIELD_STRING(PlayerName)
+PACKET_VERSIONED_END(LoginHelloPacket, 775)
 
 }

@@ -6,7 +6,7 @@
 namespace Axiom {
 
 PACKET_DECODE_BEGIN(SetCarriedItemPacket)
-    READ_SHORT(m_Slot)
+    READ_SHORT(m_Slot);
 PACKET_DECODE_END()
 
 PACKET_HANDLE_BEGIN(SetCarriedItemPacket)

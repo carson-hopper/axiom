@@ -7,6 +7,9 @@
 
 namespace Axiom {
 
+PACKET_DECODE_BEGIN(LoginAcknowledgedPacket)
+PACKET_DECODE_END()
+
 PACKET_HANDLE_BEGIN(LoginAcknowledgedPacket)
     AX_CORE_TRACE("Login acknowledged from {}", connection->RemoteAddress());
     connection->State(ConnectionState::Configuration);

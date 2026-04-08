@@ -1,16 +1,12 @@
 #pragma once
 
-/**
- * @file StatusRequestPacket.h
- * @brief Status request packet (server list ping).
- *
- * Sent by the client to request server status information (MOTD, player count, etc.)
- */
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include <cstdint>
 
 namespace Axiom {
 
-	DEFINE_SIMPLE_PACKET(StatusRequestPacket, Status, Serverbound::Status::StatusRequest)
+PACKET_VERSIONED_SB(StatusRequestPacket, 775, Status, 0x00)
+PACKET_VERSIONED_END(StatusRequestPacket, 775)
 
 }

@@ -6,12 +6,12 @@
  * Client confirms it has teleported to the requested position.
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-PACKET_DECL_BEGIN(AcceptTeleportationPacket, Play, Serverbound::Play::AcceptTeleportation)
-    PACKET_FIELD_INT32(TeleportId)
-PACKET_DECL_END()
+PACKET_VERSIONED_SB(AcceptTeleportationPacket, 775, Play, Serverbound::Play::AcceptTeleportation)
+	FIELD(int32_t, TeleportId, 0)
+PACKET_VERSIONED_END(AcceptTeleportationPacket, 775)
 
 }

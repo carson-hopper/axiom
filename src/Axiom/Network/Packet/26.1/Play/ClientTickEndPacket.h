@@ -6,10 +6,11 @@
  * Client signals end of tick processing.
  */
 
-#include "Axiom/Network/Packet/PacketMacros.h"
+#include "Axiom/Network/Packet/PacketVersioned.h"
 
 namespace Axiom {
 
-DEFINE_SIMPLE_PACKET(ClientTickEndPacket, Play, Serverbound::Play::ClientTickEnd)
+PACKET_VERSIONED_SB(ClientTickEndPacket, 775, Play, Serverbound::Play::ClientTickEnd)
+PACKET_VERSIONED_END(ClientTickEndPacket, 775)
 
 }

@@ -8,6 +8,9 @@
 
 namespace Axiom {
 
+	PACKET_DECODE_BEGIN(StatusRequestPacket)
+	PACKET_DECODE_END()
+
 	PACKET_HANDLE_BEGIN(StatusRequestPacket)
 		nlohmann::json response;
 		response["version"]["name"] = MINECRAFT_VERSION;
