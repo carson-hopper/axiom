@@ -152,3 +152,17 @@ if(AX_BUILD_TESTS)
 		COMMENT "Running unit tests"
 	)
 endif()
+
+# ----- Code Coverage (optional) ----------------------------------
+
+option(AX_ENABLE_COVERAGE "Enable code coverage" OFF)
+
+if(AX_ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+	target_compile_options(axiom-server PRIVATE --coverage -O0)
+	target_link_options(axiom-server PRIVATE --coverage)
+	
+	if(AX_BUILD_TESTS)
+		target_compile_options(axiom-tests PRIVATE --coverage -O0)
+		target_link_options(axiom-tests PRIVATE --coverage)
+	endif()
+endif()
