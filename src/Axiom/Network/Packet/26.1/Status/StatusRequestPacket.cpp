@@ -8,8 +8,7 @@
 
 namespace Axiom {
 
-	template<int32_t Version>
-	void StatusRequestPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
+	PACKET_HANDLE_BEGIN(StatusRequestPacket)
 		nlohmann::json response;
 		response["version"]["name"] = MINECRAFT_VERSION;
 		response["version"]["protocol"] = PROTOCOL_VERSION;
@@ -22,8 +21,8 @@ namespace Axiom {
 		NetworkBuffer payload;
 		payload.WriteString(response.dump());
 		connection->SendRawPacket(Clientbound::Status::StatusResponse, payload);
-	}
+	PACKET_HANDLE_END()
 
-	template class StatusRequestPacket<775>;
+	PACKET_INSTANTIATE(StatusRequestPacket, 775)
 
 }

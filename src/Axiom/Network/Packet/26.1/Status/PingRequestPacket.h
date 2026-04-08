@@ -7,8 +7,6 @@
 
 #include "Axiom/Network/Packet/PacketMacros.h"
 
-#include <cstdint>
-
 namespace Axiom {
 
 	PACKET_DECL_BEGIN(PingRequestPacket, Status, Serverbound::Status::PingRequest)

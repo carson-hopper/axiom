@@ -12,8 +12,6 @@
 
 #include "Axiom/Network/Packet/PacketMacros.h"
 
-#include <cstdint>
-
 namespace Axiom {
 
 	PACKET_DECL_BEGIN(PlayerActionPacket, Play, Serverbound::Play::PlayerAction)

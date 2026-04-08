@@ -10,8 +10,7 @@ PACKET_DECODE_BEGIN(SetCarriedItemPacket)
 PACKET_DECODE_END()
 
 PACKET_HANDLE_BEGIN(SetCarriedItemPacket)
-    auto player = context.Players().GetPlayer(connection->Id());
-    if (player) {
+    if (const auto player = context.Players().GetPlayer(connection->Id())) {
         player->SetSelectedSlot(m_Slot);
     }
 PACKET_HANDLE_END()

@@ -33,7 +33,7 @@ namespace Axiom {
 	// ----- Packet Handling ------------------------------------------
 
 	PACKET_HANDLE_BEGIN(SetCreativeModeSlotPacket)
-		auto player = context.Players().GetPlayer(connection->Id());
+		const auto player = context.Players().GetPlayer(connection->Id());
 		if (!player) return;
 
 		// Hotbar slots are inventory slots 36-44

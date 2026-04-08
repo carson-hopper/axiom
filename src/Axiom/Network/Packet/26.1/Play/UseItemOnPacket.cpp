@@ -10,23 +10,20 @@ namespace Axiom {
 
 	// ----- Packet Decoding ------------------------------------------
 
-	template<int32_t Version>
-	void UseItemOnPacket<Version>::Decode(NetworkBuffer& buffer) {
-		m_Hand = buffer.ReadVarInt();
-		buffer.ReadBlockPosition(m_BlockX, m_BlockY, m_BlockZ);
-		m_Face = buffer.ReadVarInt();
-		m_CursorX = buffer.ReadFloat();
-		m_CursorY = buffer.ReadFloat();
-		m_CursorZ = buffer.ReadFloat();
-		m_InsideBlock = buffer.ReadBoolean();
-		m_WorldBorderHit = buffer.ReadBoolean();
-		m_Sequence = buffer.ReadVarInt();
-	}
+	PACKET_DECODE_BEGIN(UseItemOnPacket)
+		READ_VARINT(m_Hand)
+		READ_BLOCK_POS(m_BlockX, m_BlockY, m_BlockZ)
+		READ_FLOAT(m_CursorX)
+		READ_FLOAT(m_CursorY)
+		READ_FLOAT(m_CursorZ)
+		READ_BOOL(m_InsideBlock)
+		READ_BOOL(m_WorldBorderHit)
+		READ_VARINT(m_Sequence)
+	PACKET_DECODE_END()
 
 	// ----- Packet Handling ------------------------------------------
 
-	template<int32_t Version>
-	void UseItemOnPacket<Version>::Handle(const Ref<Connection> connection, PacketContext& context) {
+	PACKET_HANDLE_BEGIN(UseItemOnPacket)
 		// Calculate the position where the block should be placed
 		int32_t placeX = m_BlockX;
 		int32_t placeY = m_BlockY;
@@ -45,7 +42,7 @@ namespace Axiom {
 		}
 
 		// Look up the held item and convert to block state
-		auto player = context.Players().GetPlayer(connection->Id());
+		const auto player = context.Players().GetPlayer(connection->Id());
 		int32_t blockState = 0;
 
 		if (player) {
@@ -69,15 +66,14 @@ namespace Axiom {
 			placeX, placeY, placeZ, blockState, connection->RemoteAddress());
 
 		// Set the block with error handling
-		auto result = context.Ticker().SetBlock(placeX, placeY, placeZ, blockState);
-		if (!result) {
+		if (auto result = context.Ticker().SetBlock(placeX, placeY, placeZ, blockState);!result) {
 			AX_CORE_WARN("Failed to place block at ({}, {}, {}): {}",
 				placeX, placeY, placeZ, result.error().message());
 		}
-	}
+	PACKET_HANDLE_END()
 
 	// ----- Template Instantiation -----------------------------------
 
-	template class UseItemOnPacket<775>;
+	PACKET_INSTANTIATE(UseItemOnPacket, 775)
 
 }

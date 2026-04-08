@@ -12,6 +12,7 @@
 
 #include "Axiom/Chat/ChatComponent.h"
 #include "Axiom/Network/Packet/ServerboundPacket.h"
+#include "Axiom/Network/Packet/PacketMacros.h"
 #include "Axiom/Network/Protocol.h"
 
 namespace Axiom {
@@ -22,11 +23,7 @@ namespace Axiom {
 	 * Unlike PlayerChatPacket, this doesn't include sender information
 	 * and is used for server-generated messages.
 	 */
-	template<int32_t Version = PROTOCOL_VERSION>
-	class SystemChatPacket {
-	public:
-		static constexpr int32_t PacketId = Clientbound::Play::SystemChat;
-		static constexpr auto PacketState = ConnectionState::Play;
+	CLIENTBOUND_PACKET_DECL_BEGIN(SystemChatPacket, Play, Clientbound::Play::SystemChat)
 
 		/**
 		 * Set the chat component (message content).
@@ -42,14 +39,9 @@ namespace Axiom {
 			m_ActionBar = actionBar;
 		}
 
-		/**
-		 * Encode the packet to a network buffer.
-		 */
-		void Encode(NetworkBuffer& buffer) const;
-
 	private:
 		Ref<ChatComponent> m_Message;
 		bool m_ActionBar = false;
-	};
+	CLIENTBOUND_PACKET_DECL_END()
 
 }

@@ -2,9 +2,6 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Network/NetworkBuffer.h"
-#include "Axiom/Network/Protocol.h"
-
-#include <memory>
 
 namespace Axiom {
 

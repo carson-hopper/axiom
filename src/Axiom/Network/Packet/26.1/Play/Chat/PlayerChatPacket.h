@@ -12,6 +12,7 @@
 
 #include "Axiom/Chat/ChatComponent.h"
 #include "Axiom/Network/Packet/ServerboundPacket.h"
+#include "Axiom/Network/Packet/PacketMacros.h"
 #include "Axiom/Network/Protocol.h"
 
 #include <string>
@@ -25,11 +26,7 @@ namespace Axiom {
 	 * Unlike SystemChatPacket, this includes sender information and is used
 	 * for actual player chat messages that appear in the chat log.
 	 */
-	template<int32_t Version = PROTOCOL_VERSION>
-	class PlayerChatPacket {
-	public:
-		static constexpr int32_t PacketId = Clientbound::Play::PlayerChat;
-		static constexpr auto PacketState = ConnectionState::Play;
+	CLIENTBOUND_PACKET_DECL_BEGIN(PlayerChatPacket, Play, Clientbound::Play::PlayerChat)
 
 		/**
 		 * Set the chat component (message content).
@@ -59,11 +56,6 @@ namespace Axiom {
 			m_Timestamp = timestamp;
 		}
 
-		/**
-		 * Encode the packet to a network buffer.
-		 */
-		void Encode(NetworkBuffer& buffer) const;
-
 	private:
 		Ref<ChatComponent> m_Message;
 		std::string m_SenderUUID;
@@ -71,6 +63,6 @@ namespace Axiom {
 		int64_t m_Timestamp = 0;
 		std::vector<uint8_t> m_Signature;
 		bool m_Signed = false;
-	};
+	CLIENTBOUND_PACKET_DECL_END()
 
 }
