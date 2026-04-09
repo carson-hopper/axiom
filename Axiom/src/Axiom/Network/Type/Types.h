@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Axiom/Core/Math.h"
+#include "Axiom/Core/UUID.h"
 #include "Axiom/Network/Type/NetworkType.h"
 
 #include <cstdint>
@@ -207,6 +209,79 @@ protected:
 	}
 	void WriteImpl(NetworkBuffer& buffer) const override {
 		buffer.WriteBlockPosition(m_Value.X, m_Value.Y, m_Value.Z);
+	}
+};
+
+// ---- Vec3 (3 doubles) ----------------------------------------------
+
+class Vec3 : public NetworkType<Vector3> {
+public:
+	using NetworkType::NetworkType;
+
+protected:
+	Vector3 ReadImpl(NetworkBuffer& buffer) override {
+		double x = buffer.ReadDouble();
+		double y = buffer.ReadDouble();
+		double z = buffer.ReadDouble();
+		return {x, y, z};
+	}
+	void WriteImpl(NetworkBuffer& buffer) const override {
+		buffer.WriteDouble(m_Value.x);
+		buffer.WriteDouble(m_Value.y);
+		buffer.WriteDouble(m_Value.z);
+	}
+};
+
+// ---- Vec2 (2 floats: yaw, pitch) -----------------------------------
+
+class Vec2 : public NetworkType<Vector2> {
+public:
+	using NetworkType::NetworkType;
+
+protected:
+	Vector2 ReadImpl(NetworkBuffer& buffer) override {
+		float x = buffer.ReadFloat();
+		float y = buffer.ReadFloat();
+		return {x, y};
+	}
+	void WriteImpl(NetworkBuffer& buffer) const override {
+		buffer.WriteFloat(m_Value.x);
+		buffer.WriteFloat(m_Value.y);
+	}
+};
+
+// ---- UUID (128-bit, two longs) -------------------------------------
+
+class UuidType : public NetworkType<UUID> {
+public:
+	using NetworkType::NetworkType;
+
+protected:
+	UUID ReadImpl(NetworkBuffer& buffer) override {
+		auto most = static_cast<uint64_t>(buffer.ReadLong());
+		auto least = static_cast<uint64_t>(buffer.ReadLong());
+		return {most, least};
+	}
+	void WriteImpl(NetworkBuffer& buffer) const override {
+		buffer.WriteLong(static_cast<int64_t>(m_Value.MostSignificantBits()));
+		buffer.WriteLong(static_cast<int64_t>(m_Value.LeastSignificantBits()));
+	}
+};
+
+// ---- ByteArray (VarInt length-prefixed) ----------------------------
+
+class ByteArray : public NetworkType<std::vector<uint8_t>> {
+public:
+	using NetworkType::NetworkType;
+
+protected:
+	std::vector<uint8_t> ReadImpl(NetworkBuffer& buffer) override {
+		const int32_t length = buffer.ReadVarInt();
+		return buffer.ReadBytes(length);
+	}
+	void WriteImpl(NetworkBuffer& buffer) const override {
+		buffer.WriteVarInt(static_cast<int32_t>(m_Value.size()));
+		buffer.WriteBytes(m_Value);
 	}
 };
 
