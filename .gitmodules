@@ -13,3 +13,6 @@
 [submodule "Axiom/vendor/yaml-cpp"]
 	path = Axiom/vendor/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "vendor/premake-vscode"]
+	path = vendor/premake-vscode
+	url = https://github.com/Enhex/premake-vscode.git

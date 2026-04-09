@@ -1,3 +1,7 @@
+if os.isfile("vendor/premake-vscode/vscode.lua") then
+    require "vendor/premake-vscode/vscode"
+end
+
 workspace "Axiom"
     architecture "ARM64"
     startproject "Axiom"
