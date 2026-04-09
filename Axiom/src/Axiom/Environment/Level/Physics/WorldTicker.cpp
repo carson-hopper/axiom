@@ -88,6 +88,13 @@ namespace Axiom {
 					// air to the side at the SAME level (not just air above,
 					// which is normal for ocean surfaces)
 					if (FluidState::IsSource(block)) {
+						// Don't auto-flow ocean/lake water at or below sea level.
+						// Generated water at sea level is stable — only trigger
+						// flow for water above sea level (placed by players or
+						// terrain features like elevated pools).
+						constexpr int SeaLevel = 63;
+						if (worldY <= SeaLevel) continue;
+
 						const int32_t below = m_TerrainLookup(worldX, worldY - 1, worldZ);
 
 						// Water over air = needs to fall
@@ -96,15 +103,10 @@ namespace Axiom {
 							continue;
 						}
 
-						// Check horizontal neighbors — but only if the neighbor
-						// at the same Y is air AND the block below the neighbor
-						// is also air or lower. This avoids triggering flow for
-						// flat ocean surfaces where the side neighbor is just
-						// another water source.
+						// Horizontal flow only if neighbor has a drop
 						auto shouldFlow = [&](int neighborX, int neighborZ) -> bool {
 							const int32_t neighbor = m_TerrainLookup(neighborX, worldY, neighborZ);
 							if (neighbor != BlockState::Air) return false;
-							// Only flow sideways if there's a drop (neighbor's below is also air)
 							const int32_t neighborBelow = m_TerrainLookup(neighborX, worldY - 1, neighborZ);
 							return neighborBelow == BlockState::Air;
 						};

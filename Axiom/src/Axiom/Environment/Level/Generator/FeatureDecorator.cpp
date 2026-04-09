@@ -125,7 +125,18 @@ namespace Axiom {
 						if (placeZ < 0 || placeZ >= 16) continue;
 
 						int index = BlockIndex(placeX, placeY, placeZ);
-						if (blocks[index] == BlockState::Stone) {
+						if (blocks[index] != BlockState::Stone) continue;
+
+						// Don't place ores within 4 blocks of the surface
+						bool nearSurface = false;
+						for (int checkY = placeY + 1; checkY <= placeY + 4 && checkY < 256; checkY++) {
+							int32_t above = blocks[BlockIndex(placeX, checkY, placeZ)];
+							if (above == BlockState::Air || above == BlockState::Water) {
+								nearSurface = true;
+								break;
+							}
+						}
+						if (!nearSurface) {
 							blocks[index] = oreBlock;
 						}
 					}

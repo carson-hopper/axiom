@@ -53,6 +53,22 @@ namespace Axiom {
 		PrepareHeights(chunkX, chunkZ, blocks, biomeGrid);
 		BuildSurfaces(chunkX, chunkZ, blocks, biomeGrid);
 		m_CaveGenerator.Generate(m_Seed, chunkX, chunkZ, blocks);
+
+		// Fill caves under water: any air block with water directly
+		// above gets replaced with water to prevent floating oceans
+		for (int localZ = 0; localZ < 16; localZ++) {
+			for (int localX = 0; localX < 16; localX++) {
+				for (int worldY = SEA_LEVEL; worldY >= 1; worldY--) {
+					int index = worldY * 256 + localZ * 16 + localX;
+					int aboveIndex = (worldY + 1) * 256 + localZ * 16 + localX;
+					if (blocks[index] == BlockState::Air &&
+						(blocks[aboveIndex] == BlockState::Water || FluidState::IsFluid(blocks[aboveIndex]))) {
+						blocks[index] = BlockState::Water;
+					}
+				}
+			}
+		}
+
 		m_FeatureDecorator.Decorate(m_Seed, chunkX, chunkZ, blocks, biomeGrid);
 
 		CacheBlocks(chunkX, chunkZ, blocks);
@@ -96,25 +112,56 @@ namespace Axiom {
 				const int worldX = chunkX * 16 + localX;
 				const int worldZ = chunkZ * 16 + localZ;
 
-				const int biomeIndex = localZ * 16 + localX;
-				const int32_t biomeId = biomeGrid[biomeIndex];
-				const BiomeData* biome = BiomeRegistry::Get(biomeId);
+				// Biome blending: sample a 5x5 area and average depth/scale
+				// to smooth transitions between biomes
+				float blendedDepth = 0.0f;
+				float blendedScale = 0.0f;
+				float totalWeight = 0.0f;
 
-				float depth = 0.125f;
-				float scale = 0.05f;
-				if (biome) {
-					depth = biome->Depth;
-					scale = biome->Scale;
+				for (int blendZ = -2; blendZ <= 2; blendZ++) {
+					for (int blendX = -2; blendX <= 2; blendX++) {
+						int sampleX = localX + blendX;
+						int sampleZ = localZ + blendZ;
+
+						float depth = 0.125f;
+						float scale = 0.05f;
+
+						if (sampleX >= 0 && sampleX < 16 && sampleZ >= 0 && sampleZ < 16) {
+							int32_t sampleBiome = biomeGrid[sampleZ * 16 + sampleX];
+							const BiomeData* biome = BiomeRegistry::Get(sampleBiome);
+							if (biome) {
+								depth = biome->Depth;
+								scale = biome->Scale;
+							}
+						} else {
+							// Use this column's biome for out-of-chunk samples
+							const BiomeData* biome = BiomeRegistry::Get(biomeGrid[localZ * 16 + localX]);
+							if (biome) {
+								depth = biome->Depth;
+								scale = biome->Scale;
+							}
+						}
+
+						// Closer samples get more weight
+						float distance = std::sqrt(static_cast<float>(blendX * blendX + blendZ * blendZ));
+						float weight = 1.0f / (1.0f + distance);
+						blendedDepth += depth * weight;
+						blendedScale += scale * weight;
+						totalWeight += weight;
+					}
 				}
+
+				blendedDepth /= totalWeight;
+				blendedScale /= totalWeight;
 
 				double mainNoise = m_NoiseMain.OctaveNoise2D(
 					worldX * 0.01, worldZ * 0.01, 8);
 				double detailNoise = m_NoiseDetail.OctaveNoise2D(
 					worldX * 0.05, worldZ * 0.05, 4);
 
-				double rawHeight = 64.0 + depth * 17.0
-					+ mainNoise * 12.0 * scale
-					+ detailNoise * 4.0;
+				double rawHeight = 64.0 + blendedDepth * 17.0
+					+ mainNoise * 12.0 * (blendedScale + 0.2)
+					+ detailNoise * 3.0;
 
 				int height = std::clamp(static_cast<int>(rawHeight), 1, 255);
 
@@ -185,8 +232,21 @@ namespace Axiom {
 						int32_t aboveBlock = (blockY + 1 < WORLD_HEIGHT)
 							? blocks[aboveIndex] : BlockState::Air;
 
-						if (aboveBlock == BlockState::Water) {
-							blocks[blockIndex] = fillerBlock;
+						bool nearWater = (aboveBlock == BlockState::Water);
+
+						// Beach: use sand near the waterline
+						if (!nearWater && blockY >= SEA_LEVEL - 1 && blockY <= SEA_LEVEL + 2) {
+							for (int checkY = blockY + 1; checkY <= SEA_LEVEL + 1 && checkY < WORLD_HEIGHT; checkY++) {
+								if (blocks[checkY * 256 + localZ * 16 + localX] == BlockState::Water) {
+									nearWater = true;
+									break;
+								}
+							}
+						}
+
+						if (nearWater) {
+							blocks[blockIndex] = BlockState::Sand;
+							fillerBlock = BlockState::Sand;
 						} else {
 							blocks[blockIndex] = topBlock;
 						}
@@ -283,29 +343,78 @@ namespace Axiom {
 	std::vector<std::vector<uint8_t>> ClassicLevelSource::ComputeSkyLight(
 		const std::vector<int32_t>& blocks) const {
 
-		// Compute heightmap: highest opaque block per column
-		std::array<int, 256> heightmap{};
+		// 3D light volume: light[y * 256 + z * 16 + x]
+		std::vector<uint8_t> light(WORLD_HEIGHT * 16 * 16, 0);
+
+		// Phase 1: seed sky light from above — full brightness above the
+		// highest opaque block in each column, trace straight down
 		for (int localZ = 0; localZ < 16; localZ++) {
 			for (int localX = 0; localX < 16; localX++) {
-				int columnIndex = localZ * 16 + localX;
-				heightmap[columnIndex] = 0;
+				uint8_t currentLight = 15;
 				for (int worldY = WORLD_HEIGHT - 1; worldY >= 0; worldY--) {
 					int32_t state = blocks[worldY * 256 + localZ * 16 + localX];
 					if (IsOpaqueBlock(state)) {
-						heightmap[columnIndex] = worldY + 1;
-						break;
+						currentLight = 0;
 					}
+					light[worldY * 256 + localZ * 16 + localX] = currentLight;
 				}
 			}
 		}
 
-		// Generate 24 sections of sky light
-		// Section i covers world Y range: (i * 16 - 64) to (i * 16 - 64 + 15)
+		// Phase 2: flood-fill horizontal propagation
+		// Light spreads into adjacent non-opaque blocks, losing 1 per step.
+		// Multiple passes until stable (max 15 passes for full spread).
+		static constexpr int DirectionX[] = {1, -1, 0, 0};
+		static constexpr int DirectionZ[] = {0, 0, 1, -1};
+
+		for (int pass = 0; pass < 15; pass++) {
+			bool changed = false;
+			for (int worldY = 0; worldY < WORLD_HEIGHT; worldY++) {
+				for (int localZ = 0; localZ < 16; localZ++) {
+					for (int localX = 0; localX < 16; localX++) {
+						int index = worldY * 256 + localZ * 16 + localX;
+						uint8_t current = light[index];
+						if (current <= 1) continue;
+
+						// Spread to 4 horizontal neighbors
+						for (int direction = 0; direction < 4; direction++) {
+							int neighborX = localX + DirectionX[direction];
+							int neighborZ = localZ + DirectionZ[direction];
+							if (neighborX < 0 || neighborX >= 16 ||
+								neighborZ < 0 || neighborZ >= 16) continue;
+
+							int neighborIndex = worldY * 256 + neighborZ * 16 + neighborX;
+							if (IsOpaqueBlock(blocks[neighborIndex])) continue;
+
+							uint8_t spread = current - 1;
+							if (spread > light[neighborIndex]) {
+								light[neighborIndex] = spread;
+								changed = true;
+							}
+						}
+
+						// Spread down (light falls through air)
+						if (worldY > 0) {
+							int belowIndex = (worldY - 1) * 256 + localZ * 16 + localX;
+							if (!IsOpaqueBlock(blocks[belowIndex])) {
+								uint8_t spread = current - 1;
+								if (spread > light[belowIndex]) {
+									light[belowIndex] = spread;
+									changed = true;
+								}
+							}
+						}
+					}
+				}
+			}
+			if (!changed) break;
+		}
+
+		// Phase 3: pack into per-section nibble arrays
 		std::vector<std::vector<uint8_t>> result(24);
 
 		for (int section = 0; section < 24; section++) {
 			int baseWorldY = section * 16 - 64;
-
 			result[section].resize(2048, 0);
 			auto& lightData = result[section];
 
@@ -314,16 +423,16 @@ namespace Axiom {
 				for (int localZ = 0; localZ < 16; localZ++) {
 					for (int localX = 0; localX < 16; localX++) {
 						int blockIndex = (localY * 16 + localZ) * 16 + localX;
-						int columnIndex = localZ * 16 + localX;
 
-						uint8_t skyLevel = 0;
-						if (worldY >= 0 && worldY < WORLD_HEIGHT) {
-							skyLevel = (worldY >= heightmap[columnIndex]) ? 15 : 0;
-						} else if (worldY >= WORLD_HEIGHT || worldY < 0) {
-							skyLevel = (worldY >= 0) ? 15 : 0;
+						uint8_t skyLevel;
+						if (worldY < 0) {
+							skyLevel = 0;
+						} else if (worldY >= WORLD_HEIGHT) {
+							skyLevel = 15;
+						} else {
+							skyLevel = light[worldY * 256 + localZ * 16 + localX];
 						}
 
-						// Pack nibbles: two 4-bit values per byte
 						int byteIndex = blockIndex / 2;
 						if (blockIndex % 2 == 0) {
 							lightData[byteIndex] |= (skyLevel & 0xF);
