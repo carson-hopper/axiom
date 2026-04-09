@@ -3,13 +3,15 @@
         "Serverbound": { "Handshake": 0 }
     },
     "Status": {
-        "Serverbound": { "StatusRequest": 0, "PingRequest": 1 }
+        "Serverbound": { "StatusRequest": 0, "PingRequest": 1 },
+        "Clientbound": { "StatusResponse": 0, "PongResponse": 1 }
     },
     "Login": {
         "Serverbound": { "LoginHello": 0, "EncryptionResponse": 1, "LoginAcknowledged": 3 }
     },
     "Configuration": {
-        "Serverbound": { "ClientInformation": 0, "ConfigKeepAlive": 4, "SelectKnownPacks": 7, "FinishConfiguration": 3 }
+        "Serverbound": { "ClientInformation": 0, "ConfigKeepAlive": 4, "SelectKnownPacks": 7, "FinishConfiguration": 3 },
+        "Clientbound": { "FinishConfiguration": 3, "RegistryData": 7, "UpdateTags": 13 }
     },
     "Play": {
         "Serverbound": {
@@ -20,7 +22,7 @@
             "SetCarriedItem": 53, "SetCreativeModeSlot": 56, "UseItemOn": 66
         },
         "Clientbound": {
-            "PlayerChat": 65, "SystemChat": 121
+            "BlockChangedAck": 4, "PlayerChat": 65, "SystemChat": 121
         }
     }
 }

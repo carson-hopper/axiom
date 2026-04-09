@@ -5,6 +5,7 @@
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
+#include "Axiom/Network/Packet/Play/Clientbound/BlockChangedAck.h"
 #include "Axiom/Environment/Level/Generator/BlockStates.h"
 
 namespace Axiom::Play::Serverbound {
@@ -12,7 +13,7 @@ namespace Axiom::Play::Serverbound {
 class UseItemOnPacket : public Packet<UseItemOnPacket, PID_PLAY_SB_USEITEMON> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	HandleImpl(Ref<Connection> connection, PacketContext& context, NetworkBuffer& buffer) override {
+	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer& buffer) {
 		m_Hand.Value = buffer.ReadVarInt();
 		buffer.ReadBlockPosition(m_BlockX.Value, m_BlockY.Value, m_BlockZ.Value);
 		m_Face.Value = buffer.ReadVarInt();
@@ -46,10 +47,6 @@ public:
 			blockState = context.ItemBlocks().GetBlockState(player->GetHeldItemId());
 		}
 
-		NetworkBuffer ackPayload;
-		ackPayload.WriteVarInt(m_Sequence.Value);
-		connection->SendRawPacket(Clientbound::Play::BlockChangedAck, ackPayload);
-
 		if (blockState == 0 && player) {
 			constexpr int32_t WaterBucketItem = 1014;
 			constexpr int32_t LavaBucketItem = 1015;
@@ -59,7 +56,10 @@ public:
 			else if (heldItemId == LavaBucketItem) blockState = BlockState::Lava;
 		}
 
-		if (blockState == 0) return std::nullopt;
+		if (blockState == 0) {
+			return CreateChainPacketsWithArgs<Play::Clientbound::BlockChangedAckPacket>(
+				std::make_tuple(m_Sequence.Value));
+		}
 
 		AX_CORE_TRACE("Block place at ({}, {}, {}) state={} from {}",
 			placeX, placeY, placeZ, blockState, connection->RemoteAddress());
@@ -69,11 +69,10 @@ public:
 				placeX, placeY, placeZ, result.error().message());
 		}
 
-		return std::nullopt;
+		return CreateChainPacketsWithArgs<Play::Clientbound::BlockChangedAckPacket>(
+			std::make_tuple(m_Sequence.Value));
 	}
 
-	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(Ref<Connection>, PacketContext&) { return std::nullopt; }
 
 	auto Fields() { return std::tuple<>(); }
 

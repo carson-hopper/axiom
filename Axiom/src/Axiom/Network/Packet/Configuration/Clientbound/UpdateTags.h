@@ -1,0 +1,22 @@
+#pragma once
+
+#include "Axiom/Network/Packet/Packet.h"
+
+namespace Axiom::Configuration::Clientbound {
+
+class UpdateTagsPacket : public Packet<UpdateTagsPacket,
+	PID_CONFIGURATION_CB_UPDATETAGS> {
+public:
+	std::optional<std::vector<Ref<IChainablePacket>>>
+	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
+
+	void Write(NetworkBuffer& buffer) override {
+		buffer.WriteVarInt(0); // 0 tag registries
+	}
+
+        AX_START_FIELDS()
+        
+        AX_END_FIELDS()
+};
+
+} // namespace Axiom::Configuration::Clientbound

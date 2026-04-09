@@ -5,6 +5,7 @@
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
+#include "Axiom/Network/Packet/Play/Clientbound/BlockChangedAck.h"
 #include "Axiom/Environment/Level/Generator/BlockStates.h"
 
 namespace Axiom::Play::Serverbound {
@@ -12,7 +13,7 @@ namespace Axiom::Play::Serverbound {
 class PlayerActionPacket : public Packet<PlayerActionPacket, PID_PLAY_SB_PLAYERACTION> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	HandleImpl(Ref<Connection> connection, PacketContext& context, NetworkBuffer& buffer) override {
+	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer& buffer) {
 		m_Action.Value = buffer.ReadVarInt();
 		buffer.ReadBlockPosition(m_BlockX.Value, m_BlockY.Value, m_BlockZ.Value);
 		m_Face.Value = buffer.ReadByte();
@@ -28,16 +29,13 @@ public:
 					m_BlockX.Value, m_BlockY.Value, m_BlockZ.Value, result.error().message());
 			}
 
-			NetworkBuffer ackPayload;
-			ackPayload.WriteVarInt(m_Sequence.Value);
-			connection->SendRawPacket(Clientbound::Play::BlockChangedAck, ackPayload);
+			return CreateChainPacketsWithArgs<Play::Clientbound::BlockChangedAckPacket>(
+				std::make_tuple(m_Sequence.Value));
 		}
 
 		return std::nullopt;
 	}
 
-	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(Ref<Connection>, PacketContext&) { return std::nullopt; }
 
 	auto Fields() { return std::tuple<>(); }
 
