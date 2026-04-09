@@ -37,6 +37,14 @@ namespace Axiom {
 			return 0; // First biome for unknown
 		}
 
+		std::string GetBlockName(int32_t stateId) const {
+			auto iterator = m_StateIdToBlockName.find(stateId);
+			if (iterator != m_StateIdToBlockName.end()) {
+				return iterator->second;
+			}
+			return "minecraft:air";
+		}
+
 		int BlockCount() const { return static_cast<int>(m_BlockNameToStateId.size()); }
 		int BiomeCount() const { return static_cast<int>(m_BiomeNameToId.size()); }
 
@@ -60,6 +68,7 @@ namespace Axiom {
 					}
 
 					m_BlockNameToStateId[name] = defaultStateId;
+					m_StateIdToBlockName[defaultStateId] = name;
 
 					// Also map states with properties for blocks that have multiple states
 					if (block.contains("states")) {
@@ -90,6 +99,7 @@ namespace Axiom {
 		}
 
 		std::unordered_map<std::string, int32_t> m_BlockNameToStateId;
+		std::unordered_map<int32_t, std::string> m_StateIdToBlockName;
 		std::unordered_map<std::string, int32_t> m_BiomeNameToId;
 	};
 

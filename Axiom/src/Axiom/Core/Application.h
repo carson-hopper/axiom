@@ -67,6 +67,7 @@ namespace Axiom {
 		ServerConfig& Config() const { return *m_Config; }
 		GameRules& Rules() { return m_GameRules; }
 		AdminFileStore& AdminFiles() { return m_AdminFiles; }
+		PacketContext& PacketCtx() const { return *m_PacketContext; }
 
 		static Application& Instance() { return *s_Instance; }
 

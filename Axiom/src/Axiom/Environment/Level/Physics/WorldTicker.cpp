@@ -41,6 +41,12 @@ namespace Axiom {
 
 		BroadcastBlockChange(worldX, worldY, worldZ, blockState);
 		m_BlockPhysics.ScheduleUpdate(worldX, worldY, worldZ);
+
+		// Mark chunk as dirty for save-on-unload
+		if (m_BlockDirtyCallback) {
+			m_BlockDirtyCallback(worldX >> 4, worldZ >> 4);
+		}
+
 		return {};
 	}
 

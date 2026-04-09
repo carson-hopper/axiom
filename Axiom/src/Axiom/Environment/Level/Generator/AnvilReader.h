@@ -2,6 +2,8 @@
 
 #include "Axiom/Core/Base.h"
 
+#include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <mutex>
 #include <optional>
@@ -22,7 +24,9 @@ namespace Axiom {
 	class AnvilReader {
 	public:
 		explicit AnvilReader(std::string worldDirectory)
-			: m_WorldDirectory(std::move(worldDirectory)) {}
+			: m_WorldDirectory(std::move(worldDirectory)) {
+			std::filesystem::create_directories(m_WorldDirectory);
+		}
 
 		/**
 		 * Read the raw NBT data for a chunk at the given coordinates.
@@ -80,7 +84,123 @@ namespace Axiom {
 			return compressedData;
 		}
 
+		/**
+		 * Write chunk NBT data to the region file at the given coordinates.
+		 * Compresses with zlib and allocates sectors in the region file.
+		 */
+		void WriteChunkNbt(int32_t chunkX, int32_t chunkZ, const std::vector<uint8_t>& nbtData) {
+			const int32_t regionX = chunkX >> 5;
+			const int32_t regionZ = chunkZ >> 5;
+			const int32_t localX = chunkX & 31;
+			const int32_t localZ = chunkZ & 31;
+
+			std::lock_guard<std::mutex> lock(m_Mutex);
+
+			auto compressed = CompressZlib(nbtData);
+			if (!compressed) {
+				AX_CORE_ERROR("Failed to compress chunk ({}, {})", chunkX, chunkZ);
+				return;
+			}
+
+			// Total data: 4 bytes length + 1 byte compression type + compressed data
+			uint32_t totalDataSize = static_cast<uint32_t>(compressed->size()) + 5;
+			uint32_t sectorsNeeded = (totalDataSize + 4095) / 4096;
+
+			auto& file = GetOrOpenRegionWrite(regionX, regionZ);
+			if (!file) return;
+
+			// Find free sectors by scanning the header
+			// Simple approach: append to end of file
+			file->seekp(0, std::ios::end);
+			auto fileSize = static_cast<uint32_t>(file->tellp());
+			if (fileSize < 8192) fileSize = 8192; // Min: 2 header sectors
+
+			// Align to sector boundary
+			uint32_t sectorOffset = (fileSize + 4095) / 4096;
+
+			// Pad file to sector boundary
+			file->seekp(sectorOffset * 4096);
+
+			// Write chunk: length (4 bytes big-endian) + compression type (1) + data
+			uint32_t dataLength = static_cast<uint32_t>(compressed->size()) + 1;
+			uint8_t lengthBytes[4] = {
+				static_cast<uint8_t>((dataLength >> 24) & 0xFF),
+				static_cast<uint8_t>((dataLength >> 16) & 0xFF),
+				static_cast<uint8_t>((dataLength >> 8) & 0xFF),
+				static_cast<uint8_t>(dataLength & 0xFF)
+			};
+			file->write(reinterpret_cast<char*>(lengthBytes), 4);
+
+			uint8_t compressionType = 2; // zlib
+			file->write(reinterpret_cast<char*>(&compressionType), 1);
+			file->write(reinterpret_cast<const char*>(compressed->data()), compressed->size());
+
+			// Pad remaining sector space with zeros
+			auto written = 5 + compressed->size();
+			auto remaining = sectorsNeeded * 4096 - written;
+			std::vector<uint8_t> padding(remaining, 0);
+			file->write(reinterpret_cast<char*>(padding.data()), remaining);
+
+			// Update header: location table at (localX + localZ * 32) * 4
+			int headerIndex = (localX + localZ * 32) * 4;
+			uint32_t location = (sectorOffset << 8) | (sectorsNeeded & 0xFF);
+			uint8_t locationBytes[4] = {
+				static_cast<uint8_t>((location >> 24) & 0xFF),
+				static_cast<uint8_t>((location >> 16) & 0xFF),
+				static_cast<uint8_t>((location >> 8) & 0xFF),
+				static_cast<uint8_t>(location & 0xFF)
+			};
+			file->seekp(headerIndex);
+			file->write(reinterpret_cast<char*>(locationBytes), 4);
+
+			// Update timestamp table at 4096 + headerIndex
+			auto now = static_cast<uint32_t>(std::time(nullptr));
+			uint8_t timestampBytes[4] = {
+				static_cast<uint8_t>((now >> 24) & 0xFF),
+				static_cast<uint8_t>((now >> 16) & 0xFF),
+				static_cast<uint8_t>((now >> 8) & 0xFF),
+				static_cast<uint8_t>(now & 0xFF)
+			};
+			file->seekp(4096 + headerIndex);
+			file->write(reinterpret_cast<char*>(timestampBytes), 4);
+
+			file->flush();
+
+			AX_CORE_TRACE("Saved chunk ({}, {}) to region r.{}.{}.mca",
+				chunkX, chunkZ, regionX, regionZ);
+		}
+
 	private:
+		std::unique_ptr<std::fstream>& GetOrOpenRegionWrite(int32_t regionX, int32_t regionZ) {
+			const int64_t key = (static_cast<int64_t>(regionX) << 32)
+				| (static_cast<int64_t>(regionZ) & 0xFFFFFFFF);
+
+			auto iterator = m_WriteFiles.find(key);
+			if (iterator != m_WriteFiles.end() && iterator->second) {
+				return iterator->second;
+			}
+
+			const std::string path = m_WorldDirectory + "/r." + std::to_string(regionX)
+				+ "." + std::to_string(regionZ) + ".mca";
+
+			// Open for read+write, create if missing
+			auto file = std::make_unique<std::fstream>(
+				path, std::ios::in | std::ios::out | std::ios::binary);
+
+			if (!file->good()) {
+				// Create new region file with empty header (8192 bytes)
+				file = std::make_unique<std::fstream>(
+					path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+				std::vector<uint8_t> header(8192, 0);
+				file->write(reinterpret_cast<char*>(header.data()), 8192);
+				file->flush();
+			}
+
+			auto& stored = m_WriteFiles[key];
+			stored = std::move(file);
+			return stored;
+		}
+
 		std::unique_ptr<std::ifstream>& GetOrOpenRegion(const int32_t regionX, const int32_t regionZ) {
 			const int64_t key = (static_cast<int64_t>(regionX) << 32)
 				| (static_cast<int64_t>(regionZ) & 0xFFFFFFFF);
@@ -133,9 +253,23 @@ namespace Axiom {
 			return decompressed;
 		}
 
+		static std::optional<std::vector<uint8_t>> CompressZlib(const std::vector<uint8_t>& data) {
+			std::vector<uint8_t> compressed(compressBound(static_cast<uLong>(data.size())));
+			uLongf compressedSize = static_cast<uLongf>(compressed.size());
+
+			if (compress2(compressed.data(), &compressedSize,
+				data.data(), static_cast<uLong>(data.size()), Z_DEFAULT_COMPRESSION) != Z_OK) {
+				return std::nullopt;
+			}
+
+			compressed.resize(compressedSize);
+			return compressed;
+		}
+
 		std::string m_WorldDirectory;
 		std::mutex m_Mutex;
 		std::unordered_map<int64_t, std::unique_ptr<std::ifstream>> m_RegionFiles;
+		std::unordered_map<int64_t, std::unique_ptr<std::fstream>> m_WriteFiles;
 	};
 
 }

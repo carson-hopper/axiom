@@ -91,6 +91,24 @@ namespace Axiom {
 	}
 
 	void ChunkManager::RemovePlayer(ConnectionId connectionId) {
+		// Save any dirty chunks loaded by this player before removal
+		{
+			std::lock_guard<std::mutex> lock(m_StateMutex);
+			auto iterator = m_PlayerStates.find(connectionId);
+			if (iterator != m_PlayerStates.end()) {
+				std::lock_guard<std::mutex> dirtyLock(m_DirtyMutex);
+				for (const auto& chunkPos : iterator->second.loadedChunks) {
+					int64_t key = ChunkKey(chunkPos.x, chunkPos.z);
+					if (m_DirtyChunks.contains(key)) {
+						m_DirtyChunks.erase(key);
+						if (m_ChunkUnloadCallback) {
+							m_ChunkUnloadCallback(chunkPos);
+						}
+					}
+				}
+			}
+		}
+
 		std::lock_guard<std::mutex> lock(m_StateMutex);
 		m_PlayerStates.erase(connectionId);
 	}
@@ -244,6 +262,36 @@ namespace Axiom {
 			| ((static_cast<int64_t>(chunkPosition.z) & 0xFFFFFFFFL) << 32);
 		payload.WriteLong(packed);
 		connection->SendRawPacket(Clientbound::Play::ForgetLevelChunk, payload);
+
+		// Save dirty chunk on unload
+		int64_t key = ChunkKey(chunkPosition.x, chunkPosition.z);
+		{
+			std::lock_guard<std::mutex> lock(m_DirtyMutex);
+			if (m_DirtyChunks.contains(key)) {
+				m_DirtyChunks.erase(key);
+				if (m_ChunkUnloadCallback) {
+					m_ChunkUnloadCallback(chunkPosition);
+				}
+			}
+		}
+	}
+
+	void ChunkManager::MarkChunkDirty(int32_t chunkX, int32_t chunkZ) {
+		std::lock_guard<std::mutex> lock(m_DirtyMutex);
+		m_DirtyChunks.insert(ChunkKey(chunkX, chunkZ));
+	}
+
+	void ChunkManager::SaveAllDirtyChunks() {
+		std::lock_guard<std::mutex> lock(m_DirtyMutex);
+		for (int64_t key : m_DirtyChunks) {
+			int32_t chunkX = static_cast<int32_t>(key >> 32);
+			int32_t chunkZ = static_cast<int32_t>(key & 0xFFFFFFFF);
+			if (m_ChunkUnloadCallback) {
+				m_ChunkUnloadCallback({chunkX, chunkZ});
+			}
+		}
+		m_DirtyChunks.clear();
+		AX_CORE_INFO("Saved all dirty chunks");
 	}
 
 	void ChunkManager::WorkerLoop() {

@@ -63,6 +63,9 @@ namespace Axiom {
 		 */
 		void ScanChunkForPhysics(int32_t chunkX, int32_t chunkZ);
 
+		using BlockDirtyCallback = std::function<void(int32_t chunkX, int32_t chunkZ)>;
+		void SetBlockDirtyCallback(BlockDirtyCallback callback) { m_BlockDirtyCallback = std::move(callback); }
+
 		BlockPhysics& Physics() { return m_BlockPhysics; }
 
 	private:
@@ -72,6 +75,7 @@ namespace Axiom {
 		PlayerManager& m_PlayerManager;
 		BlockPhysics m_BlockPhysics;
 		TerrainLookup m_TerrainLookup;
+		BlockDirtyCallback m_BlockDirtyCallback;
 
 		mutable std::mutex m_BlockMutex;
 		std::unordered_map<BlockPosition, int32_t, BlockPosition::Hash> m_BlockOverrides;

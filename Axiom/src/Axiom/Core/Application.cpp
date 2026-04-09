@@ -2,6 +2,7 @@
 #include "Axiom/Core/Application.h"
 
 #include "Axiom/Core/Time.h"
+#include "Axiom/Core/PathUtil.h"
 #include "Axiom/Core/BuildCount.generated.h"
 #include "Axiom/Core/Assert.h"
 #include "Axiom/Event/ServerEvents.h"
@@ -9,6 +10,7 @@
 #include "Axiom/Command/CommandSender.h"
 
 #include "Axiom/Network/Packet/PacketFactory.h"
+#include "Axiom/Commands/RestartCommand.h"
 
 #include "Axiom/Environment/Level/LevelTime.h"
 
@@ -17,6 +19,7 @@
 #include <iostream>
 #include <string>
 #include <charconv>
+
 
 #if defined(AX_PLATFORM_MACOS)
 #include <mach/mach.h>
@@ -38,6 +41,11 @@ namespace Axiom {
 
 	Application::~Application() {
 		AX_CORE_TRACE("Shutting down Axiom Server");
+
+		// Save all modified chunks before shutdown
+		if (m_PacketContext) {
+			m_PacketContext->ChunkManagement().SaveAllDirtyChunks();
+		}
 
 		m_ConsoleInput.Stop();
 		m_Watchdog.Stop();

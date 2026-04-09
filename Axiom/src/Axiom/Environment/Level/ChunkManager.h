@@ -14,6 +14,7 @@
 #include <set>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace Axiom {
@@ -55,6 +56,15 @@ namespace Axiom {
 		using ChunkSentCallback = std::function<void(ChunkPosition chunkPosition)>;
 		void SetChunkSentCallback(ChunkSentCallback callback) { m_ChunkSentCallback = std::move(callback); }
 
+		using ChunkUnloadCallback = std::function<void(ChunkPosition chunkPosition)>;
+		void SetChunkUnloadCallback(ChunkUnloadCallback callback) { m_ChunkUnloadCallback = std::move(callback); }
+
+		/** Mark a chunk as dirty (modified by player). */
+		void MarkChunkDirty(int32_t chunkX, int32_t chunkZ);
+
+		/** Save all dirty chunks. Called on shutdown. */
+		void SaveAllDirtyChunks();
+
 	private:
 		struct PlayerChunkState {
 			int32_t lastChunkX = 0;
@@ -86,6 +96,9 @@ namespace Axiom {
 		std::condition_variable m_QueueCondition;
 		std::atomic<bool> m_Stopping = false;
 		ChunkSentCallback m_ChunkSentCallback;
+		ChunkUnloadCallback m_ChunkUnloadCallback;
+		std::unordered_set<int64_t> m_DirtyChunks;
+		std::mutex m_DirtyMutex;
 
 		mutable std::mutex m_ChunkCacheMutex;
 		std::unordered_map<int64_t, Ref<Chunk>> m_ChunkCache;
