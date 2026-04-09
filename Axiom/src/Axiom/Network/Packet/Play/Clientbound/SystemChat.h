@@ -13,9 +13,9 @@ public:
 
 	void Write(NetworkBuffer& buffer) override {
 		if (m_Message.Value) {
-			buffer.WriteString(m_Message.Value->ToJson());
+			buffer.WriteTextComponent(m_Message.Value->ToJson());
 		} else {
-			buffer.WriteString("{\"text\":\"\"}");
+			buffer.WriteTextComponent("{\"text\":\"\"}");
 		}
 		buffer.WriteBoolean(m_ActionBar.Value);
 	}

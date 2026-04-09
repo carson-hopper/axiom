@@ -13,7 +13,7 @@ namespace Axiom {
 		if (!m_Connection || !m_Connection->IsConnected()) return;
 
 		NetworkBuffer payload;
-		payload.WriteString(message->ToJson());
+		payload.WriteTextComponent(message->ToJson());
 		payload.WriteBoolean(false); // Is overlay (action bar)
 
 		m_Connection->SendRawPacket(Clientbound::Play::SystemChat, payload);
@@ -26,7 +26,7 @@ namespace Axiom {
 		disconnectMessage["text"] = reason.empty() ? "Disconnected" : reason;
 
 		NetworkBuffer payload;
-		payload.WriteString(disconnectMessage.dump());
+		payload.WriteTextComponent(disconnectMessage.dump());
 
 		m_Connection->SendRawPacket(Clientbound::Play::Disconnect, payload);
 		m_Connection->Disconnect(reason);

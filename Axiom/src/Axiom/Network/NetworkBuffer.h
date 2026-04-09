@@ -159,6 +159,11 @@ public:
 		return ReadBytes(ReadableBytes());
 	}
 
+	std::vector<uint8_t> ReadFixedBitSet(size_t bitCount) {
+		size_t byteCount = (bitCount + 7) / 8;
+		return ReadBytes(byteCount);
+	}
+
 	// ----- Reading (Result<T> versions) ----------------------------
 
 	Result<uint8_t> TryReadByte() {
@@ -316,6 +321,19 @@ public:
 			| (static_cast<int64_t>(blockZ & 0x3FFFFFF) << 12)
 			| static_cast<int64_t>(blockY & 0xFFF);
 		WriteLong(encoded);
+	}
+
+	/**
+	 * Write a text component as an NBT TAG_String.
+	 * Since 1.20.3, chat components in packets are NBT-encoded.
+	 * A root TAG_String containing the JSON is the simplest form.
+	 */
+	void WriteTextComponent(const std::string& json) {
+		WriteByte(0x08); // TAG_String
+		auto length = static_cast<uint16_t>(json.size());
+		WriteByte(static_cast<uint8_t>((length >> 8) & 0xFF));
+		WriteByte(static_cast<uint8_t>(length & 0xFF));
+		m_Data.insert(m_Data.end(), json.begin(), json.end());
 	}
 
 	/**

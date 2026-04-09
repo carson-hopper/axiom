@@ -27,7 +27,7 @@ public:
 			buffer.WriteBoolean(false);
 		}
 
-		buffer.WriteString(m_Message.Value->ToJson());
+		buffer.WriteTextComponent(m_Message.Value->ToJson());
 		buffer.WriteLong(m_Timestamp.Value);
 		buffer.WriteLong(m_Salt.Value);
 
@@ -38,7 +38,7 @@ public:
 
 		if (m_UnsignedContent.Value.has_value()) {
 			buffer.WriteBoolean(true);
-			buffer.WriteString(m_UnsignedContent.Value.value()->ToJson());
+			buffer.WriteTextComponent(m_UnsignedContent.Value.value()->ToJson());
 		} else {
 			buffer.WriteBoolean(false);
 		}
