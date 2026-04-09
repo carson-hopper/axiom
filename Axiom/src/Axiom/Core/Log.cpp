@@ -56,10 +56,17 @@ namespace Axiom {
 			if (std::getenv("FORCE_COLOR") != nullptr) {
 				return true;
 			}
-			// Xcode's console doesn't support ANSI escape codes
-			if (std::getenv("__XCODE_BUILT_PRODUCTS_DIR_PATHS") != nullptr) {
-				return false;
-			}
+			#if defined(AX_PLATFORM_MACOS) || defined(AX_PLATFORM_LINUX)
+				// If stdout is a real terminal, colors are supported
+				// (even if launched from Xcode with "Use Terminal" option)
+				if (isatty(STDOUT_FILENO)) {
+					return true;
+				}
+				// Xcode's built-in console doesn't support ANSI
+				if (std::getenv("__XCODE_BUILT_PRODUCTS_DIR_PATHS") != nullptr) {
+					return false;
+				}
+			#endif
 			const char* term = std::getenv("TERM");
 			if (term != nullptr && std::string(term) == "dumb") {
 				return false;
