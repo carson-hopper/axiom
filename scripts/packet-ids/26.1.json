@@ -1,0 +1,26 @@
+{
+    "Handshake": {
+        "Serverbound": { "Handshake": 0 }
+    },
+    "Status": {
+        "Serverbound": { "StatusRequest": 0, "PingRequest": 1 }
+    },
+    "Login": {
+        "Serverbound": { "LoginHello": 0, "EncryptionResponse": 1, "LoginAcknowledged": 3 }
+    },
+    "Configuration": {
+        "Serverbound": { "ClientInformation": 0, "ConfigKeepAlive": 4, "SelectKnownPacks": 7, "FinishConfiguration": 3 }
+    },
+    "Play": {
+        "Serverbound": {
+            "AcceptTeleportation": 0, "Chat": 9, "ChunkBatchReceived": 11,
+            "ClientTickEnd": 13, "PlayKeepAlive": 28, "MovePlayerPosition": 30,
+            "MovePlayerPositionRotation": 31, "MovePlayerRotation": 32,
+            "MovePlayerStatusOnly": 33, "PlayerAction": 41, "PlayerLoaded": 44,
+            "SetCarriedItem": 53, "SetCreativeModeSlot": 56, "UseItemOn": 66
+        },
+        "Clientbound": {
+            "PlayerChat": 65, "SystemChat": 121
+        }
+    }
+}
