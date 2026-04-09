@@ -39,7 +39,8 @@ public:
 private:
 	void ReadLoop();
 	std::string ReadLine(const std::string& prompt, int promptVisibleLength = -1);
-	void RefreshLine(const std::string& prompt, int promptVisibleLength, const std::string& buffer, int cursor);
+	void RefreshLine(const std::string& prompt, int promptVisibleLength,
+		const std::string& buffer, int cursor);
 
 	TaskQueue& m_TaskQueue;
 	std::function<void(const std::string&)> m_Handler;

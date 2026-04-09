@@ -6,6 +6,7 @@
 #include <iostream>
 
 #if defined(AX_PLATFORM_MACOS) || defined(AX_PLATFORM_LINUX)
+#include <csignal>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -56,7 +57,14 @@ namespace Axiom {
 	}
 
 	void ConsoleInput::ReadLoop() {
+		bool firstPrompt = true;
 		while (m_Running) {
+			// Blank line between commands for breathing room
+			if (!firstPrompt) {
+				write(STDOUT_FILENO, "\n", 1);
+			}
+			firstPrompt = false;
+
 			// Build starship-style prompt
 			int termWidth = GetTerminalWidth();
 			auto built = m_Prompt.Build(termWidth);
@@ -88,10 +96,29 @@ namespace Axiom {
 		int visiblePromptLen = (promptVisibleLength >= 0)
 			? promptVisibleLength
 			: static_cast<int>(prompt.size());
-		(void)visiblePromptLen;
 
-		// Move to start of input line, clear it, redraw prompt + buffer
+		// Clear line and write prompt + buffer
 		std::string output = "\r\033[K" + prompt + buffer;
+
+		// Rebuild and render right badges on this line
+		int termWidth = 80;
+#if defined(AX_PLATFORM_MACOS) || defined(AX_PLATFORM_LINUX)
+		struct winsize windowSize{};
+		if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize) == 0 && windowSize.ws_col > 0) {
+			termWidth = windowSize.ws_col;
+		}
+#endif
+		auto built = m_Prompt.Build(termWidth);
+		if (built.RightBadgesVisibleLength > 0) {
+			int rightColumn = termWidth - built.RightBadgesVisibleLength + 1;
+			int leftUsed = visiblePromptLen + static_cast<int>(buffer.size());
+			if (rightColumn > leftUsed + 1) {
+				output += "\033[s"; // save cursor
+				output += "\033[" + std::to_string(rightColumn) + "G";
+				output += built.RightBadges;
+				output += "\033[u"; // restore cursor
+			}
+		}
 
 		// Position cursor correctly
 		int backCount = static_cast<int>(buffer.size()) - cursor;
@@ -114,9 +141,6 @@ namespace Axiom {
 			return line;
 		}
 
-		// Print the full prompt (info line + input line)
-		write(STDOUT_FILENO, prompt.c_str(), prompt.size());
-
 		// Enable raw mode
 		struct termios original;
 		tcgetattr(STDIN_FILENO, &original);
@@ -131,16 +155,11 @@ namespace Axiom {
 		int cursor = 0;
 		int historyIndex = static_cast<int>(m_History.size());
 
-		// For two-line prompt, only refresh the second (input) line
-		// The prompt string ends with the input-line prefix (e.g. "❯ ")
-		// We find the last newline to isolate the input line prefix
-		std::string inputPrefix;
-		auto lastNewline = prompt.rfind('\n');
-		if (lastNewline != std::string::npos) {
-			inputPrefix = prompt.substr(lastNewline + 1);
-		} else {
-			inputPrefix = prompt;
-		}
+		// Single-line prompt — use the full prompt as the input prefix
+		const std::string& inputPrefix = prompt;
+
+		// Render immediately with right badges
+		RefreshLine(inputPrefix, promptVisibleLength, buffer, cursor);
 
 		while (m_Running) {
 			char character = 0;
@@ -187,13 +206,22 @@ namespace Axiom {
 				continue;
 			}
 
-			// Ctrl-C
+			// Ctrl-C — if buffer has text, clear it; if empty, stop the server
 			if (character == 3) {
-				buffer.clear();
-				cursor = 0;
-				write(STDOUT_FILENO, "^C\r\n", 4);
-				RefreshLine(inputPrefix, promptVisibleLength, buffer, cursor);
-				continue;
+				if (!buffer.empty()) {
+					buffer.clear();
+					cursor = 0;
+					write(STDOUT_FILENO, "^C\r\n", 4);
+					RefreshLine(inputPrefix, promptVisibleLength, buffer, cursor);
+					continue;
+				} else {
+					write(STDOUT_FILENO, "^C\r\n", 4);
+					tcsetattr(STDIN_FILENO, TCSAFLUSH, &original);
+					// Raise SIGINT to trigger normal shutdown
+					raise(SIGINT);
+					m_Running = false;
+					return "";
+				}
 			}
 
 			// Ctrl-D

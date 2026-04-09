@@ -94,9 +94,11 @@ public:
 	struct BuiltPrompt {
 		std::string Styled;
 		int InputLineVisibleLength;
+		std::string RightBadges;
+		int RightBadgesVisibleLength;
 	};
 
-	BuiltPrompt Build(int terminalWidth) const {
+	BuiltPrompt Build(int /*terminalWidth*/) const {
 		// Collect segments
 		std::vector<Segment> leftSegments;
 		for (auto& provider : m_LeftProviders) {
@@ -151,7 +153,7 @@ public:
 					leftVisibleLength += 1;
 				} else {
 					// Rounded trailing cap on last bg segment
-					leftStyled += "\033[38;5;" + std::to_string(segment.BackgroundColor) + "m";
+					leftStyled += "\033[0m\033[38;5;" + std::to_string(segment.BackgroundColor) + ";49m";
 					leftStyled += "\xee\x82\xb4"; //
 					leftStyled += "\033[0m";
 					leftVisibleLength += 1;
@@ -210,7 +212,7 @@ public:
 					rightStyled += "\033[0m";
 					rightVisibleLength += 1;
 				} else {
-					rightStyled += "\033[38;5;" + std::to_string(segment.BackgroundColor) + "m";
+					rightStyled += "\033[0m\033[38;5;" + std::to_string(segment.BackgroundColor) + ";49m";
 					rightStyled += "\xee\x82\xb4"; //
 					rightStyled += "\033[0m";
 					rightVisibleLength += 1;
@@ -228,32 +230,14 @@ public:
 			}
 		}
 
-		// Compose line 1:
-		// 1. Clear line and fill with spaces to terminal width
-		// 2. Cursor back to right position, write right badges
-		// 3. Cursor back to col 1, write left badges
-		std::string line1;
-
-		if (!rightSegments.empty() && rightVisibleLength < terminalWidth) {
-			// Fill line, then position right badges, then overwrite left
-			line1 = std::string(terminalWidth, ' ');
-			line1 += "\r\033[" + std::to_string(terminalWidth - rightVisibleLength + 1) + "G";
-			line1 += rightStyled;
-			line1 += "\r";
-			line1 += leftStyled;
-		} else {
-			line1 = leftStyled;
-		}
-
-		// Line 2: prompt character
+		// Single line: left badges + prompt char
 		std::string promptChar = "\033[1;38;5;" + std::to_string(m_PromptColor)
 			+ "m" + m_PromptChar + "\033[0m ";
 
-		// Full prompt: line1 + newline + promptChar
-		std::string full = line1 + "\n" + promptChar;
-		int inputVisibleLength = ColumnWidth(m_PromptChar) + 1;
+		std::string full = leftStyled + " " + promptChar;
+		int inputVisibleLength = leftVisibleLength + 1 + ColumnWidth(m_PromptChar) + 1;
 
-		return {full, inputVisibleLength};
+		return {full, inputVisibleLength, rightStyled, rightVisibleLength};
 	}
 
 private:
