@@ -57,6 +57,7 @@ namespace Axiom {
                             response->Write(payload);
                             connection->SendRawPacket(
                                 response->GetPacketId(), payload);
+                            response->OnSent(connection);
                         }
                     }
                 };

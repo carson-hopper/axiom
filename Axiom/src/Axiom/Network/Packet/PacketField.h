@@ -37,6 +37,13 @@ namespace Axiom {
         }
     };
 
+#define AX_FIELD_WITH_DEFAULT(Name, Type, Default) \
+    private: \
+        Field<Type> m_##Name{Default}; \
+    public: \
+        auto Get##Name() const { return m_##Name.GetValue(); } \
+        void Set##Name(const Type& val) { m_##Name.Value = val; }
+
 #define AX_FIELD(Name, Type) \
     private: \
         Field<Type> m_##Name; \

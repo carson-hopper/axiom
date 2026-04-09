@@ -6,26 +6,23 @@
 #include "Axiom/Network/Packet/PacketContext.h"
 #include "Axiom/Network/Crypto/MinecraftHash.h"
 #include "Axiom/Network/Crypto/MojangAuth.h"
+#include "Axiom/Network/Packet/Login/Clientbound/LoginCompression.h"
+#include "Axiom/Network/Packet/Login/Clientbound/LoginFinished.h"
 
 #include <thread>
 
 namespace Axiom::Login::Serverbound {
 
-class EncryptionResponsePacket : public Packet<EncryptionResponsePacket, PID_LOGIN_SB_ENCRYPTIONRESPONSE> {
+class EncryptionResponsePacket : public Packet<EncryptionResponsePacket,
+	PID_LOGIN_SB_ENCRYPTIONRESPONSE> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer& buffer) {
-		const int32_t secretLength = buffer.ReadVarInt();
-		m_EncryptedSharedSecret.Value = buffer.ReadBytes(secretLength);
-        
-		const int32_t tokenLength = buffer.ReadVarInt();
-		m_EncryptedVerifyToken.Value = buffer.ReadBytes(tokenLength);
-
+	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer&) {
 		std::vector<uint8_t> sharedSecret;
 		std::vector<uint8_t> verifyToken;
 		try {
-			sharedSecret = context.KeyPair().Decrypt(m_EncryptedSharedSecret.Value);
-			verifyToken = context.KeyPair().Decrypt(m_EncryptedVerifyToken.Value);
+			sharedSecret = context.KeyPair().Decrypt(m_EncryptedSharedSecret.Value.GetValue());
+			verifyToken = context.KeyPair().Decrypt(m_EncryptedVerifyToken.Value.GetValue());
 		} catch (const std::exception& exception) {
 			AX_CORE_ERROR("Decryption failed for {}: {}", connection->RemoteAddress(), exception.what());
 			connection->Disconnect("Encryption error");
@@ -60,20 +57,50 @@ public:
 			}
 
 			AX_CORE_INFO("Authenticated {} (UUID: {})", profile->name, profile->uuid);
-			context.CompleteLogin(connectionRef, context.FormatUuid(profile->uuid), profile->name);
+
+			std::string formattedUuid = context.FormatUuid(profile->uuid);
+
+			// Send compression (OnSent enables it)
+			Clientbound::LoginCompressionPacket compressionPacket(256);
+			NetworkBuffer compressionPayload;
+			compressionPacket.Write(compressionPayload);
+			connectionRef->SendRawPacket(compressionPacket.GetPacketId(), compressionPayload);
+			compressionPacket.OnSent(connectionRef);
+
+			// Send login finished
+			Clientbound::LoginFinishedPacket finishedPacket(formattedUuid, profile->name);
+			NetworkBuffer finishedPayload;
+			finishedPacket.Write(finishedPayload);
+			connectionRef->SendRawPacket(finishedPacket.GetPacketId(), finishedPayload);
+
+			// Register player with skin properties
+			int32_t entityId = context.Players().NextEntityId();
+			auto player = context.Players().AddPlayer(
+				entityId, connectionRef, profile->name, formattedUuid);
+			player->SetPosition({0.5, context.ChunkManagement().Generator().SpawnY(), 0.5});
+
+			// Store Mojang properties (textures/skin)
+			std::vector<PlayerProperty> properties;
+			for (const auto& prop : profile->properties) {
+				properties.push_back({
+					prop.value("name", ""),
+					prop.value("value", ""),
+					prop.value("signature", "")
+				});
+			}
+			player->SetProperties(std::move(properties));
 		}).detach();
 
 		return std::nullopt;
 	}
-
 
 	AX_START_FIELDS()
 		AX_DECLARE(EncryptedSharedSecret),
 		AX_DECLARE(EncryptedVerifyToken)
 	AX_END_FIELDS()
 
-	AX_FIELD(EncryptedSharedSecret, std::vector<uint8_t>)
-	AX_FIELD(EncryptedVerifyToken, std::vector<uint8_t>)
+	AX_FIELD(EncryptedSharedSecret, Net::ByteArray)
+	AX_FIELD(EncryptedVerifyToken, Net::ByteArray)
 };
 
 } // namespace Axiom::Login::Serverbound

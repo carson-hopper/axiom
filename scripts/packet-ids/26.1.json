@@ -7,7 +7,8 @@
         "Clientbound": { "StatusResponse": 0, "PongResponse": 1 }
     },
     "Login": {
-        "Serverbound": { "LoginHello": 0, "EncryptionResponse": 1, "LoginAcknowledged": 3 }
+        "Serverbound": { "LoginHello": 0, "EncryptionResponse": 1, "LoginAcknowledged": 3 },
+        "Clientbound": { "Disconnect": 0, "Hello": 1, "LoginFinished": 2, "LoginCompression": 3 }
     },
     "Configuration": {
         "Serverbound": { "ClientInformation": 0, "ConfigKeepAlive": 4, "SelectKnownPacks": 7, "FinishConfiguration": 3 },
@@ -22,7 +23,9 @@
             "SetCarriedItem": 53, "SetCreativeModeSlot": 56, "UseItemOn": 66
         },
         "Clientbound": {
-            "BlockChangedAck": 4, "PlayerChat": 65, "SystemChat": 121
+            "BlockChangedAck": 4, "GameEvent": 38, "Login": 49,
+            "PlayerAbilities": 64, "PlayerInfoUpdate": 70, "PlayerPosition": 72,
+            "SetDefaultSpawnPosition": 97, "PlayerChat": 65, "SystemChat": 121
         }
     }
 }

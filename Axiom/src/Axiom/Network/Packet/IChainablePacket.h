@@ -22,6 +22,9 @@ namespace Axiom {
 
         virtual void Write(NetworkBuffer& buffer) = 0;
 
+        /** Called after this packet has been sent. Override for side effects like enabling compression. */
+        virtual void OnSent(const Ref<Connection>&) {}
+
         virtual std::optional<std::vector<Ref<IChainablePacket>>>
             HandleImpl(const Ref<Connection>& connection,
                        PacketContext& context,

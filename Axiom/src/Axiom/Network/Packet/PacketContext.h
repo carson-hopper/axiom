@@ -55,9 +55,6 @@ namespace Axiom {
 
 		std::array<uint8_t, 4> GenerateVerifyToken();
 		std::string FormatUuid(const std::string& trimmedUuid) const;
-		void CompleteLogin(const Ref<Connection> &connection, const std::string& uuid,
-			const std::string& playerName);
-
 	private:
 		ServerConfig& m_Config;
 		EventBus& m_EventBus;
