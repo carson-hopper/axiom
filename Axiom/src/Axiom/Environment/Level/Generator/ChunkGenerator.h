@@ -39,7 +39,7 @@ namespace Axiom {
 		 * Used by physics to query generated terrain.
 		 * Default returns Air — generators should override for physics support.
 		 */
-		virtual int32_t GetBlockAt(int32_t worldX, int32_t worldY, int32_t worldZ) const {
+		virtual int32_t GetBlockAt(int32_t /*worldX*/, int32_t /*worldY*/, int32_t /*worldZ*/) const {
 			return 0; // Air
 		}
 	};

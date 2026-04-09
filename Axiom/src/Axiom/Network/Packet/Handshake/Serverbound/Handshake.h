@@ -11,7 +11,7 @@ class HandshakePacket : public Packet<HandshakePacket,
     PID_HANDSHAKE_SB_HANDSHAKE> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& context) {
+    Handle(const Ref<Connection> &connection, PacketContext& /*context*/) {
         AX_CORE_TRACE("Handshake from {}: protocol={}, address={}:{}, nextState={}",
             connection->RemoteAddress(), m_ProtocolVersion.Value,
             m_ServerAddress.Value, m_ServerPort.Value, m_NextState.Value);
