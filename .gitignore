@@ -33,3 +33,5 @@ Makefile
 
 # OS
 Thumbs.db
+.buildcount
+Axiom/src/Axiom/Core/BuildCount.generated.h

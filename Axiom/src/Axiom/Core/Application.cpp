@@ -2,6 +2,7 @@
 #include "Axiom/Core/Application.h"
 
 #include "Axiom/Core/Time.h"
+#include "Axiom/Core/BuildCount.generated.h"
 #include "Axiom/Core/Assert.h"
 #include "Axiom/Event/ServerEvents.h"
 #include "Axiom/Plugin/CorePlugin.h"
@@ -205,7 +206,11 @@ namespace Axiom {
 			return {"", "axiom", 15, 62};
 		});
 		m_ConsoleInput.Prompt().AddLeft([]() -> ConsolePrompt::Segment {
-			return {"", "v26.1", 15, 33};
+#ifdef AX_DEBUG
+			return {"", "v26.1-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT) "+b" AX_STRINGIFY_MACRO(AX_BUILD_COUNT), 15, 33};
+#else
+			return {"", "v26.1-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT), 15, 33};
+#endif
 		});
 		m_ConsoleInput.Prompt().AddRight([this]() -> ConsolePrompt::Segment {
 			int count = static_cast<int>(m_PacketContext->Players().PlayerCount());

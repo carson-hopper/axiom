@@ -225,8 +225,22 @@ project "Axiom"
         "TERM=xterm-256color",
     }
 
+    -- Inject git commit count at build time
+    local commitCount = "0"
+    local gitHandle = io.popen("git rev-list --count HEAD 2>/dev/null")
+    if gitHandle then
+        commitCount = gitHandle:read("*l") or "0"
+        gitHandle:close()
+    end
+
     defines {
         "ASIO_STANDALONE",
+        "AX_COMMIT_COUNT=" .. commitCount,
+    }
+
+    -- Prebuild: increment build counter and generate header
+    prebuildcommands {
+        'sh "%{wks.location}/scripts/increment-build.sh" "%{wks.location}" "%{prj.location}"'
     }
 
     links {

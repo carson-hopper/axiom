@@ -27,7 +27,8 @@
 // ----- Macro helpers --------------------------------------------
 
 #define AX_EXPAND_MACRO(x) x
-#define AX_STRINGIFY_MACRO(x) #x
+#define AX_STRINGIFY_IMPL(x) #x
+#define AX_STRINGIFY_MACRO(x) AX_STRINGIFY_IMPL(x)
 
 #define BIT(x) (1 << (x))
 
