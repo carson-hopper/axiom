@@ -1,15 +1,15 @@
-[submodule "vendor/spdlog"]
-	path = Axiom/vendor/spdlog
-	url = https://github.com/gabime/spdlog.git
-[submodule "vendor/yaml-cpp"]
-	path = Axiom/vendor/yaml-cpp
-	url = https://github.com/jbeder/yaml-cpp.git
-[submodule "vendor/json"]
-	path = Axiom/vendor/json
-	url = https://github.com/nlohmann/json.git
-[submodule "vendor/asio"]
+[submodule "Axiom/vendor/asio"]
 	path = Axiom/vendor/asio
 	url = https://github.com/chriskohlhoff/asio.git
-[submodule "vendor/tomlplusplus"]
+[submodule "Axiom/vendor/json"]
+	path = Axiom/vendor/json
+	url = https://github.com/nlohmann/json.git
+[submodule "Axiom/vendor/spdlog"]
+	path = Axiom/vendor/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "Axiom/vendor/tomlplusplus"]
 	path = Axiom/vendor/tomlplusplus
 	url = https://github.com/marzer/tomlplusplus.git
+[submodule "Axiom/vendor/yaml-cpp"]
+	path = Axiom/vendor/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
