@@ -6,4 +6,9 @@
  */
 
 #include "Axiom/Commands/StopCommand.h"
+
+#if AX_DEBUG
+#include "Axiom/Commands/RestartCommand.h"
+#endif
+
 #include "Axiom/Commands/HelpCommand.h"

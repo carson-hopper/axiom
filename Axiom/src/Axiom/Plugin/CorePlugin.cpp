@@ -3,7 +3,7 @@
 #include "Axiom/Core/Log.h"
 #include "Axiom/Plugin/PluginContext.h"
 #include "Axiom/Command/CommandRegistry.h"
-#include "../Command/Commands.h"
+#include "Axiom/Command/Commands.h"
 
 namespace Axiom {
 
@@ -14,7 +14,12 @@ namespace Axiom {
 
 	void CorePlugin::OnEnable(PluginContext& context) {
 		// Register built-in commands using their own classes
-		context.Commands().Register(CreateRef<StopCommand>());
+        context.Commands().Register(CreateRef<StopCommand>());
+        
+#if AX_DEBUG
+        context.Commands().Register(CreateRef<RestartCommand>());
+#endif
+        
 		context.Commands().Register(CreateRef<HelpCommand>(context.Commands()));
 
 		AX_CORE_INFO("Core commands registered");
