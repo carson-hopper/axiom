@@ -144,24 +144,56 @@ namespace Axiom {
 		static void EncodeBlockSection(NetworkBuffer& buffer,
 			const int32_t* blocks, const int32_t biomeId = Biome::Plains) {
 
-			// Build palette from unique block types (hash map for O(1) lookup)
-			std::vector<int32_t> palette;
-			std::unordered_map<int32_t, int32_t> paletteMap;
+			// Build palette — flat array for small palettes (no heap alloc),
+			// falls back to hash map only if >32 unique blocks
+			std::array<int32_t, 32> flatPalette{};
+			int flatPaletteSize = 0;
 			std::array<int32_t, 4096> paletteIndices{};
 			int nonAirCount = 0;
 			int fluidCount = 0;
+			bool useFlatPalette = true;
+
+			std::vector<int32_t> heapPalette;
+			std::unordered_map<int32_t, int32_t> heapPaletteMap;
 
 			for (int index = 0; index < 4096; index++) {
 				int32_t blockState = blocks[index];
 
-				auto iterator = paletteMap.find(blockState);
-				if (iterator == paletteMap.end()) {
-					int32_t paletteIndex = static_cast<int32_t>(palette.size());
-					palette.push_back(blockState);
-					paletteMap[blockState] = paletteIndex;
+				if (useFlatPalette) {
+					int32_t paletteIndex = -1;
+					for (int candidate = 0; candidate < flatPaletteSize; candidate++) {
+						if (flatPalette[candidate] == blockState) {
+							paletteIndex = candidate;
+							break;
+						}
+					}
+					if (paletteIndex == -1) {
+						if (flatPaletteSize < 32) {
+							paletteIndex = flatPaletteSize;
+							flatPalette[flatPaletteSize++] = blockState;
+						} else {
+							// Promote to heap map
+							useFlatPalette = false;
+							heapPalette.assign(flatPalette.begin(), flatPalette.begin() + flatPaletteSize);
+							for (int32_t i = 0; i < flatPaletteSize; i++) {
+								heapPaletteMap[flatPalette[i]] = i;
+							}
+							paletteIndex = flatPaletteSize;
+							heapPalette.push_back(blockState);
+							heapPaletteMap[blockState] = paletteIndex;
+						}
+					}
 					paletteIndices[index] = paletteIndex;
 				} else {
-					paletteIndices[index] = iterator->second;
+					auto iterator = heapPaletteMap.find(blockState);
+					if (iterator == heapPaletteMap.end()) {
+						int32_t paletteIndex = static_cast<int32_t>(heapPalette.size());
+						heapPalette.push_back(blockState);
+						heapPaletteMap[blockState] = paletteIndex;
+						paletteIndices[index] = paletteIndex;
+					} else {
+						paletteIndices[index] = iterator->second;
+					}
 				}
 
 				if (blockState != BlockState::Air) {
@@ -172,7 +204,11 @@ namespace Axiom {
 				}
 			}
 
-			if (palette.size() == 1) {
+			// Unify palette reference
+			const int32_t* palette = useFlatPalette ? flatPalette.data() : heapPalette.data();
+			int paletteSize = useFlatPalette ? flatPaletteSize : static_cast<int>(heapPalette.size());
+
+			if (paletteSize == 1) {
 				EncodeSingleBlockSection(buffer, palette[0], biomeId);
 				return;
 			}
@@ -182,7 +218,7 @@ namespace Axiom {
 
 			// Compute bits per entry (minimum 4 for indirect palette)
 			int bitsPerEntry = 4;
-			while ((1 << bitsPerEntry) < static_cast<int>(palette.size())) {
+			while ((1 << bitsPerEntry) < paletteSize) {
 				bitsPerEntry++;
 			}
 
@@ -190,9 +226,9 @@ namespace Axiom {
 
 			buffer.WriteByte(static_cast<uint8_t>(bitsPerEntry));
 
-			buffer.WriteVarInt(static_cast<int32_t>(palette.size()));
-			for (const int32_t blockState : palette) {
-				buffer.WriteVarInt(blockState);
+			buffer.WriteVarInt(paletteSize);
+			for (int i = 0; i < paletteSize; i++) {
+				buffer.WriteVarInt(palette[i]);
 			}
 
 			// Pack 4096 entries into longs
@@ -279,19 +315,22 @@ namespace Axiom {
 
 		// ----- Light data -----------------------------------------------
 
-		static std::vector<uint8_t> MakeLightArray(const uint8_t lightLevel) {
-			const uint8_t packed = static_cast<uint8_t>((lightLevel & 0xF) | ((lightLevel & 0xF) << 4));
-			return std::vector<uint8_t>(2048, packed);
+		static const std::vector<uint8_t>& CachedFullSkyLight() {
+			static const std::vector<uint8_t> data(2048, 0xFF);
+			return data;
 		}
 
-		static std::vector<uint8_t> MakeBottomSectionSkyLight() {
-			std::vector<uint8_t> data(2048, 0);
-			for (int layer = 4; layer < 16; layer++) {
-				const int byteOffset = layer * 128;
-				for (int i = 0; i < 128; i++) {
-					data[byteOffset + i] = 0xFF;
+		static const std::vector<uint8_t>& CachedBottomSkyLight() {
+			static const auto data = []() {
+				std::vector<uint8_t> result(2048, 0);
+				for (int layer = 4; layer < 16; layer++) {
+					const int byteOffset = layer * 128;
+					for (int i = 0; i < 128; i++) {
+						result[byteOffset + i] = 0xFF;
+					}
 				}
-			}
+				return result;
+			}();
 			return data;
 		}
 
@@ -319,38 +358,47 @@ namespace Axiom {
 			}
 		}
 
-		static void EncodeLightData(NetworkBuffer& buffer) {
-			std::vector<int> skyLightSections;
-			for (int i = 1; i <= 25; i++) {
-				skyLightSections.push_back(i);
-			}
+		static void EncodeLightData(NetworkBuffer& buffer,
+			const std::vector<std::vector<uint8_t>>& skyLight = {}) {
 
-			std::vector<int> blockLightSections;
-			std::vector<int> emptySkyLight = {0};
-
-			std::vector<int> emptyBlockLight;
-			for (int i = 0; i <= 25; i++) {
-				emptyBlockLight.push_back(i);
-			}
+			// Sky light: sections 1-25 (section 0 is below y=-64, always empty)
+			static const std::vector<int> skyLightSections = [] {
+				std::vector<int> result;
+				for (int i = 1; i <= 25; i++) result.push_back(i);
+				return result;
+			}();
+			static const std::vector<int> blockLightSections;
+			static const std::vector<int> emptySkyLight = {0};
+			static const std::vector<int> emptyBlockLight = [] {
+				std::vector<int> result;
+				for (int i = 0; i <= 25; i++) result.push_back(i);
+				return result;
+			}();
 
 			WriteBitSet(buffer, skyLightSections);
 			WriteBitSet(buffer, blockLightSections);
 			WriteBitSet(buffer, emptySkyLight);
 			WriteBitSet(buffer, emptyBlockLight);
 
-			buffer.WriteVarInt(static_cast<int32_t>(skyLightSections.size()));
-			for (int sectionIndex : skyLightSections) {
-				std::vector<uint8_t> lightArray;
-				if (sectionIndex == 1) {
-					lightArray = MakeBottomSectionSkyLight();
+			bool hasDynamic = (skyLight.size() == 24);
+			const auto& fullLight = CachedFullSkyLight();
+
+			buffer.WriteVarInt(25);
+			for (int i = 0; i < 25; i++) {
+				// Section index in skyLightSections is 1-25,
+				// corresponding to chunk sections 0-23 (+1 above)
+				// i=0 → section 1 (chunk section 0)
+				// i=24 → section 25 (above world, full light)
+				if (hasDynamic && i < 24) {
+					buffer.WriteVarInt(2048);
+					buffer.WriteBytes(skyLight[i]);
 				} else {
-					lightArray = MakeLightArray(15);
+					buffer.WriteVarInt(2048);
+					buffer.WriteBytes(fullLight);
 				}
-				buffer.WriteVarInt(static_cast<int32_t>(lightArray.size()));
-				buffer.WriteBytes(lightArray);
 			}
 
-			buffer.WriteVarInt(0); // No block light arrays
+			buffer.WriteVarInt(0);
 		}
 
 		// ----- Full chunk packet ----------------------------------------

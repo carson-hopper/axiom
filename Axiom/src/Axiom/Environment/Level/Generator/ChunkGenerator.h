@@ -11,8 +11,11 @@ namespace Axiom {
 		int32_t chunkX;
 		int32_t chunkZ;
 		std::vector<uint8_t> sectionData;
-		int32_t heightmapValue;   // Uniform height for all columns
+		int32_t heightmapValue;
 		int32_t biomeId;
+		// Per-section sky light (24 entries, each 2048 bytes = 4096 nibbles)
+		// Empty means "use full sky light for all sections"
+		std::vector<std::vector<uint8_t>> skyLight;
 	};
 
 	/**

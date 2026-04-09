@@ -3,6 +3,7 @@
 
 #include "Axiom/Environment/Level/Generator/BlockStates.h"
 #include "Axiom/Environment/Level/ChunkEncoder.h"
+#include "Axiom/Environment/Level/Physics/BlockPhysics.h"
 #include "Axiom/Network/NetworkBuffer.h"
 
 #include <algorithm>
@@ -56,7 +57,9 @@ namespace Axiom {
 
 		CacheBlocks(chunkX, chunkZ, blocks);
 
-		return EncodeChunk(chunkX, chunkZ, blocks, biomeGrid);
+		auto chunkData = EncodeChunk(chunkX, chunkZ, blocks, biomeGrid);
+		chunkData.skyLight = ComputeSkyLight(blocks);
+		return chunkData;
 	}
 
 	double ClassicLevelSource::SpawnY() const {
@@ -263,6 +266,76 @@ namespace Axiom {
 			heightmapValue,
 			dominantBiome
 		};
+	}
+
+	static bool IsOpaqueBlock(int32_t state) {
+		return state != BlockState::Air
+			&& !FluidState::IsFluid(state)
+			&& state != BlockState::OakLeaves
+			&& state != BlockState::SpruceLeaves
+			&& state != BlockState::BirchLeaves
+			&& state != BlockState::ShortGrass
+			&& state != BlockState::Fern
+			&& state != BlockState::Dandelion
+			&& state != BlockState::Poppy;
+	}
+
+	std::vector<std::vector<uint8_t>> ClassicLevelSource::ComputeSkyLight(
+		const std::vector<int32_t>& blocks) const {
+
+		// Compute heightmap: highest opaque block per column
+		std::array<int, 256> heightmap{};
+		for (int localZ = 0; localZ < 16; localZ++) {
+			for (int localX = 0; localX < 16; localX++) {
+				int columnIndex = localZ * 16 + localX;
+				heightmap[columnIndex] = 0;
+				for (int worldY = WORLD_HEIGHT - 1; worldY >= 0; worldY--) {
+					int32_t state = blocks[worldY * 256 + localZ * 16 + localX];
+					if (IsOpaqueBlock(state)) {
+						heightmap[columnIndex] = worldY + 1;
+						break;
+					}
+				}
+			}
+		}
+
+		// Generate 24 sections of sky light
+		// Section i covers world Y range: (i * 16 - 64) to (i * 16 - 64 + 15)
+		std::vector<std::vector<uint8_t>> result(24);
+
+		for (int section = 0; section < 24; section++) {
+			int baseWorldY = section * 16 - 64;
+
+			result[section].resize(2048, 0);
+			auto& lightData = result[section];
+
+			for (int localY = 0; localY < 16; localY++) {
+				int worldY = baseWorldY + localY;
+				for (int localZ = 0; localZ < 16; localZ++) {
+					for (int localX = 0; localX < 16; localX++) {
+						int blockIndex = (localY * 16 + localZ) * 16 + localX;
+						int columnIndex = localZ * 16 + localX;
+
+						uint8_t skyLevel = 0;
+						if (worldY >= 0 && worldY < WORLD_HEIGHT) {
+							skyLevel = (worldY >= heightmap[columnIndex]) ? 15 : 0;
+						} else if (worldY >= WORLD_HEIGHT || worldY < 0) {
+							skyLevel = (worldY >= 0) ? 15 : 0;
+						}
+
+						// Pack nibbles: two 4-bit values per byte
+						int byteIndex = blockIndex / 2;
+						if (blockIndex % 2 == 0) {
+							lightData[byteIndex] |= (skyLevel & 0xF);
+						} else {
+							lightData[byteIndex] |= ((skyLevel & 0xF) << 4);
+						}
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 	void ClassicLevelSource::CacheBlocks(int chunkX, int chunkZ,

@@ -228,7 +228,7 @@ namespace Axiom {
 
 		payload.WriteVarInt(0);
 
-		ChunkEncoder::EncodeLightData(payload);
+		ChunkEncoder::EncodeLightData(payload, chunkData.skyLight);
 
 		connection->SendRawPacket(Clientbound::Play::LevelChunkWithLight, payload);
 

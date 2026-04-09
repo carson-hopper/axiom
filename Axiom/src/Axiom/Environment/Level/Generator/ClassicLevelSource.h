@@ -56,6 +56,14 @@ namespace Axiom {
 			const std::vector<int32_t>& biomeGrid) const;
 
 		/**
+		 * Compute per-section sky light from block data.
+		 * Traces downward from the top of each column —
+		 * light is 15 above the highest opaque block, 0 below.
+		 */
+		std::vector<std::vector<uint8_t>> ComputeSkyLight(
+			const std::vector<int32_t>& blocks) const;
+
+		/**
 		 * Cache blocks for GetBlockAt
 		 * physics queries.
 		 */
