@@ -5,8 +5,7 @@
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
 #include "Axiom/Config/ServerConfig.h"
-#include "Axiom/Environment/Level/Generator/ClassicLevelSource.h"
-#include "Axiom/Environment/Level/Generator/FlatChunkGenerator.h"
+#include "Axiom/Environment/Level/Generator/VanillaChunkGenerator.h"
 
 namespace Axiom {
 
@@ -16,7 +15,7 @@ namespace Axiom {
 		: m_Config(config)
 		, m_EventBus(eventBus)
 		, m_Commands(commands)
-		, m_ChunkManager(CreateRef<ClassicLevelSource>(12345), config.ViewDistance()) {
+		, m_ChunkManager(CreateRef<VanillaChunkGenerator>("./worlds/minecraft/overworld"), config.ViewDistance()) {
 
 		const auto dataPath = ResolvePath("data");
 		m_Registries.LoadAll(dataPath.string());
@@ -31,6 +30,19 @@ namespace Axiom {
 			[this](const ChunkPosition chunkPosition) {
 				m_WorldTicker.ScanChunkForPhysics(chunkPosition.x, chunkPosition.z);
 			});
+
+		// Save dirty chunks back to region files on unload
+		m_ChunkManager.SetChunkUnloadCallback(
+			[this](const ChunkPosition chunkPosition) {
+				auto& generator = dynamic_cast<VanillaChunkGenerator&>(m_ChunkManager.Generator());
+				generator.SaveChunk(chunkPosition.x, chunkPosition.z, m_WorldTicker);
+			});
+		// Mark chunks dirty when blocks are modified
+		m_WorldTicker.SetBlockDirtyCallback(
+			[this](int32_t chunkX, int32_t chunkZ) {
+				m_ChunkManager.MarkChunkDirty(chunkX, chunkZ);
+			});
+
 		m_WorldTicker.Start();
 	}
 

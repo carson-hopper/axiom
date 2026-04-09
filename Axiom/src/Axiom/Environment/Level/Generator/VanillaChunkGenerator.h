@@ -8,6 +8,8 @@
 #include "Axiom/Core/PathUtil.h"
 #include "Axiom/Core/Log.h"
 #include "Axiom/Network/Nbt/NbtReader.h"
+#include "Axiom/Network/Nbt/NbtWriter.h"
+#include "Axiom/Environment/Level/Physics/WorldTicker.h"
 
 #include <mutex>
 #include <string>
@@ -23,7 +25,7 @@ namespace Axiom {
 	class VanillaChunkGenerator : public ChunkGenerator {
 	public:
 		explicit VanillaChunkGenerator(const std::string& worldDirectory)
-			: m_AnvilReader(worldDirectory + "/dimensions/minecraft/overworld/region") {
+			: m_AnvilReader(worldDirectory + "/region") {
 
 			const auto dataPath = ResolvePath("data");
 			m_BlockRegistry.LoadFromExtractorData(dataPath.string());
@@ -43,6 +45,120 @@ namespace Axiom {
 
 		double SpawnY() const override {
 			return 100.0;  // Will be overridden by level.dat later
+		}
+
+		/**
+		 * Save the chunk back to the region file.
+		 * Re-reads the original NBT and writes it back (preserving it).
+		 * A full implementation would rebuild the NBT from modified block data.
+		 */
+		/**
+		 * Save the chunk with player modifications back to the region file.
+		 * Rebuilds section NBT from the current block state (cache + overrides).
+		 */
+		void SaveChunk(int32_t chunkX, int32_t chunkZ, class WorldTicker& ticker) {
+			NbtWriter writer;
+			writer.BeginRootCompound();
+
+			// DataVersion
+			writer.WriteInt("DataVersion", 4325); // 26.1
+
+			// Status
+			writer.WriteString("Status", "minecraft:full");
+
+			// Sections list: 24 sections from Y=-4 to Y=19
+			writer.BeginList("sections", 10, 24);
+			for (int sectionY = -4; sectionY < 20; sectionY++) {
+				// Each section is a compound in the list
+				writer.WriteByte("Y", static_cast<int8_t>(sectionY));
+
+				// Build palette + packed data from current block state
+				std::vector<std::string> palette;
+				std::unordered_map<std::string, int32_t> paletteMap;
+				std::array<int32_t, 4096> paletteIndices{};
+
+				int baseWorldY = (sectionY + 4) * 16 - 64;
+				int baseWorldX = chunkX * 16;
+				int baseWorldZ = chunkZ * 16;
+
+				for (int localY = 0; localY < 16; localY++) {
+					for (int localZ = 0; localZ < 16; localZ++) {
+						for (int localX = 0; localX < 16; localX++) {
+							int worldX = baseWorldX + localX;
+							int worldY = baseWorldY + localY;
+							int worldZ = baseWorldZ + localZ;
+
+							int32_t stateId = ticker.GetBlock(worldX, worldY, worldZ);
+							std::string blockName = m_BlockRegistry.GetBlockName(stateId);
+							if (blockName.empty()) blockName = "minecraft:air";
+
+							auto it = paletteMap.find(blockName);
+							int32_t paletteIndex;
+							if (it == paletteMap.end()) {
+								paletteIndex = static_cast<int32_t>(palette.size());
+								palette.push_back(blockName);
+								paletteMap[blockName] = paletteIndex;
+							} else {
+								paletteIndex = it->second;
+							}
+
+							int blockIndex = (localY * 16 + localZ) * 16 + localX;
+							paletteIndices[blockIndex] = paletteIndex;
+						}
+					}
+				}
+
+				// Write block_states compound
+				writer.BeginCompound("block_states");
+
+				// Palette
+				writer.BeginList("palette", 10, static_cast<int32_t>(palette.size()));
+				for (const auto& name : palette) {
+					writer.WriteString("Name", name);
+					writer.EndCompound(); // end palette entry
+				}
+
+				// Data (packed long array) — only if palette > 1
+				if (palette.size() > 1) {
+					int bitsPerEntry = 4;
+					while ((1 << bitsPerEntry) < static_cast<int>(palette.size()))
+						bitsPerEntry++;
+
+					int entriesPerLong = 64 / bitsPerEntry;
+					int longCount = (4096 + entriesPerLong - 1) / entriesPerLong;
+
+					std::vector<int64_t> packed(longCount, 0);
+					for (int i = 0; i < 4096; i++) {
+						int longIndex = i / entriesPerLong;
+						int bitOffset = (i % entriesPerLong) * bitsPerEntry;
+						packed[longIndex] |= (static_cast<int64_t>(paletteIndices[i]) << bitOffset);
+					}
+
+					writer.WriteLongArray("data", packed);
+				}
+
+				writer.EndCompound(); // end block_states
+
+				// Biomes — single-valued plains
+				writer.BeginCompound("biomes");
+				writer.BeginList("palette", 8, 1);
+				writer.WriteStringValue("minecraft:plains");
+				writer.EndCompound(); // end biomes
+
+				writer.EndCompound(); // end section
+			}
+
+			writer.EndCompound(); // end root
+
+			m_AnvilReader.WriteChunkNbt(chunkX, chunkZ, writer.Data());
+
+			// Clear the block cache so the next load reads from the updated .mca
+			{
+				std::lock_guard<std::mutex> lock(m_BlockCacheMutex);
+				m_BlockCache.erase(ChunkCacheKey(chunkX, chunkZ));
+			}
+
+			AX_CORE_INFO("Saved modified chunk ({}, {})", chunkX, chunkZ);
 		}
 
 		int32_t GetBlockAt(int32_t worldX, int32_t worldY, int32_t worldZ) const override {
