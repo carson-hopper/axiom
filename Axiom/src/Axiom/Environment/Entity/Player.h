@@ -25,6 +25,12 @@ namespace Axiom {
 	 * Links a LivingEntity to a network Connection and holds
 	 * player-specific state (name, UUID, game mode, etc.)
 	 */
+	struct PlayerProperty {
+		std::string Name;
+		std::string Value;
+		std::string Signature; // empty if unsigned
+	};
+
 	class Player : public LivingEntity, public CommandSender {
 	public:
 		Player(const int32_t entityId, Ref<Connection> connection,
@@ -36,6 +42,9 @@ namespace Axiom {
 
 		const std::string& Name() const override { return m_Name; }
 		const std::string& Uuid() const { return m_Uuid; }
+
+		const std::vector<PlayerProperty>& Properties() const { return m_Properties; }
+		void SetProperties(std::vector<PlayerProperty> properties) { m_Properties = std::move(properties); }
 		Ref<Connection> GetConnection() const { return m_Connection; }
 		GameMode GetGameMode() const { return m_GameMode; }
 		void SetGameMode(const GameMode mode) { m_GameMode = mode; }
@@ -92,7 +101,8 @@ namespace Axiom {
 		std::weak_ptr<Level> m_Level;
 		std::string m_Name;
 		std::string m_Uuid;
-		GameMode m_GameMode = GameMode::Spectator;
+		std::vector<PlayerProperty> m_Properties;
+		GameMode m_GameMode = GameMode::Creative;
 		int m_SelectedSlot = 0;
 		std::array<HotbarSlot, 9> m_HotbarItems{};
 		int m_FoodLevel = 20;

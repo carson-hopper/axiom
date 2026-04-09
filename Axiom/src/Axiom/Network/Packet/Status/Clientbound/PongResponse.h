@@ -13,15 +13,11 @@ public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
 	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
 
-	void Write(NetworkBuffer& buffer) override {
-		buffer.WriteLong(m_Payload.Value);
-	}
-
 	AX_START_FIELDS()
 		AX_DECLARE(Payload)
 	AX_END_FIELDS()
 
-	AX_FIELD(Payload, int64_t)
+	AX_FIELD(Payload, Net::Long)
 };
 
 } // namespace Axiom::Status::Clientbound

@@ -14,23 +14,46 @@
 
 namespace Axiom::Configuration::Serverbound {
 
+struct KnownPack {
+	std::string Namespace;
+	std::string Identifier;
+	std::string Version;
+};
+
+/** Auto-parseable network type for the known packs list. */
+class KnownPackList : public Net::NetworkType<std::vector<KnownPack>> {
+public:
+	using Net::NetworkType<std::vector<KnownPack>>::NetworkType;
+
+protected:
+	std::vector<KnownPack> ReadImpl(NetworkBuffer& buffer) override {
+		const int32_t count = buffer.ReadVarInt();
+		std::vector<KnownPack> packs(count);
+		for (auto& pack : packs) {
+			pack.Namespace = buffer.ReadString(256);
+			pack.Identifier = buffer.ReadString(256);
+			pack.Version = buffer.ReadString(256);
+		}
+		return packs;
+	}
+
+	void WriteImpl(NetworkBuffer& buffer) const override {
+		buffer.WriteVarInt(static_cast<int32_t>(m_Value.size()));
+		for (const auto& pack : m_Value) {
+			buffer.WriteString(pack.Namespace);
+			buffer.WriteString(pack.Identifier);
+			buffer.WriteString(pack.Version);
+		}
+	}
+};
+
 class SelectKnownPacksPacket : public Packet<SelectKnownPacksPacket,
 	PID_CONFIGURATION_SB_SELECTKNOWNPACKS> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(const Ref<Connection>& connection, PacketContext&,
-	           NetworkBuffer& buffer) {
+	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) {
+		AX_CORE_TRACE("Client selected {} known packs", m_KnownPacks.Value.GetValue().size());
 
-		const int32_t count = buffer.ReadVarInt();
-		for (int32_t i = 0; i < count; i++) {
-			buffer.ReadString(256); // namespace
-			buffer.ReadString(256); // identifier
-			buffer.ReadString(256); // version
-		}
-
-		AX_CORE_TRACE("Client selected {} known packs", count);
-
-		// Build chain: RegistryData × N + UpdateTags + FinishConfiguration
 		std::vector<Ref<IChainablePacket>> chain;
 
 		auto synced = LoadExtractorJson("synced_registries.json");
@@ -41,12 +64,14 @@ public:
 
 		chain.push_back(CreateRef<Clientbound::UpdateTagsPacket>());
 		chain.push_back(CreateRef<Clientbound::FinishConfigurationPacket>());
-
 		return chain;
 	}
 
+	AX_START_FIELDS()
+		AX_DECLARE(KnownPacks)
+	AX_END_FIELDS()
 
-	auto Fields() { return std::tuple<>(); }
+	AX_FIELD(KnownPacks, KnownPackList)
 
 private:
 	static nlohmann::json LoadExtractorJson(const std::string& fileName) {

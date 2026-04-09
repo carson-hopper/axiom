@@ -13,15 +13,11 @@ public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
 	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
 
-	void Write(NetworkBuffer& buffer) override {
-		buffer.WriteString(m_Json.Value);
-	}
-
 	AX_START_FIELDS()
 		AX_DECLARE(Json)
 	AX_END_FIELDS()
 
-	AX_FIELD(Json, std::string)
+	AX_FIELD(Json, Net::String)
 };
 
 } // namespace Axiom::Status::Clientbound

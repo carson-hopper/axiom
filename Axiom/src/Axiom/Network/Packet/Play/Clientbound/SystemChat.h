@@ -20,7 +20,8 @@ public:
 		buffer.WriteBoolean(m_ActionBar.Value);
 	}
 
-	auto Fields() { return std::tuple<>(); }
+    AX_START_FIELDS()
+    AX_END_FIELDS()
 
 	AX_FIELD(Message, Ref<ChatComponent>)
 	AX_FIELD(ActionBar, bool)

@@ -7,34 +7,46 @@
 
 namespace Axiom::Configuration::Clientbound {
 
-class RegistryDataPacket : public Packet<RegistryDataPacket,
-	PID_CONFIGURATION_CB_REGISTRYDATA> {
+/** Network type that serializes a JSON object as registry entries (VarInt count + name/NBT pairs). */
+class RegistryEntries : public Net::NetworkType<nlohmann::json> {
 public:
-	RegistryDataPacket() = default;
-	RegistryDataPacket(std::string registryName, nlohmann::json entries)
-		: m_RegistryName(std::move(registryName))
-		, m_Entries(std::move(entries)) {}
+	using Net::NetworkType<nlohmann::json>::NetworkType;
 
-	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
+protected:
+	nlohmann::json ReadImpl(NetworkBuffer&) override {
+		return nlohmann::json::object(); // Clientbound only — never read
+	}
 
-	void Write(NetworkBuffer& buffer) override {
-		buffer.WriteString(m_RegistryName);
-		buffer.WriteVarInt(static_cast<int32_t>(m_Entries.size()));
-
-		for (auto& [entryName, entryData] : m_Entries.items()) {
+	void WriteImpl(NetworkBuffer& buffer) const override {
+		buffer.WriteVarInt(static_cast<int32_t>(m_Value.size()));
+		for (auto& [entryName, entryData] : m_Value.items()) {
 			buffer.WriteString("minecraft:" + entryName);
 			buffer.WriteBoolean(true);
 			auto nbtData = JsonToNbt::ObjectToRootCompound(entryData);
 			buffer.WriteBytes(nbtData);
 		}
 	}
+};
 
-	auto Fields() { return std::tuple<>(); }
+class RegistryDataPacket : public Packet<RegistryDataPacket,
+	PID_CONFIGURATION_CB_REGISTRYDATA> {
+public:
+	RegistryDataPacket() = default;
+	RegistryDataPacket(std::string registryName, nlohmann::json entries) {
+		m_RegistryName.Value = std::move(registryName);
+		m_Entries.Value = std::move(entries);
+	}
 
-private:
-	std::string m_RegistryName;
-	nlohmann::json m_Entries;
+	std::optional<std::vector<Ref<IChainablePacket>>>
+	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
+
+	AX_START_FIELDS()
+		AX_DECLARE(RegistryName),
+		AX_DECLARE(Entries)
+	AX_END_FIELDS()
+
+	AX_FIELD(RegistryName, Net::String)
+	AX_FIELD(Entries, RegistryEntries)
 };
 
 } // namespace Axiom::Configuration::Clientbound

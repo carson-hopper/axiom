@@ -13,15 +13,11 @@ public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
 	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
 
-	void Write(NetworkBuffer& buffer) override {
-		buffer.WriteVarInt(m_Sequence.Value);
-	}
-
 	AX_START_FIELDS()
 		AX_DECLARE(Sequence)
 	AX_END_FIELDS()
 
-	AX_FIELD(Sequence, int32_t)
+	AX_FIELD(Sequence, Net::VarInt)
 };
 
 } // namespace Axiom::Play::Clientbound

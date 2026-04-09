@@ -55,8 +55,20 @@ public:
 		}
 	}
 
-	auto Fields() { return std::tuple<>(); }
-
+    AX_START_FIELDS()
+        AX_DECLARE(SenderUuid),
+        AX_DECLARE(Signature),
+        AX_DECLARE(Message),
+        AX_DECLARE(Timestamp),
+        AX_DECLARE(Salt),
+        AX_DECLARE(PreviousMessages),
+        AX_DECLARE(UnsignedContent),
+        AX_DECLARE(FilterType),
+        AX_DECLARE(ChatType),
+        AX_DECLARE(SenderName),
+        AX_DECLARE(TargetName)
+    AX_END_FIELDS()
+        
 	AX_FIELD(SenderUuid, UUID)
 	AX_FIELD(Signature, std::optional<std::vector<uint8_t>>)
 	AX_FIELD(Message, Ref<ChatComponent>)

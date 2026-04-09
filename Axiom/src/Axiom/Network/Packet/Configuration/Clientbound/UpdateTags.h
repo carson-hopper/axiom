@@ -10,13 +10,11 @@ public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
 	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
 
-	void Write(NetworkBuffer& buffer) override {
-		buffer.WriteVarInt(0); // 0 tag registries
-	}
+	AX_START_FIELDS()
+		AX_DECLARE(TagCount)
+	AX_END_FIELDS()
 
-        AX_START_FIELDS()
-        
-        AX_END_FIELDS()
+	AX_FIELD_WITH_DEFAULT(TagCount, Net::VarInt, 0)
 };
 
 } // namespace Axiom::Configuration::Clientbound
