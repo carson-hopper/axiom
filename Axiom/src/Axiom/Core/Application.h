@@ -66,8 +66,10 @@ namespace Axiom {
 		CommandRegistry& Commands() const { return *m_CommandRegistry; }
 		ServerConfig& Config() const { return *m_Config; }
 		GameRules& Rules() { return m_GameRules; }
-		AdminFileStore& AdminFiles() { return m_AdminFiles; }
-		PacketContext& PacketCtx() const { return *m_PacketContext; }
+        AdminFileStore& AdminFiles() { return m_AdminFiles; }
+        PacketContext& PacketCtx() const { return *m_PacketContext; }
+        
+        Ref<NetworkServer> Server() const { return m_NetworkServer; }
 
 		static Application& Instance() { return *s_Instance; }
 
@@ -78,7 +80,7 @@ namespace Axiom {
 		Scope<CommandRegistry> m_CommandRegistry;
 		Scope<ServerConfig> m_Config;
 		Scope<PluginContext> m_PluginContext;
-		Scope<NetworkServer> m_NetworkServer;
+		Ref<NetworkServer> m_NetworkServer;
 		Scope<PacketContext> m_PacketContext;
 
 		TaskQueue m_TaskQueue;

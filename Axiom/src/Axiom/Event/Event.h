@@ -14,8 +14,6 @@ namespace Axiom {
 		BlockPlace, BlockBreak,
 		// Server
 		ServerStart, ServerStop, ServerTick,
-		// Packet
-		PacketReceive, PacketHandled,
 		// Command
 		CommandExecute,
 		// Plugin

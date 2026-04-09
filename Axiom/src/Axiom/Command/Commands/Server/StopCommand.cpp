@@ -1,5 +1,5 @@
 #include "axpch.h"
-#include "StopCommand.h"
+#include "Axiom/Command/Commands/Server/StopCommand.h"
 
 #include "Axiom/Core/Application.h"
 #include "Axiom/Core/Log.h"

@@ -25,6 +25,7 @@ namespace Axiom {
         RegisterDefaultParser<Axiom::Play::Serverbound::ClientTickEndPacket>();
         RegisterDefaultParser<Axiom::Play::Serverbound::MovePlayerStatusOnlyPacket>();
         RegisterDefaultParser<Axiom::Play::Serverbound::KeepAlivePacket>();
+        RegisterDefaultParser<Axiom::Play::Serverbound::SwingPacket>();
         RegisterDefaultParser<Axiom::Play::Serverbound::PlayerLoadedPacket>();
         RegisterDefaultParser<Axiom::Play::Serverbound::MovePlayerRotationPacket>();
         RegisterDefaultParser<Axiom::Login::Serverbound::LoginAcknowledgedPacket>();

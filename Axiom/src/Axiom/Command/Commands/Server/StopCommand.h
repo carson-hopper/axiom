@@ -26,11 +26,11 @@ public:
 		static std::string usage = "/stop";
 		return usage;
 	}
-
-	const std::string& Permission() const {
-		static std::string perm = "server.stop";
-		return perm;
-	}
+    
+    const std::string& Permission() const {
+        static std::string perm = "axiom.server.stop";
+        return perm;
+    }
 
 	void Execute(CommandSender& sender, const std::vector<std::string>& arguments) override;
 

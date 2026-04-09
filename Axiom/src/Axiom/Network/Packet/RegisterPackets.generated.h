@@ -20,6 +20,7 @@
 #include "Axiom/Network/Packet/Play/Serverbound/ClientTickEnd.h"
 #include "Axiom/Network/Packet/Play/Serverbound/MovePlayerStatusOnly.h"
 #include "Axiom/Network/Packet/Play/Serverbound/KeepAlive.h"
+#include "Axiom/Network/Packet/Play/Serverbound/Swing.h"
 #include "Axiom/Network/Packet/Play/Serverbound/PlayerLoaded.h"
 #include "Axiom/Network/Packet/Play/Serverbound/MovePlayerRotation.h"
 #include "Axiom/Network/Packet/Login/Serverbound/LoginAcknowledged.h"

@@ -20,7 +20,7 @@
             "ClientTickEnd": 13, "PlayKeepAlive": 28, "MovePlayerPosition": 30,
             "MovePlayerPositionRotation": 31, "MovePlayerRotation": 32,
             "MovePlayerStatusOnly": 33, "PlayerAction": 41, "PlayerLoaded": 44,
-            "SetCarriedItem": 53, "SetCreativeModeSlot": 56, "UseItemOn": 66
+            "SetCarriedItem": 53, "SetCreativeModeSlot": 56, "Swing": 63, "UseItemOn": 66
         },
         "Clientbound": {
             "BlockChangedAck": 4, "GameEvent": 38, "Login": 49,

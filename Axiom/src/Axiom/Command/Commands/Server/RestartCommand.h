@@ -21,6 +21,16 @@ public:
 		static std::string desc = "Save all chunks and restart the server";
 		return desc;
 	}
+    
+    const std::string& Usage() const {
+        static std::string usage = "/restart";
+        return usage;
+    }
+    
+    const std::string& Permission() const {
+        static std::string perm = "axiom.server.restart";
+        return perm;
+    }
 
 	void Execute(CommandSender& sender, const std::vector<std::string>& arguments) override;
 

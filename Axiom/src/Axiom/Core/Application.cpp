@@ -10,15 +10,11 @@
 #include "Axiom/Command/CommandSender.h"
 
 #include "Axiom/Network/Packet/PacketFactory.h"
-#include "Axiom/Commands/RestartCommand.h"
-
-#include "Axiom/Environment/Level/LevelTime.h"
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <charconv>
 
 
 #if defined(AX_PLATFORM_MACOS)
@@ -84,8 +80,10 @@ namespace Axiom {
 		while (std::getline(file, line)) {
 			if (line.empty() || line[0] == '#')
 				continue;
-			if (line.find("eula=true") != std::string::npos)
-				return true;
+            if (line.find("eula=true") != std::string::npos)
+                return true;
+            if (line.find("eula=yes") != std::string::npos)
+                return true;
 		}
 
 		AX_CORE_ERROR("You must agree to the EULA to run the server.");
@@ -111,89 +109,19 @@ namespace Axiom {
 		m_PluginManager = CreateScope<PluginManager>();
 
 		m_PluginContext = CreateScope<PluginContext>(*m_EventBus, *m_CommandRegistry, *m_Config);
-
 		m_PluginManager->RegisterPlugin(CreateScope<CorePlugin>());
 		m_PluginManager->EnableAll(*m_PluginContext);
 
-		m_PacketContext = CreateScope<PacketContext>(*m_Config, *m_EventBus, *m_CommandRegistry);
+		m_NetworkServer = CreateRef<NetworkServer>();
+		m_PacketContext = CreateScope<PacketContext>(*m_Config, *m_EventBus, *m_CommandRegistry, *m_NetworkServer);
 		PacketFactory::RegisterAll();
 
-		m_NetworkServer = CreateScope<NetworkServer>();
 		m_NetworkServer->SetPacketHandler(
 			[this](Ref<Connection> connection, const int32_t packetId, NetworkBuffer& buffer) {
 				auto state = static_cast<PacketState>(connection->State());
 				PacketFactory::DispatchPacket(state, packetId, connection, *m_PacketContext, buffer);
 			});
 		m_NetworkServer->Start(m_Config->Port());
-
-		// Register server commands that need PacketContext
-		m_CommandRegistry->Register("time", "Set time of day (0-24000 or day/noon/night/midnight)",
-	[this](CommandSender& sender, const std::vector<std::string>& arguments) {
-			if (arguments.empty()) {
-				sender.SendPlainMessage("Time: " + std::to_string(m_PacketContext->Time().TimeOfDay()));
-				return;
-			}
-
-			const std::string_view argument = arguments[0];
-
-			constexpr std::pair<std::string_view, int64_t> timeMap[] = {
-				{"day", 1000},
-				{"noon", 6000},
-				{"sunset", 12000},
-				{"night", 13000},
-				{"midnight", 18000}
-			};
-
-			for (const auto& [name, value] : timeMap) {
-				if (argument == name) {
-					m_PacketContext->Time().SetTimeOfDay(value);
-					sender.SendPlainMessage("Set time to " + std::to_string(value));
-					return;
-				}
-			}
-
-			int64_t parsed;
-			auto [ptr, ec] = std::from_chars(argument.data(), argument.data() + argument.size(), parsed);
-
-			if (ec != std::errc() || ptr != argument.data() + argument.size()) {
-				sender.SendPlainMessage("Invalid time: " + std::string(argument));
-				return;
-			}
-
-			if (parsed < 0 || parsed > 24000) {
-				sender.SendPlainMessage("Time must be between 0 and 24000");
-				return;
-			}
-
-			m_PacketContext->Time().SetTimeOfDay(parsed);
-			sender.SendPlainMessage("Set time to " + std::to_string(parsed));
-		});
-
-		m_CommandRegistry->Register("weather", "Set weather (clear/rain/thunder)",
-	[this](CommandSender& sender, const std::vector<std::string>& arguments) {
-			if (arguments.empty()) {
-				sender.SendPlainMessage("Usage: weather <clear|rain|thunder>");
-				return;
-			}
-
-			const std::string_view argument = arguments[0];
-
-			constexpr std::pair<std::string_view, WeatherType> weatherMap[] = {
-				{"clear", WeatherType::Clear},
-				{"rain", WeatherType::Rain},
-				{"thunder", WeatherType::Thunder}
-			};
-
-			for (const auto& [name, type] : weatherMap) {
-				if (argument == name) {
-					m_PacketContext->Time().SetWeather(type);
-					sender.SendPlainMessage("Weather set to " + std::string(name));
-					return;
-				}
-			}
-
-			sender.SendPlainMessage("Unknown weather: " + std::string(argument));
-		});
 
 		AX_CORE_INFO("Server initialized on port {}", m_Config->Port());
 	}
@@ -221,7 +149,7 @@ namespace Axiom {
 #endif
 		});
 		m_ConsoleInput.Prompt().AddRight([this]() -> ConsolePrompt::Segment {
-			int count = static_cast<int>(m_PacketContext->Players().PlayerCount());
+			int count = static_cast<int>(m_PacketContext->Server().PlayerCount());
 			std::string text = std::to_string(count) + (count == 1 ? " player" : " players");
 			return {"", text, 15, count > 0 ? 62 : 240};
 		});

@@ -1,5 +1,5 @@
 #include "axpch.h"
-#include "HelpCommand.h"
+#include "Axiom/Command/Commands/HelpCommand.h"
 
 #include "Axiom/Command/CommandRegistry.h"
 #include "Axiom/Chat/ChatComponent.h"

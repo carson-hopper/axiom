@@ -1,5 +1,5 @@
 #include "axpch.h"
-#include "RestartCommand.h"
+#include "Axiom/Command/Commands/Server/RestartCommand.h"
 
 #include "Axiom/Core/Application.h"
 #include "Axiom/Core/Log.h"
@@ -28,7 +28,7 @@ namespace Axiom {
 		app.PacketCtx().ChunkManagement().SaveAllDirtyChunks();
 
 		// Disconnect all players
-		for (const auto& player : app.PacketCtx().Players().AllPlayers()) {
+		for (const auto& player : app.PacketCtx().Server().AllPlayers()) {
 			if (player->GetConnection()->IsConnected()) {
 				player->GetConnection()->Disconnect("Server restarting");
 			}
