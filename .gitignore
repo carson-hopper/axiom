@@ -7,8 +7,10 @@ cmake/
 logs/
 *.yml
 bin*/
+*.cache/
 
 # IDE
+*.code-workspace
 *.xcworkspace
 *.xcodeproj
 .idea/

@@ -42,7 +42,7 @@ namespace Axiom {
 
 	class Application {
 	public:
-		explicit Application(const ApplicationSpecification& specification);
+		explicit Application(ApplicationSpecification& specification);
 		virtual ~Application();
 
 		Application(const Application&) = delete;

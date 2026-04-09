@@ -9,80 +9,14 @@
 #ifndef PID_HANDSHAKE_SB_HANDSHAKE
 #define PID_HANDSHAKE_SB_HANDSHAKE 0,PacketDirection::Serverbound,PacketState::Handshake
 #endif
-#ifndef PID_PLAY_CB_PLAYERCHAT
-#define PID_PLAY_CB_PLAYERCHAT 65,PacketDirection::Clientbound,PacketState::Play
+#ifndef PID_LOGIN_SB_LOGINHELLO
+#define PID_LOGIN_SB_LOGINHELLO 0,PacketDirection::Serverbound,PacketState::Login
 #endif
-#ifndef PID_PLAY_CB_PLAYERINFOUPDATE
-#define PID_PLAY_CB_PLAYERINFOUPDATE 70,PacketDirection::Clientbound,PacketState::Play
+#ifndef PID_LOGIN_SB_LOGINACKNOWLEDGED
+#define PID_LOGIN_SB_LOGINACKNOWLEDGED 3,PacketDirection::Serverbound,PacketState::Login
 #endif
-#ifndef PID_PLAY_CB_PLAYERPOSITION
-#define PID_PLAY_CB_PLAYERPOSITION 72,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_SYSTEMCHAT
-#define PID_PLAY_CB_SYSTEMCHAT 121,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_GAMEEVENT
-#define PID_PLAY_CB_GAMEEVENT 38,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_PLAYERABILITIES
-#define PID_PLAY_CB_PLAYERABILITIES 64,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_LOGIN
-#define PID_PLAY_CB_LOGIN 49,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_SETDEFAULTSPAWNPOSITION
-#define PID_PLAY_CB_SETDEFAULTSPAWNPOSITION 97,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_BLOCKCHANGEDACK
-#define PID_PLAY_CB_BLOCKCHANGEDACK 4,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_SETCARRIEDITEM
-#define PID_PLAY_SB_SETCARRIEDITEM 53,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_ACCEPTTELEPORTATION
-#define PID_PLAY_SB_ACCEPTTELEPORTATION 0,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION
-#define PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION 31,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_USEITEMON
-#define PID_PLAY_SB_USEITEMON 66,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_CLIENTTICKEND
-#define PID_PLAY_SB_CLIENTTICKEND 13,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_SWING
-#define PID_PLAY_SB_SWING 63,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_PLAYERACTION
-#define PID_PLAY_SB_PLAYERACTION 41,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERROTATION
-#define PID_PLAY_SB_MOVEPLAYERROTATION 32,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERSTATUSONLY
-#define PID_PLAY_SB_MOVEPLAYERSTATUSONLY 33,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_PLAYERLOADED
-#define PID_PLAY_SB_PLAYERLOADED 44,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_CHAT
-#define PID_PLAY_SB_CHAT 9,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_PLAYKEEPALIVE
-#define PID_PLAY_SB_PLAYKEEPALIVE 28,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_SETCREATIVEMODESLOT
-#define PID_PLAY_SB_SETCREATIVEMODESLOT 56,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_CHUNKBATCHRECEIVED
-#define PID_PLAY_SB_CHUNKBATCHRECEIVED 11,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERPOSITION
-#define PID_PLAY_SB_MOVEPLAYERPOSITION 30,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_LOGIN_CB_DISCONNECT
-#define PID_LOGIN_CB_DISCONNECT 0,PacketDirection::Clientbound,PacketState::Login
+#ifndef PID_LOGIN_SB_ENCRYPTIONRESPONSE
+#define PID_LOGIN_SB_ENCRYPTIONRESPONSE 1,PacketDirection::Serverbound,PacketState::Login
 #endif
 #ifndef PID_LOGIN_CB_LOGINFINISHED
 #define PID_LOGIN_CB_LOGINFINISHED 2,PacketDirection::Clientbound,PacketState::Login
@@ -93,20 +27,80 @@
 #ifndef PID_LOGIN_CB_HELLO
 #define PID_LOGIN_CB_HELLO 1,PacketDirection::Clientbound,PacketState::Login
 #endif
-#ifndef PID_LOGIN_SB_LOGINACKNOWLEDGED
-#define PID_LOGIN_SB_LOGINACKNOWLEDGED 3,PacketDirection::Serverbound,PacketState::Login
+#ifndef PID_LOGIN_CB_DISCONNECT
+#define PID_LOGIN_CB_DISCONNECT 0,PacketDirection::Clientbound,PacketState::Login
 #endif
-#ifndef PID_LOGIN_SB_LOGINHELLO
-#define PID_LOGIN_SB_LOGINHELLO 0,PacketDirection::Serverbound,PacketState::Login
+#ifndef PID_PLAY_SB_SETCARRIEDITEM
+#define PID_PLAY_SB_SETCARRIEDITEM 53,PacketDirection::Serverbound,PacketState::Play
 #endif
-#ifndef PID_LOGIN_SB_ENCRYPTIONRESPONSE
-#define PID_LOGIN_SB_ENCRYPTIONRESPONSE 1,PacketDirection::Serverbound,PacketState::Login
+#ifndef PID_PLAY_SB_SWING
+#define PID_PLAY_SB_SWING 63,PacketDirection::Serverbound,PacketState::Play
 #endif
-#ifndef PID_STATUS_CB_PONGRESPONSE
-#define PID_STATUS_CB_PONGRESPONSE 1,PacketDirection::Clientbound,PacketState::Status
+#ifndef PID_PLAY_SB_CLIENTTICKEND
+#define PID_PLAY_SB_CLIENTTICKEND 13,PacketDirection::Serverbound,PacketState::Play
 #endif
-#ifndef PID_STATUS_CB_STATUSRESPONSE
-#define PID_STATUS_CB_STATUSRESPONSE 0,PacketDirection::Clientbound,PacketState::Status
+#ifndef PID_PLAY_SB_CHAT
+#define PID_PLAY_SB_CHAT 9,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETCREATIVEMODESLOT
+#define PID_PLAY_SB_SETCREATIVEMODESLOT 56,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION
+#define PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION 31,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERROTATION
+#define PID_PLAY_SB_MOVEPLAYERROTATION 32,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_ACCEPTTELEPORTATION
+#define PID_PLAY_SB_ACCEPTTELEPORTATION 0,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_USEITEMON
+#define PID_PLAY_SB_USEITEMON 66,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHUNKBATCHRECEIVED
+#define PID_PLAY_SB_CHUNKBATCHRECEIVED 11,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYERLOADED
+#define PID_PLAY_SB_PLAYERLOADED 44,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYERACTION
+#define PID_PLAY_SB_PLAYERACTION 41,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERSTATUSONLY
+#define PID_PLAY_SB_MOVEPLAYERSTATUSONLY 33,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERPOSITION
+#define PID_PLAY_SB_MOVEPLAYERPOSITION 30,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYKEEPALIVE
+#define PID_PLAY_SB_PLAYKEEPALIVE 28,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERPOSITION
+#define PID_PLAY_CB_PLAYERPOSITION 72,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERABILITIES
+#define PID_PLAY_CB_PLAYERABILITIES 64,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_LOGIN
+#define PID_PLAY_CB_LOGIN 49,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_GAMEEVENT
+#define PID_PLAY_CB_GAMEEVENT 38,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERCHAT
+#define PID_PLAY_CB_PLAYERCHAT 65,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERINFOUPDATE
+#define PID_PLAY_CB_PLAYERINFOUPDATE 70,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETDEFAULTSPAWNPOSITION
+#define PID_PLAY_CB_SETDEFAULTSPAWNPOSITION 97,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SYSTEMCHAT
+#define PID_PLAY_CB_SYSTEMCHAT 121,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BLOCKCHANGEDACK
+#define PID_PLAY_CB_BLOCKCHANGEDACK 4,PacketDirection::Clientbound,PacketState::Play
 #endif
 #ifndef PID_STATUS_SB_STATUSREQUEST
 #define PID_STATUS_SB_STATUSREQUEST 0,PacketDirection::Serverbound,PacketState::Status
@@ -114,14 +108,14 @@
 #ifndef PID_STATUS_SB_PINGREQUEST
 #define PID_STATUS_SB_PINGREQUEST 1,PacketDirection::Serverbound,PacketState::Status
 #endif
-#ifndef PID_CONFIGURATION_CB_UPDATETAGS
-#define PID_CONFIGURATION_CB_UPDATETAGS 13,PacketDirection::Clientbound,PacketState::Configuration
+#ifndef PID_STATUS_CB_STATUSRESPONSE
+#define PID_STATUS_CB_STATUSRESPONSE 0,PacketDirection::Clientbound,PacketState::Status
 #endif
-#ifndef PID_CONFIGURATION_CB_REGISTRYDATA
-#define PID_CONFIGURATION_CB_REGISTRYDATA 7,PacketDirection::Clientbound,PacketState::Configuration
+#ifndef PID_STATUS_CB_PONGRESPONSE
+#define PID_STATUS_CB_PONGRESPONSE 1,PacketDirection::Clientbound,PacketState::Status
 #endif
-#ifndef PID_CONFIGURATION_CB_FINISHCONFIGURATION
-#define PID_CONFIGURATION_CB_FINISHCONFIGURATION 3,PacketDirection::Clientbound,PacketState::Configuration
+#ifndef PID_CONFIGURATION_SB_FINISHCONFIGURATION
+#define PID_CONFIGURATION_SB_FINISHCONFIGURATION 3,PacketDirection::Serverbound,PacketState::Configuration
 #endif
 #ifndef PID_CONFIGURATION_SB_SELECTKNOWNPACKS
 #define PID_CONFIGURATION_SB_SELECTKNOWNPACKS 7,PacketDirection::Serverbound,PacketState::Configuration
@@ -132,7 +126,13 @@
 #ifndef PID_CONFIGURATION_SB_CLIENTINFORMATION
 #define PID_CONFIGURATION_SB_CLIENTINFORMATION 0,PacketDirection::Serverbound,PacketState::Configuration
 #endif
-#ifndef PID_CONFIGURATION_SB_FINISHCONFIGURATION
-#define PID_CONFIGURATION_SB_FINISHCONFIGURATION 3,PacketDirection::Serverbound,PacketState::Configuration
+#ifndef PID_CONFIGURATION_CB_FINISHCONFIGURATION
+#define PID_CONFIGURATION_CB_FINISHCONFIGURATION 3,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_UPDATETAGS
+#define PID_CONFIGURATION_CB_UPDATETAGS 13,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_REGISTRYDATA
+#define PID_CONFIGURATION_CB_REGISTRYDATA 7,PacketDirection::Clientbound,PacketState::Configuration
 #endif
 #endif
