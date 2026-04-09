@@ -16,15 +16,15 @@
   <a href="https://github.com/carson-hopper/axiom/releases"><img src="https://img.shields.io/github/v/release/carson-hopper/axiom?style=flat-square&color=7c6caf&label=release" alt="Latest Release"></a>
   <a href="https://github.com/carson-hopper/axiom/actions"><img src="https://img.shields.io/github/actions/workflow/status/carson-hopper/axiom/build.yml?style=flat-square&label=build" alt="Build Status"></a>
   <img src="https://img.shields.io/badge/C%2B%2B-23-7c6caf?style=flat-square&logo=cplusplus&logoColor=white" alt="C++23">
-  <img src="https://img.shields.io/badge/cmake-3.28%2B-7c6caf?style=flat-square&logo=cmake&logoColor=white" alt="CMake 3.28+">
+  <img src="https://img.shields.io/badge/premake-5-7c6caf?style=flat-square" alt="Premake5">
   <a href="STYLE.md"><img src="https://img.shields.io/badge/style-axiom--cpp-7c6caf?style=flat-square" alt="Code Style"></a>
 </p>
 
 <p align="center">
-  <a href="#getting-started">Getting Started</a> •
-  <a href="#features">Features</a> •
-  <a href="#documentation">Docs</a> •
-  <a href="#contributing">Contributing</a> •
+  <a href="#getting-started">Getting Started</a> &bull;
+  <a href="#features">Features</a> &bull;
+  <a href="#documentation">Docs</a> &bull;
+  <a href="#contributing">Contributing</a> &bull;
   <a href="#license">License</a>
 </p>
 
@@ -32,42 +32,117 @@
 
 ## About
 
-Axiom is an open-source Minecraft 26.1 server built from scratch in modern C++23. It provides a structured, high-performance foundation with a built-in plugin API — commands, events, permissions, configuration, world management, and more — designed for scalability and clean architecture.
+Axiom is an open-source Minecraft 26.1 server built from scratch in modern C++23. It provides a structured, high-performance foundation with a built-in plugin API: commands, events, permissions, configuration, world management, and more. Designed for scalability and clean architecture.
 
-Axiom follows strict code style conventions (PascalCase methods, `m_` member prefixes, `Scope`/`Ref` smart pointer aliases), targets **C++23** as its baseline, and uses **CMake** for builds.
+Axiom follows strict code style conventions (PascalCase methods, `m_` member prefixes, `Scope`/`Ref` smart pointer aliases), targets **C++23** as its baseline, and uses **Premake5** for builds.
 
 ## Features
 
-- **Network Layer** — Async TCP networking with protocol-level packet handling, encryption, and compression.
-- **Plugin API** — Built-in plugin system with dependency resolution, scoped event buses, and isolated classloading.
-- **Command Framework** — Registration-based command system with argument parsing, tab completion, and permission checks.
-- **Event System** — Priority-ordered event dispatch with cancellation support and type-safe listeners.
-- **World Engine** — Chunk loading, block storage, entity management, and fluid simulation.
-- **Configuration** — YAML-backed configuration with type-safe accessors and hot-reload support.
-- **Modern C++** — Concepts, coroutines, std::expected, std::format, structured bindings — Axiom embraces modern C++ idioms across the board.
+| Feature | Description |
+|---|---|
+| **Network Layer** | Async TCP networking with protocol-level packet handling, encryption, and compression |
+| **Plugin API** | Built-in plugin system with dependency resolution, scoped event buses, and isolated classloading |
+| **Command Framework** | Registration-based command system with argument parsing, tab completion, and permission checks |
+| **Event System** | Priority-ordered event dispatch with cancellation support and type-safe listeners |
+| **World Engine** | Chunk loading, block storage, entity management, and fluid simulation |
+| **Configuration** | TOML-backed configuration with type-safe accessors and hot-reload support |
+| **Modern C++** | Concepts, coroutines, std::expected, std::format, structured bindings |
 
 ## Getting Started
 
-### Requirements
+### Prerequisites
 
-- **C++23** compatible compiler (GCC 14+, Clang 18+, MSVC 19.38+)
-- **CMake 3.28** or newer
-- **vcpkg** or **Conan 2** for dependency management
+| Dependency | Version | macOS | Linux | Windows |
+|---|---|---|---|---|
+| C++ compiler | Clang 18+ / GCC 14+ / MSVC 19.38+ | Xcode CLT | `apt install g++-14` | Visual Studio 2022 |
+| Premake5 | 5.x | `brew install premake` | [premake.github.io](https://premake.github.io) | [premake.github.io](https://premake.github.io) |
+| OpenSSL | 3.x | `brew install openssl` | `apt install libssl-dev` | [slproweb.com](https://slproweb.com/products/Win32OpenSSL.html) |
+| zlib | any | included with macOS | `apt install zlib1g-dev` | [zlib.net](https://zlib.net) |
+| Git | any | `brew install git` | `apt install git` | [git-scm.com](https://git-scm.com) |
 
-### Building
+Vendors (asio, nlohmann/json, spdlog, toml++, yaml-cpp) are included as git submodules. After cloning, run:
+
+```bash
+git submodule update --init --recursive
+```
+
+### Setup
+
+Clone the repository and run the setup script:
 
 ```bash
 git clone https://github.com/carson-hopper/axiom.git
 cd axiom
-cmake --preset release
-cmake --build --preset release
+./scripts/setup.sh
+```
+
+The setup script will prompt you to choose your IDE:
+
+```
+Select your IDE:
+
+  1) CLion
+  2) Xcode
+  3) VS Code
+  4) Visual Studio
+  5) Terminal / gmake only
+
+>
+```
+
+You can also pass the IDE directly:
+
+```bash
+./scripts/setup.sh --ide vscode
+./scripts/setup.sh --ide clion
+./scripts/setup.sh --ide xcode
+./scripts/setup.sh --ide vs
+./scripts/setup.sh --ide gmake
+```
+
+#### What the setup script does
+
+| IDE | Generates |
+|---|---|
+| **CLion** | gmake Makefiles + `compile_commands.json` (via bear) |
+| **VS Code** | gmake Makefiles + `compile_commands.json` + `.vscode/launch.json` + `.vscode/tasks.json` + `.code-workspace` |
+| **Xcode** | gmake Makefiles + `.xcodeproj` / `.xcworkspace` |
+| **Visual Studio** | gmake Makefiles + `.sln` (vs2022) |
+| **gmake** | gmake Makefiles only |
+
+For VS Code, the [premake-vscode](https://github.com/Enhex/premake-vscode) module is downloaded automatically if not present.
+
+#### Additional flags
+
+```
+--config <cfg>    Build configuration (default: debug_26.1)
+--clean           Clean build artifacts before building
+```
+
+### Building manually
+
+If you prefer to skip the setup script:
+
+```bash
+premake5 gmake
+make config=debug_26.1 -j$(sysctl -n hw.ncpu)
 ```
 
 ### Running
 
 ```bash
-./build/release/axiom-server
+cd bin/Debug_26.1_AARCH64/Axiom
+./Axiom
 ```
+
+On first run, an `eula.txt` file will be created. Edit it and set `eula=true` to accept, then run again.
+
+### Build configurations
+
+| Configuration | Optimization | Debug symbols | Use case |
+|---|---|---|---|
+| `debug_26.1` | Off | On | Development and debugging |
+| `release_26.1` | Full | Off | Production builds |
 
 ## Documentation
 
@@ -88,21 +163,22 @@ Contributions are welcome and appreciated! Before opening a PR, please read the 
 
 This project enforces a strict code style. See [`STYLE.md`](STYLE.md) for the full guide. The key points:
 
-- **PascalCase** for classes, methods, and enums. **camelCase** for local variables and parameters.
-- **`m_` prefix** for member variables, **`s_` prefix** for static members.
-- **Tabs** for indentation, **120-character** column limit.
-- **`Scope<T>`/`Ref<T>`** aliases for `std::unique_ptr`/`std::shared_ptr`.
-- **Format with `clang-format`** before committing — configuration is in `.clang-format` at the repo root.
-- **Commits must follow [Conventional Commits](https://www.conventionalcommits.org/)** with module-scoped prefixes (e.g., `feat(network): add packet compression`).
+| Convention | Rule |
+|---|---|
+| **Naming** | PascalCase for classes, methods, and enums. camelCase for locals and parameters. |
+| **Members** | `m_` prefix for member variables, `s_` prefix for static members. |
+| **Formatting** | Tabs for indentation, 120 character column limit. |
+| **Smart Pointers** | `Scope<T>` / `Ref<T>` aliases for `std::unique_ptr` / `std::shared_ptr`. |
+| **Commits** | [Conventional Commits](https://www.conventionalcommits.org/) with scoped prefixes (e.g., `feat(network): add packet compression`). |
 
-> **Pull requests that do not follow the style guide will be rejected.** Run the formatter before pushing — CI will catch violations anyway.
+> **Pull requests that do not follow the style guide will be rejected.**
 
 ### How to Contribute
 
 1. **Fork** the repository.
 2. **Create a branch** from `main` for your feature or fix.
-3. **Write code** following the style guide and add tests where applicable.
-4. **Format** your code: `clang-format -i src/**/*.h src/**/*.cpp`
+3. **Run the setup script** for your IDE: `./scripts/setup.sh`
+4. **Write code** following the style guide and add tests where applicable.
 5. **Commit** using Conventional Commits: `feat(network): add packet compression`
 6. **Open a PR** against `main` with a clear description of the change.
 
@@ -112,13 +188,8 @@ Open an issue on GitHub with a clear title and as much detail as possible. Inclu
 
 ## License
 
-Axiom is licensed under the **GNU General Public License v3.0** — see the [`LICENSE`](LICENSE) file for details.
+Axiom is licensed under the **GNU General Public License v3.0**. See the [`LICENSE`](LICENSE) file for details.
 
-This means:
-
-- You are **free to use, modify, and distribute** this software.
-- Any modified versions **must also be open-source** under GPL v3.
-- You **must give credit** to the original authors and indicate changes made.
-- You **must include the original license** and copyright notice in any distribution.
+This means you are **free to use, modify, and distribute** this software. Any modified versions **must also be open-source** under GPL v3. You must give credit to the original authors, indicate changes made, and include the original license and copyright notice in any distribution.
 
 ---
