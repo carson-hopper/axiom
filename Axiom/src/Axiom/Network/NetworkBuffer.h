@@ -318,11 +318,6 @@ public:
 		WriteLong(encoded);
 	}
 
-	void WriteVector3Encoded(const int64_t positionX, const int64_t positionY, const int64_t positionZ) {
-		const int64_t encoded = ((positionX & 0x3FFFFFF) << 38) | ((positionZ & 0x3FFFFFF) << 12) | (positionY & 0xFFF);
-		WriteLong(encoded);
-	}
-
 	/**
 	 * Read a packed block position.
 	 */
