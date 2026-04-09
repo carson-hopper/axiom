@@ -2,11 +2,15 @@
 build/
 out/
 cmake-build-*/
+cmake/
 *.log
 logs/
 *.yml
+bin*/
 
 # IDE
+*.xcworkspace
+*.xcodeproj
 .idea/
 .vscode/
 *.swp
@@ -21,6 +25,8 @@ logs/
 *.dylib
 *.dll
 *.exe
+
+Makefile
 
 # Dependencies (vendored via submodules)
 # vendor/ is tracked
