@@ -25,7 +25,7 @@ public:
 			}
 		}
 
-		const auto player = context.Players().GetPlayer(connection->Id());
+		const auto player = context.Server().GetPlayer(connection->Id());
 		if (!player) return std::nullopt;
 
 		if (m_SlotIndex.Value >= 36 && m_SlotIndex.Value <= 44) {

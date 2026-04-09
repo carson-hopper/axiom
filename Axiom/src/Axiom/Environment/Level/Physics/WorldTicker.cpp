@@ -2,6 +2,7 @@
 #include "Axiom/Environment/Level/Physics/WorldTicker.h"
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Network/NetworkServer.h"
 
 #include <chrono>
 
@@ -164,7 +165,7 @@ namespace Axiom {
 		payload.WriteBlockPosition(worldX, worldY, worldZ);
 		payload.WriteVarInt(blockState);
 
-		const auto players = m_PlayerManager.AllPlayers();
+		const auto players = m_Server.AllPlayers();
 		for (const auto& player : players) {
 			const auto connection = player->GetConnection();
 			if (!connection || !connection->IsConnected()) continue;

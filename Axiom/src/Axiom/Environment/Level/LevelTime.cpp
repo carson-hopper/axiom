@@ -2,6 +2,7 @@
 #include "Axiom/Environment/Level/LevelTime.h"
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Network/NetworkServer.h"
 
 #include <chrono>
 
@@ -57,7 +58,7 @@ namespace Axiom {
 	}
 
 	void LevelTime::BroadcastTime() {
-		auto players = m_PlayerManager.AllPlayers();
+		auto players = m_Server.AllPlayers();
 
 		for (const auto& player : players) {
 			auto connection = player->GetConnection();
@@ -83,7 +84,7 @@ namespace Axiom {
 	}
 
 	void LevelTime::BroadcastWeatherChange(WeatherType newWeather) {
-		auto players = m_PlayerManager.AllPlayers();
+		auto players = m_Server.AllPlayers();
 
 		for (const auto& player : players) {
 			auto connection = player->GetConnection();

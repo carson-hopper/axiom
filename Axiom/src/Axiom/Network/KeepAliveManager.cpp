@@ -1,6 +1,7 @@
 #include "KeepAliveManager.h"
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Network/NetworkServer.h"
 
 namespace Axiom {
 
@@ -38,7 +39,7 @@ namespace Axiom {
 		int64_t keepAliveId = m_NextKeepAliveId++;
 		int64_t now = NowMillis();
 
-		auto players = m_PlayerManager.AllPlayers();
+		auto players = m_Server.AllPlayers();
 
 		std::lock_guard<std::mutex> lock(m_Mutex);
 		for (const auto& player : players) {
@@ -73,14 +74,14 @@ namespace Axiom {
 		}
 
 		for (const auto& connectionId : timedOut) {
-			auto player = m_PlayerManager.GetPlayer(connectionId);
+			auto player = m_Server.GetPlayer(connectionId);
 			if (player) {
 				auto connection = player->GetConnection();
 				if (connection) {
 					connection->Disconnect("Timed out");
 				}
 			}
-			m_PlayerManager.RemovePlayer(connectionId);
+			m_Server.RemovePlayer(connectionId);
 		}
 	}
 

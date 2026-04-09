@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
-#include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
 
@@ -29,8 +28,8 @@ namespace Axiom {
 		static constexpr int64_t Sunset = 12000;
 		static constexpr int64_t Midnight = 18000;
 
-		explicit LevelTime(PlayerManager& playerManager)
-			: m_PlayerManager(playerManager) {}
+		explicit LevelTime(class NetworkServer& server)
+			: m_Server(server) {}
 
 		~LevelTime() { Stop(); }
 
@@ -59,7 +58,7 @@ namespace Axiom {
 		void BroadcastTime();
 		void BroadcastWeatherChange(WeatherType newWeather);
 
-		PlayerManager& m_PlayerManager;
+		NetworkServer& m_Server;
 
 		std::atomic<int64_t> m_WorldAge = 0;
 		std::atomic<int64_t> m_TimeOfDay = 6000; // Start at noon

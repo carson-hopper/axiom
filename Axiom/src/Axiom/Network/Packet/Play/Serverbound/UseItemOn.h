@@ -40,7 +40,7 @@ public:
 				break;
 		}
 
-		const auto player = context.Players().GetPlayer(connection->Id());
+		const auto player = context.Server().GetPlayer(connection->Id());
 		int32_t blockState = 0;
 
 		if (player) {

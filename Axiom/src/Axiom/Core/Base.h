@@ -67,6 +67,7 @@ namespace Axiom {
 		uint64_t Value() const { return m_Value; }
 
 		bool operator==(const TypedId&) const = default;
+		auto operator<=>(const TypedId&) const = default;
 
 	private:
 		uint64_t m_Value;

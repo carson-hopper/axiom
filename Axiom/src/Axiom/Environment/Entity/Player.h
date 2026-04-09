@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Command/CommandSender.h"
+#include "Axiom/Core/UUID.h"
 #include "Axiom/Environment/Entity/LivingEntity.h"
 #include "Axiom/Environment/Level/Level.h"
 #include "Axiom/Network/Connection.h"
@@ -33,15 +34,15 @@ namespace Axiom {
 
 	class Player : public LivingEntity, public CommandSender {
 	public:
-		Player(const int32_t entityId, Ref<Connection> connection,
-			std::string  name, std::string  uuid)
-			: LivingEntity(entityId)
+		Player(Ref<Connection> connection,
+			std::string name, const UUID& uuid)
+			: LivingEntity(0)
 			, m_Connection(std::move(connection))
 			, m_Name(std::move(name))
-			, m_Uuid(std::move(uuid)) {}
+			, m_Uuid(uuid) {}
 
 		const std::string& Name() const override { return m_Name; }
-		const std::string& Uuid() const { return m_Uuid; }
+		const UUID& GetUuid() const { return m_Uuid; }
 
 		const std::vector<PlayerProperty>& Properties() const { return m_Properties; }
 		void SetProperties(std::vector<PlayerProperty> properties) { m_Properties = std::move(properties); }
@@ -100,7 +101,7 @@ namespace Axiom {
 		Ref<Connection> m_Connection;
 		std::weak_ptr<Level> m_Level;
 		std::string m_Name;
-		std::string m_Uuid;
+		UUID m_Uuid;
 		std::vector<PlayerProperty> m_Properties;
 		GameMode m_GameMode = GameMode::Creative;
 		int m_SelectedSlot = 0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Core/UUID.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
@@ -31,20 +32,20 @@ public:
 					true));
 		}
 
-		// Offline mode — generate UUID and chain compression + login finished
-		std::string offlineUuid =
+		// Offline mode — generate offline UUID
+		std::string offlineUuidString =
 			"00000000-0000-3000-8000-"
 			+ m_PlayerName.GetValue().substr(0, 12);
-		while (offlineUuid.size() < 36) offlineUuid += "0";
+		while (offlineUuidString.size() < 36) offlineUuidString += "0";
+		UUID offlineUuid = UUID::FromString(offlineUuidString);
 
 		// Register player
-		int32_t entityId = context.Players().NextEntityId();
-		auto player = context.Players().AddPlayer(
-			entityId, connection, m_PlayerName.GetValue(), offlineUuid);
+		auto player = context.Server().AddPlayer(
+			connection, m_PlayerName.GetValue(), offlineUuid);
 		player->SetPosition({0.5, context.ChunkManagement().Generator().SpawnY(), 0.5});
 
-		AX_CORE_INFO("{} has logged in [{}] (entity {})",
-			m_PlayerName.GetValue(), offlineUuid, entityId);
+		AX_CORE_INFO("{} has logged in [{}]",
+			m_PlayerName.GetValue(), offlineUuid.ToString());
 
 		// Chain: LoginCompression (OnSent enables compression) → LoginFinished
 		std::vector<Ref<IChainablePacket>> chain;

@@ -74,9 +74,9 @@ public:
 			connectionRef->SendRawPacket(finishedPacket.GetPacketId(), finishedPayload);
 
 			// Register player with skin properties
-			int32_t entityId = context.Players().NextEntityId();
-			auto player = context.Players().AddPlayer(
-				entityId, connectionRef, profile->name, formattedUuid);
+			UUID playerUuid = UUID::FromString(formattedUuid);
+			auto player = context.Server().AddPlayer(
+				connectionRef, profile->name, playerUuid);
 			player->SetPosition({0.5, context.ChunkManagement().Generator().SpawnY(), 0.5});
 
 			// Store Mojang properties (textures/skin)

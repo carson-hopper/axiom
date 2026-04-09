@@ -32,7 +32,7 @@ public:
 
 		for (const auto& player : m_Players) {
 			// Write UUID
-			UUID uuid = UUID::FromString(player->Uuid());
+			const auto& uuid = player->GetUuid();
 			buffer.WriteLong(static_cast<int64_t>(uuid.MostSignificantBits()));
 			buffer.WriteLong(static_cast<int64_t>(uuid.LeastSignificantBits()));
 

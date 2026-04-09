@@ -2,7 +2,6 @@
 
 #include "Axiom/Core/Error.h"
 #include "Axiom/Environment/Level/Physics/BlockPhysics.h"
-#include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/Connection.h"
 
 #include <atomic>
@@ -25,8 +24,8 @@ namespace Axiom {
 	public:
 		using TerrainLookup = std::function<int32_t(int32_t, int32_t, int32_t)>;
 
-		WorldTicker(PlayerManager& playerManager)
-			: m_PlayerManager(playerManager) {}
+		WorldTicker(class NetworkServer& server)
+			: m_Server(server) {}
 
 		~WorldTicker() { Stop(); }
 
@@ -72,7 +71,7 @@ namespace Axiom {
 		void TickLoop();
 		void BroadcastBlockChange(int32_t worldX, int32_t worldY, int32_t worldZ, int32_t blockState);
 
-		PlayerManager& m_PlayerManager;
+		NetworkServer& m_Server;
 		BlockPhysics m_BlockPhysics;
 		TerrainLookup m_TerrainLookup;
 		BlockDirtyCallback m_BlockDirtyCallback;

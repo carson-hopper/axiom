@@ -45,10 +45,9 @@ public:
 		connection->State(ConnectionState::Play);
 
 		// Get or create the player
-		auto player = context.Players().GetPlayer(connection->Id());
+		auto player = context.Server().GetPlayer(connection->Id());
 		if (!player) {
-			int32_t entityId = context.Players().NextEntityId();
-			player = context.Players().AddPlayer(entityId, connection, "Player", "");
+			player = context.Server().AddPlayer(connection, "Player", UUID{});
 			player->SetPosition({0.5, context.ChunkManagement().Generator().SpawnY(), 0.5});
 			player->SetGameMode(GameMode::Creative);
 		}
@@ -67,7 +66,7 @@ public:
 		// 2. Player info (skin textures) — all online players
 		auto infoPacket = CreateRef<Play::Clientbound::PlayerInfoUpdatePacket>();
 		infoPacket->AddPlayer(player);
-		for (const auto& other : context.Players().AllPlayers()) {
+		for (const auto& other : context.Server().AllPlayers()) {
 			if (other->GetConnection()->Id() != connection->Id())
 				infoPacket->AddPlayer(other);
 		}
@@ -111,7 +110,7 @@ public:
 		broadcastPacket->AddPlayer(player);
 		NetworkBuffer broadcastPayload;
 		broadcastPacket->Write(broadcastPayload);
-		for (const auto& other : context.Players().AllPlayers()) {
+		for (const auto& other : context.Server().AllPlayers()) {
 			if (other->GetConnection()->Id() != connection->Id()
 				&& other->GetConnection()->IsConnected()) {
 				other->GetConnection()->SendRawPacket(

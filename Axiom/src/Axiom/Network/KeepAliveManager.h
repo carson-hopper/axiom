@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
-#include "Axiom/Environment/Entity/PlayerManager.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
 
@@ -23,8 +22,8 @@ namespace Axiom {
 		static constexpr int64_t KeepAliveIntervalMs = 15000;  // 15 seconds
 		static constexpr int64_t KeepAliveTimeoutMs = 30000;   // 30 seconds
 
-		explicit KeepAliveManager(PlayerManager& playerManager)
-			: m_PlayerManager(playerManager) {}
+		explicit KeepAliveManager(class NetworkServer& server)
+			: m_Server(server) {}
 
 		~KeepAliveManager() { Stop(); }
 
@@ -55,7 +54,7 @@ namespace Axiom {
 			bool responded = false;
 		};
 
-		PlayerManager& m_PlayerManager;
+		NetworkServer& m_Server;
 
 		std::mutex m_Mutex;
 		std::unordered_map<ConnectionId, PendingKeepAlive> m_Pending;
