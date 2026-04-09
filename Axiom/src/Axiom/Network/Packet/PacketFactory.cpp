@@ -11,7 +11,7 @@ namespace Axiom {
 
     void PacketFactory::DispatchPacket(PacketState state,
                                        int32_t packetId,
-                                       Ref<Connection>& connection,
+                                       const Ref<Connection>& connection,
                                        PacketContext& context,
                                        NetworkBuffer& buffer) {
         auto stateIterator = s_Handlers.find(state);

@@ -11,7 +11,7 @@ class ChunkBatchReceivedPacket : public Packet<ChunkBatchReceivedPacket,
     PID_PLAY_SB_CHUNKBATCHRECEIVED> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& /*context*/) {
+    Handle(const Ref<Connection> &connection, PacketContext& /*context*/, NetworkBuffer&) {
         AX_CORE_TRACE("Chunk batch received from {}: {} chunks/tick",
             connection->RemoteAddress(), m_ChunksPerTick.Value);
 

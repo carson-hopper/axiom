@@ -10,7 +10,7 @@ namespace Axiom::Play::Serverbound {
 class SetCreativeModeSlotPacket : public Packet<SetCreativeModeSlotPacket, PID_PLAY_SB_SETCREATIVEMODESLOT> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	HandleImpl(Ref<Connection> connection, PacketContext& context, NetworkBuffer& buffer) override {
+	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer& buffer) {
 		m_SlotIndex.Value = buffer.ReadShort();
 		m_ItemCount.Value = buffer.ReadVarInt();
 
@@ -37,8 +37,6 @@ public:
 		return std::nullopt;
 	}
 
-	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(Ref<Connection>, PacketContext&) { return std::nullopt; }
 
 	auto Fields() { return std::tuple<>(); }
 

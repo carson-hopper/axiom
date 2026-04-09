@@ -10,7 +10,7 @@ class MovePlayerPositionPacket : public Packet<MovePlayerPositionPacket,
     PID_PLAY_SB_MOVEPLAYERPOSITION> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& context) {
+    Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer&) {
         context.ChunkManagement().OnPlayerMove(connection, m_Position.Value.x, m_Position.Value.z);
 
         return std::nullopt;

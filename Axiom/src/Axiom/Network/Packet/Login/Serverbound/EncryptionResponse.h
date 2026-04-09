@@ -14,7 +14,7 @@ namespace Axiom::Login::Serverbound {
 class EncryptionResponsePacket : public Packet<EncryptionResponsePacket, PID_LOGIN_SB_ENCRYPTIONRESPONSE> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	HandleImpl(const Ref<Connection> connection, PacketContext& context, NetworkBuffer& buffer) override {
+	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer& buffer) {
 		const int32_t secretLength = buffer.ReadVarInt();
 		m_EncryptedSharedSecret.Value = buffer.ReadBytes(secretLength);
         
@@ -66,8 +66,6 @@ public:
 		return std::nullopt;
 	}
 
-	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(Ref<Connection>, PacketContext&) { return std::nullopt; }
 
 	AX_START_FIELDS()
 		AX_DECLARE(EncryptedSharedSecret),

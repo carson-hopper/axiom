@@ -10,7 +10,7 @@ class ClientTickEndPacket : public Packet<ClientTickEndPacket,
     PID_PLAY_SB_CLIENTTICKEND> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection>& /*connection*/, PacketContext& /*context*/) {
+    Handle(const Ref<Connection>& /*connection*/, PacketContext& /*context*/, NetworkBuffer&) {
         return std::nullopt;
     }
 

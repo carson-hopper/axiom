@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
+#include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketState.h"
 #include "Axiom/Network/Packet/PacketDirection.h"
@@ -16,7 +17,7 @@ namespace Axiom {
     class NetworkBuffer;
 
     using PacketHandlerFn = std::function<void(
-        Ref<Connection>&, PacketContext&, NetworkBuffer&)>;
+        const Ref<Connection>&, PacketContext&, NetworkBuffer&)>;
 
     class PacketFactory {
     public:
@@ -26,7 +27,7 @@ namespace Axiom {
          */
         static void DispatchPacket(PacketState state,
                                    int32_t packetId,
-                                   Ref<Connection>& connection,
+                                   const Ref<Connection>& connection,
                                    PacketContext& context,
                                    NetworkBuffer& buffer);
 
@@ -43,7 +44,7 @@ namespace Axiom {
             constexpr auto packetId = T::GetPacketIdStatic();
 
             s_Handlers[state][packetId] =
-                [](Ref<Connection>& connection,
+                [](const Ref<Connection>& connection,
                    PacketContext& context,
                    NetworkBuffer& buffer) {
                     T packet;
@@ -52,7 +53,10 @@ namespace Axiom {
                         for (auto& response : *chain) {
                             if (response->GetDirection() != PacketDirection::Clientbound)
                                 continue;
-                            // TODO: serialise and send response packets
+                            NetworkBuffer payload;
+                            response->Write(payload);
+                            connection->SendRawPacket(
+                                response->GetPacketId(), payload);
                         }
                     }
                 };

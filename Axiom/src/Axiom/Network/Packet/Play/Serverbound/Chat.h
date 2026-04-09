@@ -10,7 +10,7 @@ namespace Axiom::Play::Serverbound {
 class ChatPacket : public Packet<ChatPacket, PID_PLAY_SB_CHAT> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	HandleImpl(const Ref<Connection> connection, PacketContext& /*context*/, NetworkBuffer& buffer) override {
+	Handle(const Ref<Connection>& connection, PacketContext&, NetworkBuffer& buffer) {
 		Parse(buffer);
 
 		if (buffer.ReadBoolean()) {
@@ -22,8 +22,6 @@ public:
 		return std::nullopt;
 	}
 
-	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(Ref<Connection>, PacketContext&) { return std::nullopt; }
 
 	AX_START_FIELDS()
 		AX_DECLARE(Message),

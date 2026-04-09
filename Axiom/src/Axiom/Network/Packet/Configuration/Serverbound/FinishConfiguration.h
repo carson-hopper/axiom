@@ -12,7 +12,7 @@ class FinishConfigurationPacket : public Packet<FinishConfigurationPacket,
     PID_CONFIGURATION_SB_FINISHCONFIGURATION> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& context) {
+    Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer& /*buffer*/) {
         AX_CORE_INFO("Configuration complete for {}",
             connection->RemoteAddress());
         connection->State(ConnectionState::Play);

@@ -11,7 +11,7 @@ class PlayerLoadedPacket : public Packet<PlayerLoadedPacket,
     PID_PLAY_SB_PLAYERLOADED> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection>& connection, PacketContext& /*context*/) {
+    Handle(const Ref<Connection>& connection, PacketContext& /*context*/, NetworkBuffer&) {
         AX_CORE_INFO("Player fully loaded from {}",
             connection->RemoteAddress());
 

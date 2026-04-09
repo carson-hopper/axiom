@@ -11,7 +11,7 @@ class KeepAlivePacket : public Packet<KeepAlivePacket,
     PID_CONFIGURATION_SB_CONFIGKEEPALIVE> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& /*context*/) {
+    Handle(const Ref<Connection> &connection, PacketContext& /*context*/, NetworkBuffer& /*buffer*/) {
         AX_CORE_TRACE("Config keep-alive response from {}: {}",
             connection->RemoteAddress(), m_KeepAliveId.Value);
 

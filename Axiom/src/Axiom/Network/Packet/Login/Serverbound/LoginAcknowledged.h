@@ -12,7 +12,7 @@ class LoginAcknowledgedPacket : public Packet<LoginAcknowledgedPacket,
     PID_LOGIN_SB_LOGINACKNOWLEDGED> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& context) {
+    Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer&) {
         AX_CORE_TRACE("Login acknowledged from {}",
             connection->RemoteAddress());
         connection->State(ConnectionState::Configuration);

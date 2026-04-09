@@ -99,11 +99,11 @@ namespace Axiom {
          * Handle(), returning any chained response packets.
          */
         std::optional<std::vector<Ref<IChainablePacket>>>
-        HandleImpl(Ref<Connection> connection,
+        HandleImpl(const Ref<Connection>& connection,
                    PacketContext& context,
                    NetworkBuffer& buffer) override {
             Parse(buffer);
-            return static_cast<Derived*>(this)->Handle(connection, context);
+            return static_cast<Derived*>(this)->Handle(connection, context, buffer);
         }
 
     protected:

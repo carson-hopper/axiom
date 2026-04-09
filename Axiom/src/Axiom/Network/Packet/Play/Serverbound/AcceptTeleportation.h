@@ -11,7 +11,7 @@ class AcceptTeleportationPacket : public Packet<AcceptTeleportationPacket,
     PID_PLAY_SB_ACCEPTTELEPORTATION> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& /*context*/) {
+    Handle(const Ref<Connection> &connection, PacketContext& /*context*/, NetworkBuffer&) {
         AX_CORE_TRACE("Teleport accepted from {}: id={}",
             connection->RemoteAddress(), m_TeleportId.Value);
 

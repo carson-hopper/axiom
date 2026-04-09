@@ -10,7 +10,7 @@ class SetCarriedItemPacket : public Packet<SetCarriedItemPacket,
     PID_PLAY_SB_SETCARRIEDITEM> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& context) {
+    Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer&) {
         if (const auto player =
                 context.Players().GetPlayer(connection->Id())) {
             player->SetSelectedSlot(m_Slot.Value);

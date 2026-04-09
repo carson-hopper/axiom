@@ -13,7 +13,7 @@ namespace Axiom::Play::Clientbound {
 class PlayerChatPacket : public Packet<PlayerChatPacket, PID_PLAY_CB_PLAYERCHAT> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(const Ref<Connection>&, PacketContext&) { return std::nullopt; }
+	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
 
 	void Write(NetworkBuffer& buffer) override {
 		buffer.WriteLong(static_cast<int64_t>(static_cast<uint64_t>(m_SenderUuid.Value)));

@@ -9,7 +9,7 @@ namespace Axiom::Play::Clientbound {
 class SystemChatPacket : public Packet<SystemChatPacket, PID_PLAY_CB_SYSTEMCHAT> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(const Ref<Connection>&, PacketContext&) { return std::nullopt; }
+	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) { return std::nullopt; }
 
 	void Write(NetworkBuffer& buffer) override {
 		if (m_Message.Value) {

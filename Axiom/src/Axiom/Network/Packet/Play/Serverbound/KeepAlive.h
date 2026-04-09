@@ -10,7 +10,7 @@ class KeepAlivePacket : public Packet<KeepAlivePacket,
     PID_PLAY_SB_PLAYKEEPALIVE> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& context) {
+    Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer&) {
         context.KeepAlive().OnKeepAliveResponse(connection->Id(), m_KeepAliveId.Value);
 
         return std::nullopt;

@@ -12,7 +12,7 @@ class LoginHelloPacket : public Packet<LoginHelloPacket,
 	PID_LOGIN_SB_LOGINHELLO> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& context) {
+    Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer&) {
         AX_CORE_INFO("Login request from {} ({})",
             m_PlayerName.Value, connection->RemoteAddress());
 

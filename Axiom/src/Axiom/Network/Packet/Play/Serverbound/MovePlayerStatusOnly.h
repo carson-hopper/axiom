@@ -10,7 +10,7 @@ class MovePlayerStatusOnlyPacket : public Packet<MovePlayerStatusOnlyPacket,
     PID_PLAY_SB_MOVEPLAYERSTATUSONLY> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection>& /*connection*/, PacketContext& /*context*/) {
+    Handle(const Ref<Connection>& /*connection*/, PacketContext& /*context*/, NetworkBuffer&) {
         return std::nullopt;
     }
 

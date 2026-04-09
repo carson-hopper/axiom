@@ -23,7 +23,7 @@ namespace Axiom {
         virtual void Write(NetworkBuffer& buffer) = 0;
 
         virtual std::optional<std::vector<Ref<IChainablePacket>>>
-            HandleImpl(Ref<Connection> connection,
+            HandleImpl(const Ref<Connection>& connection,
                        PacketContext& context,
                        NetworkBuffer& buffer) = 0;
     };

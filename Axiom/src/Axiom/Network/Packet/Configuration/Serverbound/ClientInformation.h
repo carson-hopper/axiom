@@ -11,7 +11,7 @@ class ClientInformationPacket : public Packet<ClientInformationPacket,
     PID_CONFIGURATION_SB_CLIENTINFORMATION> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& /*context*/) {
+    Handle(const Ref<Connection> &connection, PacketContext& /*context*/, NetworkBuffer& /*buffer*/) {
         AX_CORE_TRACE(
             "Client info from {}: locale={}, viewDistance={}, mainHand={}",
             connection->RemoteAddress(), m_Locale.Value,

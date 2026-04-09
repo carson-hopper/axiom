@@ -10,7 +10,7 @@ class MovePlayerRotationPacket : public Packet<MovePlayerRotationPacket,
     PID_PLAY_SB_MOVEPLAYERROTATION> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection>& /*connection*/, PacketContext& /*context*/) {
+    Handle(const Ref<Connection>& /*connection*/, PacketContext& /*context*/, NetworkBuffer&) {
         return std::nullopt;
     }
 
