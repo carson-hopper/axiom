@@ -21,7 +21,7 @@ int CommandDispatcher::Dispatch(CommandSourceStack& source, const std::string& i
 
 	for (auto& root : m_RootNodes) {
 		if (root->Matches(tokens[0])) {
-			if (!source.HasPermission(root->GetRequiredPermissionLevel())) {
+			if (!CheckPermission(source, *root)) {
 				source.SendFailure(ChatComponent::Create()
 					.Text("You do not have permission to run this command")
 					.Color(ChatColor::Red)
@@ -60,7 +60,7 @@ std::vector<std::string> CommandDispatcher::GetSuggestions(
 	if (tokens.empty() || (tokens.size() == 1 && !endsWithSpace)) {
 		std::string prefix = tokens.empty() ? "" : tokens[0];
 		for (auto& root : m_RootNodes) {
-			if (!source.HasPermission(root->GetRequiredPermissionLevel())) {
+			if (!CheckPermission(source, *root)) {
 				continue;
 			}
 			auto nodeSuggestions = root->ListSuggestions(source, prefix);
@@ -72,7 +72,7 @@ std::vector<std::string> CommandDispatcher::GetSuggestions(
 			if (!root->Matches(tokens[0])) {
 				continue;
 			}
-			if (!source.HasPermission(root->GetRequiredPermissionLevel())) {
+			if (!CheckPermission(source, *root)) {
 				continue;
 			}
 			CollectSuggestions(source, root, tokens,
@@ -112,7 +112,7 @@ int CommandDispatcher::Execute(CommandSourceStack& source,
 	}
 
 	for (auto& child : node->GetChildren()) {
-		if (!source.HasPermission(child->GetRequiredPermissionLevel())) {
+		if (!CheckPermission(source, *child)) {
 			continue;
 		}
 
@@ -149,7 +149,7 @@ void CommandDispatcher::CollectSuggestions(CommandSourceStack& source,
 	if (index <= 1) {
 		std::string prefix = (index < tokens.size()) ? tokens[index] : "";
 		for (auto& child : node->GetChildren()) {
-			if (!source.HasPermission(child->GetRequiredPermissionLevel())) {
+			if (!CheckPermission(source, *child)) {
 				continue;
 			}
 			auto childSuggestions = child->ListSuggestions(source, prefix);
@@ -164,6 +164,27 @@ void CommandDispatcher::CollectSuggestions(CommandSourceStack& source,
 			CollectSuggestions(source, child, tokens, index - 1, output);
 		}
 	}
+}
+
+bool CommandDispatcher::CheckPermission(CommandSourceStack& source,
+	const CommandNode& node) {
+
+	const int level = node.GetRequiredPermissionLevel();
+	const std::string& permission = node.GetRequiredPermission();
+
+	// No requirements — anyone can run it.
+	if (level <= 0 && permission.empty()) {
+		return true;
+	}
+
+	// OR semantics: passing either gate grants access.
+	if (level > 0 && source.HasPermission(level)) {
+		return true;
+	}
+	if (!permission.empty() && source.HasPermission(permission)) {
+		return true;
+	}
+	return false;
 }
 
 }

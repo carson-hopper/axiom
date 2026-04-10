@@ -9,6 +9,8 @@
 
 namespace Axiom {
 
+	class NbtCompound;
+
 	/**
 	 * Minecraft chat colors for styling text.
 	 */
@@ -165,6 +167,9 @@ namespace Axiom {
 		// Serialize to JSON for Minecraft protocol
 		std::string ToJson() const;
 
+		// Serialize to NBT compound for the network protocol (1.20.3+)
+		Ref<NbtCompound> ToNbt() const;
+
 		// Serialize to legacy color codes (§ format)
 		std::string ToLegacyString() const;
 
@@ -185,6 +190,51 @@ namespace Axiom {
 
 		// Insertion text (for shift-click)
 		std::optional<std::string> Insertion;
+	};
+
+	/**
+	 * Flexible chat component argument. Accepts either a full
+	 * Ref<ChatComponent> or a plain std::string / const char* /
+	 * nullptr. Intended as a drop-in parameter type for any API
+	 * that "wants a chat message" — callers can pass whichever
+	 * form is most convenient.
+	 *
+	 * Example:
+	 * @code
+	 * void SendMessage(const ChatText& message);
+	 *
+	 * player->SendMessage("Hello world");                  // plain string
+	 * player->SendMessage(ChatComponent::Create()          // rich component
+	 *     .Text("Hello").Color(ChatColor::Green).Build());
+	 * @endcode
+	 */
+	class ChatText {
+	public:
+		ChatText() = default;
+		ChatText(std::nullptr_t) {}
+
+		ChatText(const Ref<ChatComponent>& component)
+			: m_Component(component) {}
+
+		ChatText(Ref<ChatComponent>&& component)
+			: m_Component(std::move(component)) {}
+
+		ChatText(const std::string& text)
+			: m_Component(ChatComponent::Create().Text(text).Build()) {}
+
+		ChatText(const char* text)
+			: m_Component(ChatComponent::Create().Text(text).Build()) {}
+
+		const Ref<ChatComponent>& Component() const { return m_Component; }
+
+		operator const Ref<ChatComponent>&() const { return m_Component; }
+
+		explicit operator bool() const { return m_Component != nullptr; }
+
+		bool IsEmpty() const { return m_Component == nullptr; }
+
+	private:
+		Ref<ChatComponent> m_Component;
 	};
 
 } // namespace Axiom

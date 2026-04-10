@@ -15,6 +15,8 @@ namespace Axiom {
 	void CorePlugin::OnEnable(PluginContext& context) {
 		// Register built-in commands using their own classes
         context.Commands().Register(CreateRef<StopCommand>());
+        context.Commands().Register(CreateRef<OpCommand>());
+        context.Commands().Register(CreateRef<DeopCommand>());
 
 #if AX_DEBUG
         context.Commands().Register(CreateRef<RestartCommand>());
@@ -28,7 +30,7 @@ namespace Axiom {
 		context.Commands().Register(CreateRef<SetWorldSpawnCommand>());
 		context.Commands().Register(CreateRef<GameruleCommand>());
 		context.Commands().Register(CreateRef<ListCommand>());
-        
+
         context.Commands().Register(CreateRef<HelpCommand>(context.Commands()));
 	}
 

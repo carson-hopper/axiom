@@ -34,7 +34,7 @@ namespace Axiom {
 		using PacketHandler = std::function<void(Ref<Connection>, int32_t, NetworkBuffer&)>;
 
 		explicit Connection(asio::ip::tcp::socket socket);
-		~Connection();
+		~Connection() override;
 
 		Connection(const Connection&) = delete;
 		Connection& operator=(const Connection&) = delete;

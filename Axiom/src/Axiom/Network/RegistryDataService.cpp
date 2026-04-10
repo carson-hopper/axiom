@@ -2,7 +2,7 @@
 
 #include "Axiom/Core/Log.h"
 #include "Axiom/Network/Protocol.h"
-#include "Axiom/Network/Nbt/JsonToNbt.h"
+#include "Axiom/Data/Nbt/JsonToNbt.h"
 
 #include <fstream>
 

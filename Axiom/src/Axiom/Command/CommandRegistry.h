@@ -1,126 +1,80 @@
 #pragma once
 
 #include "Axiom/Command/Command.h"
+#include "Axiom/Command/CommandDispatcher.h"
+#include "Axiom/Command/CommandSourceStack.h"
 
-#include <functional>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace Axiom {
 
 	/**
-	 * Callback type for lambda-based command registration.
-	 *
-	 * @param sender The entity executing the command (player or console).
-	 * @param arguments Tokenized command arguments (excludes command name).
-	 */
-	using CommandCallback = std::function<void(CommandSender&, const std::vector<std::string>&)>;
-
-	/**
 	 * Central registry for all server commands.
 	 *
-	 * The CommandRegistry manages command registration, dispatch, and tab completion.
-	 * Commands can be registered either as full Command objects or as simple lambdas.
+	 * Wraps CommandDispatcher: when a Command is registered, its BuildTree()
+	 * is called to get a LiteralNode which is added to the dispatcher's
+	 * root nodes. Dispatch and TabComplete then walk the Brigadier tree.
 	 *
-	 * Thread safety: This class is NOT thread-safe. Register commands during
-	 * server initialization or from the main thread only. Dispatch should only
+	 * Thread safety: NOT thread-safe. Register commands during server
+	 * initialization or from the main thread only. Dispatch should only
 	 * be called from the main thread.
-	 *
-	 * Example usage:
-	 * @code
-	 * // Lambda style (simple commands)
-	 * registry.Register("hello", "Says hello", [](CommandSender& sender, auto& args) {
-	 *     sender.SendMessage("Hello, world!");
-	 * });
-	 *
-	 * // Class style (complex commands with tab completion)
-	 * registry.Register(CreateRef<MyComplexCommand>());
-	 * @endcode
 	 */
 	class CommandRegistry {
 	public:
 		/**
-		 * Registers a command from a Command object.
-		 *
-		 * @param command The command to register. Must have a unique name.
-		 * @note If a command with the same name exists, it will be overwritten.
+		 * Register a command. The command's BuildTree() is called once
+		 * and the resulting node is added to the dispatcher.
 		 */
 		void Register(Ref<Command> command);
 
 		/**
-		 * Registers a simple command using a lambda callback.
-		 *
-		 * This is a convenience method for commands that don't need custom
-		 * tab completion. For full tab completion support, create a Command subclass.
-		 *
-		 * @param name The command name (what users type, e.g., "help").
-		 * @param description Brief description shown in command listings.
-		 * @param callback The function to execute when command is invoked.
+		 * Parse and execute a command string.
 		 */
-		void Register(const std::string& name, const std::string& description, CommandCallback callback);
+		bool Dispatch(CommandSourceStack& source, const std::string& input);
 
 		/**
-		 * Parses and executes a command string.
-		 *
-		 * The input is tokenized by whitespace. The first token is the command
-		 * name; remaining tokens are passed as arguments.
-		 *
-		 * @param sender The entity executing the command.
-		 * @param input The full command line (e.g., "give @s diamond 64").
-		 * @return true if command was found and executed, false if unknown.
+		 * Generate tab completions for a partial command line.
 		 */
-		bool Dispatch(CommandSender& sender, const std::string& input);
+		std::vector<std::string> TabComplete(CommandSourceStack& source,
+			const std::string& partial);
 
 		/**
-		 * Generates tab completions for a partial command.
-		 *
-		 * If completing the command name, returns all matching commands.
-		 * If completing arguments, delegates to the command's TabComplete method.
-		 *
-		 * @param sender The entity requesting completion (for permission checks).
-		 * @param partial The partial input (e.g., "gi" or "give @s dia").
-		 * @return Sorted list of possible completions.
-		 */
-		std::vector<std::string> TabComplete(CommandSender& sender, const std::string& partial);
-
-		/**
-		 * Removes a command from the registry.
-		 *
-		 * @param name The command name to unregister.
-		 * @note Safe to call even if command doesn't exist.
+		 * Unregister a command by name.
 		 */
 		void Unregister(const std::string& name);
 
 		/**
-		 * Checks if a command is registered.
-		 *
-		 * @param name The command name to check.
-		 * @return true if the command exists in the registry.
+		 * Check if a command is registered.
 		 */
-		bool HasCommand(const std::string& name) const {
-			return m_Commands.find(name) != m_Commands.end();
-		}
+		bool HasCommand(const std::string& name) const;
 
 		/**
-		 * Gets the number of registered commands.
-		 *
-		 * @return Total count of registered commands.
+		 * Total number of registered commands.
 		 */
 		size_t CommandCount() const { return m_Commands.size(); }
 
-		/** Returns all registered command names. */
-		std::vector<std::string> GetCommandNames() const {
-			std::vector<std::string> names;
-			names.reserve(m_Commands.size());
-			for (const auto& [name, command] : m_Commands) {
-				names.push_back(name);
-			}
-			return names;
+		/**
+		 * Returns all registered command names.
+		 */
+		std::vector<std::string> GetCommandNames() const;
+
+		/**
+		 * Returns the registered command objects.
+		 */
+		const std::vector<Ref<Command>>& GetCommands() const { return m_Commands; }
+
+		/**
+		 * Returns the root nodes of the underlying Brigadier tree for
+		 * network serialization via the Commands packet.
+		 */
+		const std::vector<Ref<LiteralNode>>& GetRootNodes() const {
+			return m_Dispatcher.GetRootNodes();
 		}
 
 	private:
-		std::unordered_map<std::string, Ref<Command>> m_Commands;
+		std::vector<Ref<Command>> m_Commands;
+		CommandDispatcher m_Dispatcher;
 	};
 
 }

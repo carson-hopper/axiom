@@ -8,7 +8,6 @@ namespace Axiom {
  * Changes the game mode for a player.
  *
  * Usage: /gamemode <survival|creative|adventure|spectator>
- * Permission: server.gamemode
  */
 class GamemodeCommand : public Command {
 public:
@@ -22,19 +21,14 @@ public:
         return desc;
     }
 
-    const std::string& Usage() const {
-        static std::string usage = "/gamemode <mode>";
-        return usage;
+	const std::string& RequiredPermission() const override {
+    	static constexpr std::string perm = "axiom.player.gamemode";
+    	return perm;
     }
 
-    const std::string& Permission() const {
-        static std::string perm = "axiom.player.gamemode";
-        return perm;
-    }
+    int RequiredPermissionLevel() const override { return 2; }
 
-    void Execute(CommandSender& sender, const std::vector<std::string>& arguments) override;
-
-    std::vector<std::string> TabComplete(CommandSender& sender, const std::vector<std::string>& arguments) override;
+    Ref<LiteralNode> BuildTree() override;
 };
 
 }

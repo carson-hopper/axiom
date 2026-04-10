@@ -6,17 +6,19 @@
  */
 
 #include "Axiom/Command/Commands/Server/StopCommand.h"
+#include "Axiom/Command/Commands/Server/OpCommand.h"
+#include "Axiom/Command/Commands/Server/DeopCommand.h"
 
 #if AX_DEBUG
 #include "Axiom/Command/Commands/Server/RestartCommand.h"
 #endif
 
 #include "Axiom/Command/Commands/HelpCommand.h"
-#include "Axiom/Command/Commands/GamemodeCommand.h"
-#include "Axiom/Command/Commands/DifficultyCommand.h"
-#include "Axiom/Command/Commands/TimeCommand.h"
-#include "Axiom/Command/Commands/WeatherCommand.h"
-#include "Axiom/Command/Commands/TeleportCommand.h"
-#include "Axiom/Command/Commands/SetWorldSpawnCommand.h"
-#include "Axiom/Command/Commands/GameruleCommand.h"
+#include "Axiom/Command/Commands/Player/GamemodeCommand.h"
+#include "Axiom/Command/Commands/Environment/DifficultyCommand.h"
+#include "Axiom/Command/Commands/Environment/TimeCommand.h"
+#include "Axiom/Command/Commands/Environment/WeatherCommand.h"
+#include "Axiom/Command/Commands/Player/TeleportCommand.h"
+#include "Axiom/Command/Commands/Environment/SetWorldSpawnCommand.h"
+#include "Axiom/Command/Commands/Environment/GameruleCommand.h"
 #include "Axiom/Command/Commands/ListCommand.h"

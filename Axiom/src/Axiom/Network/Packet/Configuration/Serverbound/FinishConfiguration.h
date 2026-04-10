@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Axiom/Command/CommandRegistry.h"
 #include "Axiom/Core/Log.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
 #include "Axiom/Config/ServerConfig.h"
+#include "Axiom/Network/Packet/Play/Clientbound/Commands.h"
 #include "Axiom/Network/Packet/Play/Clientbound/LoginPacket.h"
 #include "Axiom/Network/Packet/Play/Clientbound/PlayerInfoUpdate.h"
 #include "Axiom/Network/Packet/Play/Clientbound/PlayerAbilitiesPacket.h"
@@ -81,6 +83,11 @@ public:
 		}
 		chain.push_back(CreateRef<Play::Clientbound::PlayerAbilitiesPacket>(
 			static_cast<int8_t>(abilityFlags), 0.05f, 0.1f));
+
+		// 3b. Commands — send the Brigadier command graph filtered by
+		//     the viewer so they only see commands they can run.
+		chain.push_back(CreateRef<Play::Clientbound::CommandsPacket>(
+			context.Commands().GetRootNodes(), player));
 
 		// 4. Spawn position — from player position
 		auto& spawnPos = player->GetPosition();

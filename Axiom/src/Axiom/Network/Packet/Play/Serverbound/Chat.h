@@ -32,9 +32,7 @@ public:
 			.Text("<" + senderName + "> " + m_Message.Value)
 			.Build();
         
-		Clientbound::SystemChatPacket chatPacket;
-		chatPacket.SetMessage(chatMessage);
-		chatPacket.SetActionBar(false);
+		Clientbound::SystemChatPacket chatPacket(chatMessage, false);
 		context.Server().BroadcastPacket(chatPacket);
 
 		AX_CORE_TRACE("Chat from {}: {}", connection->RemoteAddress(), m_Message.Value);

@@ -2,6 +2,7 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Core/Math.h"
+#include "Axiom/Data/Nbt/NbtTag.h"
 #include "Axiom/Network/Packet/IChainablePacket.h"
 #include "Axiom/Network/Packet/PacketState.h"
 #include "Axiom/Network/Packet/PacketDirection.h"
@@ -105,11 +106,40 @@ namespace Axiom {
         }
 
     protected:
+        // Trait: extract the inner type from Ref<T>.
+        template<typename T>
+        struct ExtractRefInner { using type = void; };
+
+        template<typename T>
+        struct ExtractRefInner<Ref<T>> { using type = T; };
+
+        // Trait: detect Ref<T> where T derives from NbtTag. Used to
+        // auto-serialize NBT tag fields with full network-format framing
+        // (type byte + payload).
+        template<typename T>
+        struct IsRefOfNbtTag : std::false_type {};
+
+        template<typename T>
+        struct IsRefOfNbtTag<Ref<T>>
+            : std::bool_constant<std::is_base_of_v<NbtTag, T>> {};
+
         template<typename F>
         void ReadField(NetworkBuffer& buffer, F& field) {
             using T = typename F::FieldType;
 
-            if constexpr (std::is_base_of_v<Net::INetworkType, T>) {
+            if constexpr (IsRefOfNbtTag<T>::value) {
+                // Consume the type byte, create the right subclass, read payload.
+                using Inner = typename ExtractRefInner<T>::type;
+                const auto type = static_cast<NbtTagType>(buffer.ReadByte());
+                auto tag = CreateNbtTag(type);
+                if (tag) {
+                    tag->Read(buffer);
+                    field.Value = tag.template As<Inner>();
+                } else {
+                    field.Value = nullptr;
+                }
+            }
+            else if constexpr (std::is_base_of_v<Net::INetworkType, T>) {
                 field.Value.Read(buffer);
             }
             else if constexpr (std::is_same_v<T, int8_t>) {
@@ -157,7 +187,16 @@ namespace Axiom {
         void WriteField(NetworkBuffer& buffer, const F& field) {
             using T = typename F::FieldType;
 
-            if constexpr (std::is_base_of_v<Net::INetworkType, T>) {
+            if constexpr (IsRefOfNbtTag<T>::value) {
+                // Emit type byte + payload for network-format root framing.
+                if (field.Value) {
+                    buffer.WriteByte(static_cast<uint8_t>(field.Value->Type()));
+                    field.Value->Write(buffer);
+                } else {
+                    buffer.WriteByte(static_cast<uint8_t>(NbtTagType::End));
+                }
+            }
+            else if constexpr (std::is_base_of_v<Net::INetworkType, T>) {
                 field.Value.Write(buffer);
             }
             else if constexpr (std::is_same_v<T, int8_t>) {

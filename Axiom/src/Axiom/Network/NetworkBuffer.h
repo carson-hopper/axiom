@@ -324,16 +324,29 @@ public:
 	}
 
 	/**
-	 * Write a text component as an NBT TAG_String.
-	 * Since 1.20.3, chat components in packets are NBT-encoded.
-	 * A root TAG_String containing the JSON is the simplest form.
+	 * Write an unnamed NBT TAG_String value: u16 length + UTF-8 bytes.
 	 */
-	void WriteTextComponent(const std::string& json) {
-		WriteByte(0x08); // TAG_String
-		auto length = static_cast<uint16_t>(json.size());
+	void WriteNbtString(const std::string& value) {
+		auto length = static_cast<uint16_t>(value.size());
 		WriteByte(static_cast<uint8_t>((length >> 8) & 0xFF));
 		WriteByte(static_cast<uint8_t>(length & 0xFF));
-		m_Data.insert(m_Data.end(), json.begin(), json.end());
+		m_Data.insert(m_Data.end(), value.begin(), value.end());
+	}
+
+	/**
+	 * Write a text component as an NBT TAG_Compound containing
+	 * a single "text" TAG_String field. This is the format used
+	 * for chat messages since 1.20.3 (nameless root compound).
+	 */
+	void WriteTextComponent(const std::string& text) {
+		WriteByte(0x0A); // TAG_Compound (nameless root)
+
+		// Named TAG_String "text" with the message content
+		WriteByte(0x08); // TAG_String
+		WriteNbtString("text");
+		WriteNbtString(text);
+
+		WriteByte(0x00); // TAG_End
 	}
 
 	/**

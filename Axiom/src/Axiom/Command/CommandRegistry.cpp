@@ -2,93 +2,53 @@
 
 #include "Axiom/Core/Log.h"
 
-#include <sstream>
+#include <algorithm>
 
 namespace Axiom {
 
-	class LambdaCommand : public Command {
-	public:
-		LambdaCommand(std::string name, std::string description, CommandCallback callback)
-			: m_Name(std::move(name))
-			, m_Description(std::move(description))
-			, m_Callback(std::move(callback)) {}
-
-		const std::string& Name() const override { return m_Name; }
-		const std::string& Description() const override { return m_Description; }
-
-		void Execute(CommandSender& sender, const std::vector<std::string>& arguments) override {
-			m_Callback(sender, arguments);
-		}
-
-	private:
-		std::string m_Name;
-		std::string m_Description;
-		CommandCallback m_Callback;
-	};
-
 	void CommandRegistry::Register(Ref<Command> command) {
-		const std::string& name = command->Name();
-		m_Commands[name] = std::move(command);
-	}
-
-	void CommandRegistry::Register(const std::string& name, const std::string& description, CommandCallback callback) {
-		Register(CreateRef<LambdaCommand>(name, description, std::move(callback)));
-	}
-
-	bool CommandRegistry::Dispatch(CommandSender& sender, const std::string& input) {
-		std::istringstream stream(input);
-		std::string commandName;
-		stream >> commandName;
-
-		auto iterator = m_Commands.find(commandName);
-		if (iterator == m_Commands.end()) {
-			sender.SendPlainMessage("Unknown command: " + commandName);
-			return false;
-		}
-
-		std::vector<std::string> arguments;
-		std::string argument;
-		while (stream >> argument) {
-			arguments.push_back(std::move(argument));
-		}
-
-		iterator->second->Execute(sender, arguments);
-		return true;
-	}
-
-	std::vector<std::string> CommandRegistry::TabComplete(CommandSender& sender, const std::string& partial) {
-		std::vector<std::string> completions;
-
-		std::istringstream stream(partial);
-		std::string commandName;
-		stream >> commandName;
-
-		bool hasSpace = !partial.empty() && partial.back() == ' ';
-		bool isCompletingCommand = !hasSpace && partial.find(' ') == std::string::npos;
-
-		if (isCompletingCommand) {
-			for (auto& [name, command] : m_Commands) {
-				if (name.starts_with(commandName)) {
-					completions.push_back(name);
-				}
+		auto tree = command->BuildTree();
+		if (tree) {
+			tree->Requires(command->RequiredPermissionLevel());
+			if (!command->RequiredPermission().empty()) {
+				tree->Requires(command->RequiredPermission());
 			}
-		} else {
-			auto iterator = m_Commands.find(commandName);
-			if (iterator != m_Commands.end()) {
-				std::vector<std::string> arguments;
-				std::string argument;
-				while (stream >> argument) {
-					arguments.push_back(std::move(argument));
-				}
-				completions = iterator->second->TabComplete(sender, arguments);
-			}
+			m_Dispatcher.Register(tree);
 		}
+		m_Commands.push_back(std::move(command));
+	}
 
-		return completions;
+	bool CommandRegistry::Dispatch(CommandSourceStack& source, const std::string& input) {
+		return m_Dispatcher.Dispatch(source, input) != 0;
+	}
+
+	std::vector<std::string> CommandRegistry::TabComplete(CommandSourceStack& source,
+		const std::string& partial) {
+		return m_Dispatcher.GetSuggestions(source, partial);
 	}
 
 	void CommandRegistry::Unregister(const std::string& name) {
-		m_Commands.erase(name);
+		std::erase_if(m_Commands, [&](const Ref<Command>& command) {
+			return command->Name() == name;
+		});
+		// Note: CommandDispatcher doesn't expose a removal API; the
+		// root node remains but we won't rebuild the dispatcher here.
+	}
+
+	bool CommandRegistry::HasCommand(const std::string& name) const {
+		return std::any_of(m_Commands.begin(), m_Commands.end(),
+			[&](const Ref<Command>& command) {
+				return command->Name() == name;
+			});
+	}
+
+	std::vector<std::string> CommandRegistry::GetCommandNames() const {
+		std::vector<std::string> names;
+		names.reserve(m_Commands.size());
+		for (const auto& command : m_Commands) {
+			names.push_back(command->Name());
+		}
+		return names;
 	}
 
 }

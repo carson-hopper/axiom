@@ -1,6 +1,10 @@
 #include "axpch.h"
 #include "Axiom/Chat/ChatComponent.h"
 
+#include "Axiom/Data/Nbt/NbtCompound.h"
+#include "Axiom/Data/Nbt/NbtList.h"
+#include "Axiom/Data/Nbt/NbtListImpl.h"
+
 #include <nlohmann/json.hpp>
 
 namespace Axiom {
@@ -197,6 +201,61 @@ namespace Axiom {
 		}
 
 		return json.dump();
+	}
+
+	Ref<NbtCompound> ChatComponent::ToNbt() const {
+		auto compound = CreateRef<NbtCompound>();
+
+		compound->PutString("text", Text);
+
+		if (Color.has_value()) {
+			compound->PutString("color", ChatColorToString(Color.value()));
+		}
+		if (Bold.has_value()) {
+			compound->PutBoolean("bold", Bold.value());
+		}
+		if (Italic.has_value()) {
+			compound->PutBoolean("italic", Italic.value());
+		}
+		if (Underlined.has_value()) {
+			compound->PutBoolean("underlined", Underlined.value());
+		}
+		if (Strikethrough.has_value()) {
+			compound->PutBoolean("strikethrough", Strikethrough.value());
+		}
+		if (Obfuscated.has_value()) {
+			compound->PutBoolean("obfuscated", Obfuscated.value());
+		}
+
+		if (Insertion.has_value()) {
+			compound->PutString("insertion", Insertion.value());
+		}
+
+		if (ClickEvent.has_value()) {
+			auto clickCompound = CreateRef<NbtCompound>();
+			clickCompound->PutString("action", ClickActionToString(ClickEvent->Action));
+			clickCompound->PutString("value", ClickEvent->Value);
+			compound->PutCompound("clickEvent", clickCompound);
+		}
+
+		if (HoverEvent.has_value()) {
+			auto hoverCompound = CreateRef<NbtCompound>();
+			hoverCompound->PutString("action", HoverActionToString(HoverEvent->Action));
+			if (HoverEvent->Value) {
+				hoverCompound->PutCompound("contents", HoverEvent->Value->ToNbt());
+			}
+			compound->PutCompound("hoverEvent", hoverCompound);
+		}
+
+		if (!Extra.empty()) {
+			auto extraList = CreateRef<NbtList>(NbtTagType::Compound);
+			for (const auto& extra : Extra) {
+				extraList->Add(extra->ToNbt());
+			}
+			compound->PutList("extra", extraList);
+		}
+
+		return compound;
 	}
 
 	std::string ChatComponent::ToLegacyString() const {

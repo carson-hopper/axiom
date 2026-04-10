@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Axiom/Chat/ChatComponent.h"
 #include "Axiom/Core/Base.h"
 #include "Axiom/Core/Math.h"
 #include "Axiom/Environment/Entity/Player.h"
@@ -7,8 +8,6 @@
 #include <string>
 
 namespace Axiom {
-
-class ChatComponent;
 
 /**
  * Execution context carried through the command
@@ -39,14 +38,21 @@ public:
 	bool HasPermission(int level) const;
 
 	/**
+	 * Returns true when the source has the named permission.
+	 * Delegates to the underlying player's HasPermission; console
+	 * is granted every permission.
+	 */
+	bool HasPermission(const std::string& permission) const;
+
+	/**
 	 * Sends a success-style message to the source.
 	 */
-	void SendMessage(const Ref<ChatComponent>& component);
+	void SendMessage(const ChatText& component);
 
 	/**
 	 * Sends a failure-style message to the source.
 	 */
-	void SendFailure(const Ref<ChatComponent>& component);
+	void SendFailure(const ChatText& component);
 
 private:
 	std::string m_Name;

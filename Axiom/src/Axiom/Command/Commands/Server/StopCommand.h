@@ -8,33 +8,27 @@ namespace Axiom {
  * Stops the server gracefully.
  *
  * Usage: /stop
- * Permission: server.stop
  */
 class StopCommand : public Command {
 public:
-	const std::string& Name() const override {
-		static std::string name = "stop";
-		return name;
-	}
-
-	const std::string& Description() const override {
-		static std::string desc = "Stop the server";
-		return desc;
-	}
-
-	const std::string& Usage() const {
-		static std::string usage = "/stop";
-		return usage;
-	}
-    
-    const std::string& Permission() const {
-        static std::string perm = "axiom.server.stop";
-        return perm;
+    const std::string& Name() const override {
+        static std::string name = "stop";
+        return name;
     }
 
-	void Execute(CommandSender& sender, const std::vector<std::string>& arguments) override;
+    const std::string& Description() const override {
+        static std::string desc = "Stop the server";
+        return desc;
+    }
 
-	std::vector<std::string> TabComplete(CommandSender& sender, const std::vector<std::string>& arguments) override;
+	const std::string& RequiredPermission() const override {
+    	static constexpr std::string perm = "axiom.server.stop";
+    	return perm;
+    }
+
+    int RequiredPermissionLevel() const override { return 4; }
+
+    Ref<LiteralNode> BuildTree() override;
 };
 
 }

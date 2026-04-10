@@ -46,6 +46,13 @@ public:
 	 */
 	const std::vector<Ref<LiteralNode>>& GetRootNodes() const { return m_RootNodes; }
 
+	/**
+	 * Returns true when the source is allowed to run the given node.
+	 * Checks the node's int permission level and string permission
+	 * with OR semantics: passing either gate grants access.
+	 */
+	static bool CheckPermission(CommandSourceStack& source, const CommandNode& node);
+
 private:
 	/**
 	 * Tokenizes the raw input string.

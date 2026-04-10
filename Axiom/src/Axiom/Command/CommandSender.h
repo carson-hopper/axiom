@@ -1,24 +1,19 @@
 #pragma once
 
+#include "Axiom/Chat/ChatComponent.h"
 #include "Axiom/Core/Base.h"
 
 namespace Axiom {
 
-class ChatComponent;
-
 class CommandSender : public virtual RefCounted {
 public:
-	virtual ~CommandSender() = default;
+	~CommandSender() override = default;
 
 	/**
-	 * Send a rich chat message using ChatComponent.
+	 * Send a chat message. Accepts a Ref<ChatComponent>, std::string,
+	 * const char*, or nullptr via the implicit ChatText wrapper.
 	 */
-	virtual void SendMessage(const Ref<ChatComponent>& message) = 0;
-
-	/**
-	 * Send a plain text message (convenience method).
-	 */
-	void SendPlainMessage(const std::string& text);
+	virtual void SendMessage(const ChatText& message) = 0;
 
 	/**
 	 * Send a MiniMessage format message (convenience method).
@@ -35,7 +30,7 @@ public:
 
 class ConsoleSender : public CommandSender {
 public:
-	void SendMessage(const Ref<ChatComponent>& message) override;
+	void SendMessage(const ChatText& message) override;
 	const std::string& Name() const override { return s_Name; }
 	bool IsPlayer() const override { return false; }
 	bool HasPermission(const std::string& /*permission*/) const override { return true; }

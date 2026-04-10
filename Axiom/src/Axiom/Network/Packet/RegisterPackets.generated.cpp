@@ -10,6 +10,7 @@ namespace Axiom {
         RegisterDefaultParser<Axiom::Configuration::Serverbound::KeepAlivePacket>();
         RegisterDefaultParser<Axiom::Configuration::Serverbound::ClientInformationPacket>();
         RegisterDefaultParser<Axiom::Configuration::Serverbound::FinishConfigurationPacket>();
+        RegisterDefaultParser<Axiom::Configuration::Serverbound::CustomPayloadPacket>();
         RegisterDefaultParser<Axiom::Handshake::Serverbound::HandshakePacket>();
         RegisterDefaultParser<Axiom::Status::Serverbound::PingRequestPacket>();
         RegisterDefaultParser<Axiom::Status::Serverbound::StatusRequestPacket>();
@@ -28,7 +29,9 @@ namespace Axiom {
         RegisterDefaultParser<Axiom::Play::Serverbound::SwingPacket>();
         RegisterDefaultParser<Axiom::Play::Serverbound::PlayerLoadedPacket>();
         RegisterDefaultParser<Axiom::Play::Serverbound::MovePlayerRotationPacket>();
+        RegisterDefaultParser<Axiom::Play::Serverbound::CommandSuggestionPacket>();
         RegisterDefaultParser<Axiom::Play::Serverbound::CustomPayloadPacket>();
+        RegisterDefaultParser<Axiom::Play::Serverbound::ChatCommandPacket>();
         RegisterDefaultParser<Axiom::Login::Serverbound::LoginAcknowledgedPacket>();
         RegisterDefaultParser<Axiom::Login::Serverbound::LoginHelloPacket>();
         RegisterDefaultParser<Axiom::Login::Serverbound::EncryptionResponsePacket>();

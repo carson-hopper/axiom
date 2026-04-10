@@ -8,7 +8,6 @@ namespace Axiom {
  * Lists online players.
  *
  * Usage: /list
- * Permission: server.list
  */
 class ListCommand : public Command {
 public:
@@ -22,19 +21,14 @@ public:
         return desc;
     }
 
-    const std::string& Usage() const {
-        static std::string usage = "/list";
-        return usage;
+	const std::string& RequiredPermission() const override {
+    	static constexpr std::string perm = "axiom.player.list";
+    	return perm;
     }
 
-    const std::string& Permission() const {
-        static std::string perm = "server.list";
-        return perm;
-    }
+    int RequiredPermissionLevel() const override { return 0; }
 
-    void Execute(CommandSender& sender, const std::vector<std::string>& arguments) override;
-
-    std::vector<std::string> TabComplete(CommandSender& sender, const std::vector<std::string>& arguments) override;
+    Ref<LiteralNode> BuildTree() override;
 };
 
 }

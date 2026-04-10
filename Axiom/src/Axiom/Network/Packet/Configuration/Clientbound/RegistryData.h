@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Axiom/Data/Nbt/JsonToNbt.h"
 #include "Axiom/Network/Packet/Packet.h"
-#include "Axiom/Network/Nbt/JsonToNbt.h"
 
 #include <nlohmann/json.hpp>
 

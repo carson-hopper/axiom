@@ -21,19 +21,32 @@ bool CommandSourceStack::HasPermission(int level) const {
 	return m_PermissionLevel >= level;
 }
 
-void CommandSourceStack::SendMessage(const Ref<ChatComponent>& component) {
+bool CommandSourceStack::HasPermission(const std::string& permission) const {
+	if (m_Player) {
+		return m_Player->HasPermission(permission);
+	}
+	return true; // Console has all permissions
+}
+
+void CommandSourceStack::SendMessage(const ChatText& component) {
+	if (!component) {
+		return;
+	}
 	if (m_Player) {
 		m_Player->SendMessage(component);
 	} else {
-		AX_CORE_INFO("{}", component->GetPlainText());
+		AX_CORE_INFO("{}", component.Component()->GetPlainText());
 	}
 }
 
-void CommandSourceStack::SendFailure(const Ref<ChatComponent>& component) {
+void CommandSourceStack::SendFailure(const ChatText& component) {
+	if (!component) {
+		return;
+	}
 	if (m_Player) {
 		m_Player->SendMessage(component);
 	} else {
-		AX_CORE_ERROR("{}", component->GetPlainText());
+		AX_CORE_ERROR("{}", component.Component()->GetPlainText());
 	}
 }
 

@@ -12,10 +12,16 @@ namespace Axiom {
 		None = 0,
 		// Player
 		PlayerJoin, PlayerQuit, PlayerChat, PlayerMove,
+		PlayerHealthChanged, PlayerGameModeChanged, PlayerPositionChanged,
+		PlayerHotbarChanged, PlayerFoodChanged, PlayerExperienceChanged,
 		// Block
 		BlockPlace, BlockBreak,
 		// Server
 		ServerStart, ServerStop, ServerTick,
+		// Level
+		LevelTimeChanged, LevelWeatherChanged,
+		// GameRule
+		GameRuleChanged,
 		// Command
 		CommandExecute,
 		// Plugin
@@ -28,7 +34,8 @@ namespace Axiom {
 		EventCategoryBlock   = BIT(1),
 		EventCategoryServer  = BIT(2),
 		EventCategoryCommand = BIT(3),
-		EventCategoryPlugin  = BIT(4)
+		EventCategoryPlugin  = BIT(4),
+		EventCategoryLevel   = BIT(5),
 	};
 
 #define AX_EVENT_CLASS_TYPE(type) \

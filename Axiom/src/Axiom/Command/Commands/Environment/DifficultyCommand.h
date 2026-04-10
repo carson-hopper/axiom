@@ -8,7 +8,6 @@ namespace Axiom {
  * Queries or changes the server difficulty level.
  *
  * Usage: /difficulty [peaceful|easy|normal|hard]
- * Permission: server.difficulty
  */
 class DifficultyCommand : public Command {
 public:
@@ -22,19 +21,14 @@ public:
         return desc;
     }
 
-    const std::string& Usage() const {
-        static std::string usage = "/difficulty [level]";
-        return usage;
+	const std::string& RequiredPermission() const override {
+    	static constexpr std::string perm = "axiom.world.difficulty";
+    	return perm;
     }
 
-    const std::string& Permission() const {
-        static std::string perm = "axiom.world.difficulty";
-        return perm;
-    }
+    int RequiredPermissionLevel() const override { return 2; }
 
-    void Execute(CommandSender& sender, const std::vector<std::string>& arguments) override;
-
-    std::vector<std::string> TabComplete(CommandSender& sender, const std::vector<std::string>& arguments) override;
+    Ref<LiteralNode> BuildTree() override;
 };
 
 }

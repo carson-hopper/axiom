@@ -1,34 +1,32 @@
 #include "axpch.h"
 #include "Axiom/Command/Commands/Server/StopCommand.h"
 
+#include "Axiom/Chat/ChatComponent.h"
+#include "Axiom/Command/CommandNode.h"
+#include "Axiom/Command/CommandSourceStack.h"
+#include "Axiom/Command/Parsers/Parsers.h"
 #include "Axiom/Core/Application.h"
 #include "Axiom/Core/Log.h"
-#include "Axiom/Chat/ChatComponent.h"
 
 namespace Axiom {
 
-	void StopCommand::Execute(CommandSender& sender, const std::vector<std::string>& /*arguments*/) {
-		if (!sender.HasPermission(Permission())) {
-			sender.SendMessage(ChatComponent::Create()
-				.Text("You don't have permission to stop the server")
-				.Color(ChatColor::Red)
-				.Build());
-			return;
-		}
+    Ref<LiteralNode> StopCommand::BuildTree() {
+        auto root = Literal("stop");
+        root->Requires(RequiredPermissionLevel());
 
-		sender.SendMessage(ChatComponent::Create()
-			.Text("Stopping the server...")
-				.Color(ChatColor::Yellow)
-				.Build());
+        root->Executes([](CommandSourceStack& source, auto&) {
+            source.SendMessage(ChatComponent::Create()
+                .Text("Stopping the server...")
+                .Color(ChatColor::Yellow)
+                .Build());
 
-		AX_CORE_INFO("Server stop requested by {}", sender.Name());
-		
-		Application::Instance().Stop();
-	}
+            AX_CORE_INFO("Server stop requested by {}", source.GetName());
 
-	std::vector<std::string> StopCommand::TabComplete(CommandSender& /*sender*/, const std::vector<std::string>& /*arguments*/) {
-		// Stop command takes no arguments
-		return {};
-	}
+            Application::Instance().Stop();
+            return 1;
+        });
+
+        return root;
+    }
 
 }

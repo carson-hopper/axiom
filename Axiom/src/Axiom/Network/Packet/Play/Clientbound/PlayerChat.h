@@ -2,6 +2,7 @@
 
 #include "Axiom/Chat/ChatComponent.h"
 #include "Axiom/Core/UUID.h"
+#include "Axiom/Data/Nbt/NbtIo.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
 
@@ -27,7 +28,7 @@ public:
 			buffer.WriteBoolean(false);
 		}
 
-		buffer.WriteTextComponent(m_Message.Value->ToJson());
+		NbtIo::WriteNetwork(m_Message.Value->ToNbt(), buffer);
 		buffer.WriteLong(m_Timestamp.Value);
 		buffer.WriteLong(m_Salt.Value);
 
@@ -38,7 +39,7 @@ public:
 
 		if (m_UnsignedContent.Value.has_value()) {
 			buffer.WriteBoolean(true);
-			buffer.WriteTextComponent(m_UnsignedContent.Value.value()->ToJson());
+			NbtIo::WriteNetwork(m_UnsignedContent.Value.value()->ToNbt(), buffer);
 		} else {
 			buffer.WriteBoolean(false);
 		}

@@ -4,6 +4,7 @@
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
+#include "Axiom/Network/Packet/Configuration/Clientbound/CustomPayload.h"
 #include "Axiom/Network/Packet/Configuration/Clientbound/RegistryData.h"
 #include "Axiom/Network/Packet/Configuration/Clientbound/UpdateTags.h"
 #include "Axiom/Network/Packet/Configuration/Clientbound/FinishConfiguration.h"
@@ -63,6 +64,12 @@ public:
 		}
 
 		chain.push_back(CreateRef<Clientbound::UpdateTagsPacket>());
+
+		// Probe for Meteor client: ping the meteor-client:play channel
+		// and log whatever the client echoes back.
+		chain.push_back(CreateRef<Clientbound::CustomPayloadPacket>(
+			"meteor-client:play"));
+
 		chain.push_back(CreateRef<Clientbound::FinishConfigurationPacket>());
 		return chain;
 	}
