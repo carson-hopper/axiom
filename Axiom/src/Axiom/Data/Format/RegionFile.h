@@ -16,7 +16,7 @@ namespace Axiom {
 	 * the Anvil format with 4KiB sector
 	 * allocation for chunk storage.
 	 */
-	class RegionFile {
+	class RegionFile : public virtual RefCounted {
 	public:
 		static constexpr int SectorSize = 4096;
 		static constexpr int ChunksPerRegion = 32 * 32;

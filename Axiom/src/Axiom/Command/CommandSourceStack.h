@@ -2,13 +2,13 @@
 
 #include "Axiom/Core/Base.h"
 #include "Axiom/Core/Math.h"
+#include "Axiom/Environment/Entity/Player.h"
 
 #include <string>
 
 namespace Axiom {
 
 class ChatComponent;
-class Player;
 
 /**
  * Execution context carried through the command

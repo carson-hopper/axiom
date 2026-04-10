@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Axiom/Utilities/Memory/Ref.h"
+
 #include <string>
 #include <vector>
 
@@ -10,7 +12,7 @@ namespace Axiom {
 	 * has a name and a set of possible integer-indexed
 	 * values that can be serialised to strings.
 	 */
-	class BlockProperty {
+	class BlockProperty : public virtual RefCounted {
 	public:
 		explicit BlockProperty(std::string name) : m_Name(std::move(name)) {}
 		virtual ~BlockProperty() = default;

@@ -40,7 +40,7 @@ namespace Axiom {
 		ChunkManager(const ChunkManager&) = delete;
 		ChunkManager& operator=(const ChunkManager&) = delete;
 
-		void SendInitialChunks(const Ref<Connection>& connection, double playerX, double playerZ);
+		void SendInitialChunks(Ref<Connection> connection, double playerX, double playerZ);
 		void OnPlayerMove(Ref<Connection> connection, double playerX, double playerZ);
 		void RemovePlayer(ConnectionId connectionId);
 
@@ -50,7 +50,8 @@ namespace Axiom {
 		 */
 		int32_t GetBlockAt(int32_t worldX, int32_t worldY, int32_t worldZ) const;
 
-		ChunkGenerator& Generator() const { return *m_Generator; }
+		ChunkGenerator& Generator() { return *m_Generator; }
+		const ChunkGenerator& Generator() const { return *m_Generator; }
 		int ViewDistance() const { return m_ViewDistance; }
 
 		using ChunkSentCallback = std::function<void(ChunkPosition chunkPosition)>;
@@ -74,8 +75,8 @@ namespace Axiom {
 
 		void QueueChunksInRadius(Ref<Connection> connection, ChunkPosition centerPosition);
 		void UnloadDistantChunks(Ref<Connection> connection, ChunkPosition centerPosition, PlayerChunkState& state);
-		void SendChunk(const Ref<Connection>& connection, ChunkPosition chunkPosition) const;
-		void UnloadChunk(const Ref<Connection>& connection, ChunkPosition chunkPosition);
+		void SendChunk(Ref<Connection> connection, ChunkPosition chunkPosition);
+		void UnloadChunk(Ref<Connection> connection, ChunkPosition chunkPosition);
 
 		void WorkerLoop();
 		void SubmitTask(std::function<void()> task);

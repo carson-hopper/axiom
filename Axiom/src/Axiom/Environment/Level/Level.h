@@ -63,7 +63,8 @@ namespace Axiom {
 		Entity* GetEntity(int32_t entityId);
 
 		[[nodiscard]]
-		ChunkGenerator& Generator() const { return *m_Generator; }
+		ChunkGenerator& Generator() { return *m_Generator; }
+		const ChunkGenerator& Generator() const { return *m_Generator; }
 
 	private:
 		static int64_t ChunkKey(const int32_t chunkX, const int32_t chunkZ) {

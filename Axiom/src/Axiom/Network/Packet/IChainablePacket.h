@@ -13,7 +13,7 @@ namespace Axiom {
     class PacketContext;
     class NetworkBuffer;
 
-    class IChainablePacket {
+    class IChainablePacket : public virtual RefCounted {
     public:
         virtual ~IChainablePacket() = default;
 

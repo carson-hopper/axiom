@@ -20,7 +20,7 @@
 
 namespace Axiom {
 
-    class NetworkServer {
+    class NetworkServer : public virtual RefCounted {
     public:
         NetworkServer() = default;
         ~NetworkServer();

@@ -21,7 +21,7 @@ namespace Axiom {
 
 		auto iterator = std::find_if(m_Tickables.begin(), m_Tickables.end(),
 			[tickable](const Ref<Tickable>& reference) {
-				return reference.get() == tickable;
+				return reference.Raw() == tickable;
 			});
 
 		if (iterator != m_Tickables.end()) {
@@ -45,7 +45,7 @@ namespace Axiom {
 
 		auto iterator = std::find_if(m_AsyncTickables.begin(), m_AsyncTickables.end(),
 			[asyncTickable](const Ref<AsyncTickable>& reference) {
-				return reference.get() == asyncTickable;
+				return reference.Raw() == asyncTickable;
 			});
 
 		if (iterator != m_AsyncTickables.end()) {

@@ -12,7 +12,7 @@ namespace Axiom {
 	 * an area of biome IDs, optionally reading from a parent layer.
 	 * Seed mixing ensures deterministic results per world seed.
 	 */
-	class Layer {
+	class Layer : public virtual RefCounted {
 	public:
 		explicit Layer(int64_t seedMixup);
 		Layer(int64_t seedMixup, Ref<Layer> parent);

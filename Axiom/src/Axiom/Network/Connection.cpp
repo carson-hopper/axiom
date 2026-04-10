@@ -62,7 +62,7 @@ namespace Axiom {
 			// if handler tries to modify the handler
 			auto handler = m_PacketHandler;
 			lock.unlock();
-			handler(shared_from_this(), packetId, buffer);
+			handler(Ref<Connection>(this), packetId, buffer);
 		}
 	}
 
@@ -161,7 +161,7 @@ namespace Axiom {
 			return;
 		}
 
-		auto self = shared_from_this();
+		auto self = Ref<Connection>(this);
 		auto lengthBuffer = std::make_shared<std::vector<uint8_t>>();
 
 		auto singleByte = std::make_shared<uint8_t>(0);
@@ -218,7 +218,7 @@ namespace Axiom {
 	}
 
 	void Connection::ReadFrameBody(int32_t frameLength) {
-		auto self = shared_from_this();
+		auto self = Ref<Connection>(this);
 		auto bodyBuffer = std::make_shared<std::vector<uint8_t>>(frameLength);
 
 		asio::async_read(m_Socket, asio::buffer(*bodyBuffer),

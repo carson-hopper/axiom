@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Axiom/Utilities/Memory/Ref.h"
+
 #include <vector>
 
 namespace Axiom {
@@ -22,7 +24,7 @@ namespace Axiom {
 	 * Abstract interface for world chunk generation.
 	 * Implement this to create different world types (flat, noise, void, etc.)
 	 */
-	class ChunkGenerator {
+	class ChunkGenerator : public virtual RefCounted {
 	public:
 		virtual ~ChunkGenerator() = default;
 

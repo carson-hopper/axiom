@@ -50,7 +50,7 @@ namespace Axiom {
 	private:
 		static int64_t PackCoord(int x, int z);
 
-		Ref<Layer> m_BiomeLayer;
+		mutable Ref<Layer> m_BiomeLayer;
 		mutable std::mutex m_CacheMutex;
 		mutable std::unordered_map<int64_t, int32_t> m_Cache;
 	};

@@ -32,7 +32,7 @@ enum class ArgumentType {
  * nodes (or nodes with an execute callback) can terminate
  * the parse and run the command.
  */
-class CommandNode {
+class CommandNode : public virtual RefCounted {
 public:
 	using ExecuteCallback = std::function<int(CommandSourceStack&, const std::unordered_map<std::string, std::string>&)>;
 	using SuggestionProvider = std::function<std::vector<std::string>(CommandSourceStack&, const std::string&)>;

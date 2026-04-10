@@ -59,7 +59,7 @@ namespace Axiom {
 		std::lock_guard<std::mutex> lock(m_TickablesMutex);
 
 		auto it = std::find_if(m_Tickables.begin(), m_Tickables.end(),
-			[tickable](const Ref<Tickable>& ref) { return ref.get() == tickable; });
+			[tickable](const Ref<Tickable>& ref) { return ref.Raw() == tickable; });
 		if (it != m_Tickables.end()) {
 			tickable->OnTickUnregistered();
 			m_Tickables.erase(it);

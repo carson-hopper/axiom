@@ -117,7 +117,7 @@ int CommandDispatcher::Execute(CommandSourceStack& source,
 		}
 
 		if (child->Matches(tokens[index])) {
-			auto* argumentNode = dynamic_cast<ArgumentNode*>(child.get());
+			auto* argumentNode = dynamic_cast<const ArgumentNode*>(child.Raw());
 			if (argumentNode) {
 				arguments[argumentNode->GetName()] = tokens[index];
 			}

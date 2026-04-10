@@ -59,7 +59,7 @@ namespace Axiom {
 	void Level::SetBlockState(const int x, const int y, const int z, const int32_t stateId) {
 		const int32_t chunkX = x >> 4;
 		const int32_t chunkZ = z >> 4;
-		const auto chunk = GetOrGenerateChunk(chunkX, chunkZ);
+		auto chunk = GetOrGenerateChunk(chunkX, chunkZ);
 		chunk->SetBlockState(x, y, z, stateId);
 	}
 
@@ -76,7 +76,7 @@ namespace Axiom {
 	Entity* Level::GetEntity(const int32_t entityId) {
 		std::lock_guard<std::mutex> lock(m_EntityMutex);
 		if (const auto iterator = m_Entities.find(entityId);iterator != m_Entities.end()) {
-			return iterator->second.get();
+			return iterator->second.Raw();
 		}
 		return nullptr;
 	}

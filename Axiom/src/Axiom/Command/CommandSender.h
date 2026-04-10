@@ -6,7 +6,7 @@ namespace Axiom {
 
 class ChatComponent;
 
-class CommandSender {
+class CommandSender : public virtual RefCounted {
 public:
 	virtual ~CommandSender() = default;
 

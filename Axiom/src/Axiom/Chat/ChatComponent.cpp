@@ -103,7 +103,7 @@ namespace Axiom {
 	}
 
 	ChatComponent::Builder& ChatComponent::Builder::HoverText(const std::string& text) {
-		auto textComponent = std::make_shared<ChatComponent>();
+		auto textComponent = CreateRef<ChatComponent>();
 		textComponent->Text = text;
 		m_Current->HoverEvent = Axiom::ChatHoverEvent(HoverAction::ShowText, textComponent);
 		return *this;
@@ -115,14 +115,14 @@ namespace Axiom {
 	}
 
 	ChatComponent::Builder& ChatComponent::Builder::Append(const std::string& text) {
-		auto component = std::make_shared<ChatComponent>();
+		auto component = CreateRef<ChatComponent>();
 		component->Text = text;
 		m_Component->Extra.push_back(component);
 		return *this;
 	}
 
 	ChatComponent::Builder& ChatComponent::Builder::Append(const std::string& text, ChatColor color) {
-		auto component = std::make_shared<ChatComponent>();
+		auto component = CreateRef<ChatComponent>();
 		component->Text = text;
 		component->Color = color;
 		m_Component->Extra.push_back(component);
@@ -145,7 +145,7 @@ namespace Axiom {
 		return Append(std::string(count, '\n'));
 	}
 
-	std::shared_ptr<ChatComponent> ChatComponent::Builder::Build() {
+	Ref<ChatComponent> ChatComponent::Builder::Build() {
 		return m_Component;
 	}
 

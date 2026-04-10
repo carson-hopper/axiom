@@ -144,26 +144,26 @@ namespace Axiom {
 
 	// ----- Log initialization ---------------------------------------
 
-	Ref<spdlog::logger> Log::s_CoreLogger;
-	Ref<spdlog::logger> Log::s_PluginLogger;
+	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
+	std::shared_ptr<spdlog::logger> Log::s_PluginLogger;
 
 	void Log::Init() {
 		std::vector<spdlog::sink_ptr> coreSinks;
-		coreSinks.emplace_back(CreateRef<TruecolorConsoleSink>());
-		coreSinks.emplace_back(CreateRef<spdlog::sinks::basic_file_sink_mt>("logs/axiom.log", true));
+		coreSinks.emplace_back(std::make_shared<TruecolorConsoleSink>());
+		coreSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/axiom.log", true));
 		coreSinks[1]->set_pattern("[%T] [%l] %v");
 
-		s_CoreLogger = CreateRef<spdlog::logger>("Axiom", begin(coreSinks), end(coreSinks));
+		s_CoreLogger = std::make_shared<spdlog::logger>("Axiom", begin(coreSinks), end(coreSinks));
 		spdlog::register_logger(s_CoreLogger);
 		s_CoreLogger->set_level(spdlog::level::trace);
 		s_CoreLogger->flush_on(spdlog::level::trace);
 
 		std::vector<spdlog::sink_ptr> pluginSinks;
-		pluginSinks.emplace_back(CreateRef<TruecolorConsoleSink>());
-		pluginSinks.emplace_back(CreateRef<spdlog::sinks::basic_file_sink_mt>("logs/axiom.log", false));
+		pluginSinks.emplace_back(std::make_shared<TruecolorConsoleSink>());
+		pluginSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/axiom.log", false));
 		pluginSinks[1]->set_pattern("[%T] [%l] [%n] %v");
 
-		s_PluginLogger = CreateRef<spdlog::logger>("Plugin", begin(pluginSinks), end(pluginSinks));
+		s_PluginLogger = std::make_shared<spdlog::logger>("Plugin", begin(pluginSinks), end(pluginSinks));
 		spdlog::register_logger(s_PluginLogger);
 		s_PluginLogger->set_level(spdlog::level::trace);
 		s_PluginLogger->flush_on(spdlog::level::trace);

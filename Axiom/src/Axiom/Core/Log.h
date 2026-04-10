@@ -19,12 +19,12 @@ namespace Axiom {
 	public:
 		static void Init();
 
-		static Ref<spdlog::logger>& CoreLogger() { return s_CoreLogger; }
-		static Ref<spdlog::logger>& PluginLogger() { return s_PluginLogger; }
+		static std::shared_ptr<spdlog::logger>& CoreLogger() { return s_CoreLogger; }
+		static std::shared_ptr<spdlog::logger>& PluginLogger() { return s_PluginLogger; }
 
 	private:
-		static Ref<spdlog::logger> s_CoreLogger;
-		static Ref<spdlog::logger> s_PluginLogger;
+		static std::shared_ptr<spdlog::logger> s_CoreLogger;
+		static std::shared_ptr<spdlog::logger> s_PluginLogger;
 	};
 
 }

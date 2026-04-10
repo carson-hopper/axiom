@@ -37,7 +37,7 @@ inline bool HasFlag(uint8_t flags, GoalFlag flag) {
  * which goals may run at any given tick based on priority
  * and flag conflicts.
  */
-class Goal {
+class Goal : public virtual RefCounted {
 public:
 	virtual ~Goal() = default;
 

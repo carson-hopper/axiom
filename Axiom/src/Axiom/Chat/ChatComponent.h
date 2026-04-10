@@ -75,9 +75,9 @@ namespace Axiom {
 	 */
 	struct ChatHoverEvent {
 		HoverAction Action;
-		std::shared_ptr<class ChatComponent> Value;
+		Ref<class ChatComponent> Value;
 
-		ChatHoverEvent(HoverAction action, std::shared_ptr<class ChatComponent> value)
+		ChatHoverEvent(HoverAction action, Ref<class ChatComponent> value)
 			: Action(action), Value(std::move(value)) {}
 	};
 
@@ -100,7 +100,7 @@ namespace Axiom {
 	 * sender.SendMessage(message);
 	 * @endcode
 	 */
-	class ChatComponent {
+	class ChatComponent : public virtual RefCounted {
 	public:
 		/**
 		 * Builder for constructing ChatComponents fluently.
@@ -124,7 +124,7 @@ namespace Axiom {
 			Builder& HoverText(const std::string& text);
 
 		// Append extra components
-		Builder& Extra(const std::shared_ptr<ChatComponent> &component);
+		Builder& Extra(const Ref<ChatComponent> &component);
 		Builder& Append(const std::string& text);
 		Builder& Append(const std::string& text, ChatColor color);
 
@@ -152,11 +152,11 @@ namespace Axiom {
 		 */
 		Builder& NewLine(int count);
 
-		std::shared_ptr<ChatComponent> Build();
+		Ref<ChatComponent> Build();
 
 		private:
-			std::shared_ptr<ChatComponent> m_Component = CreateRef<ChatComponent>();
-			std::shared_ptr<ChatComponent> m_Current = m_Component;
+			Ref<ChatComponent> m_Component = CreateRef<ChatComponent>();
+			Ref<ChatComponent> m_Current = m_Component;
 		};
 
 		// Static helper to start building
@@ -181,7 +181,7 @@ namespace Axiom {
 		std::optional<bool> Obfuscated;
 		std::optional<ChatClickEvent> ClickEvent;
 		std::optional<ChatHoverEvent> HoverEvent;
-		std::vector<std::shared_ptr<ChatComponent>> Extra;
+		std::vector<Ref<ChatComponent>> Extra;
 
 		// Insertion text (for shift-click)
 		std::optional<std::string> Insertion;

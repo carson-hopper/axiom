@@ -29,7 +29,7 @@ namespace Axiom {
 	 * - PacketHandler is invoked from ASIO worker threads
 	 * - Disconnect is thread-safe and idempotent
 	 */
-	class Connection : public std::enable_shared_from_this<Connection> {
+	class Connection : public virtual RefCounted {
 	public:
 		using PacketHandler = std::function<void(Ref<Connection>, int32_t, NetworkBuffer&)>;
 

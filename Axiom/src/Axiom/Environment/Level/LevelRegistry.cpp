@@ -75,11 +75,11 @@ bool LevelRegistry::UnregisterDimension(const std::string& name) {
 
 	// Clear cache if it's a vanilla dimension
 	if (name == DimensionType::Overworld) {
-		m_Overworld.reset();
+		m_Overworld.Reset();
 	} else if (name == DimensionType::Nether) {
-		m_Nether.reset();
+		m_Nether.Reset();
 	} else if (name == DimensionType::End) {
-		m_End.reset();
+		m_End.Reset();
 	}
 
 	m_Dimensions.erase(it);

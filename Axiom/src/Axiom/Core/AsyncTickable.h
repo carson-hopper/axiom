@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Timestep.h"
+#include "Axiom/Utilities/Memory/Ref.h"
 
 namespace Axiom {
 
@@ -10,7 +11,7 @@ namespace Axiom {
  * main thread, execute async, merge on
  * main thread.
  */
-class AsyncTickable {
+class AsyncTickable : public virtual RefCounted {
 public:
 	virtual ~AsyncTickable() = default;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Timestep.h"
+#include "Axiom/Utilities/Memory/Ref.h"
 
 namespace Axiom {
 
@@ -30,7 +31,7 @@ namespace Axiom {
  * };
  * @endcode
  */
-class Tickable {
+class Tickable : public virtual RefCounted {
 public:
 	virtual ~Tickable() = default;
 

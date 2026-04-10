@@ -28,7 +28,7 @@ namespace Axiom {
 		}
 	}
 
-	void ChunkManager::SendInitialChunks(const Ref<Connection> &connection, const double playerX, const double playerZ) {
+	void ChunkManager::SendInitialChunks(Ref<Connection> connection, const double playerX, const double playerZ) {
 		const ChunkPosition center{BlockToChunk(playerX), BlockToChunk(playerZ)};
 
 		{
@@ -160,7 +160,7 @@ namespace Axiom {
 		for (const auto& chunkPosition : toGenerate) {
 			auto connectionRef = connection;
 
-			SubmitTask([this, connectionRef, chunkPosition, remaining, totalChunks]() {
+			SubmitTask([this, connectionRef, chunkPosition, remaining, totalChunks]() mutable {
 				if (!connectionRef->IsConnected()) return;
 
 				SendChunk(connectionRef, chunkPosition);
@@ -232,7 +232,7 @@ namespace Axiom {
 		m_ChunkCache[key] = std::move(chunk);
 	}
 
-	void ChunkManager::SendChunk(const Ref<Connection>& connection, const ChunkPosition chunkPosition) const {
+	void ChunkManager::SendChunk(Ref<Connection> connection, const ChunkPosition chunkPosition) {
 		const auto chunkData = m_Generator->Generate(chunkPosition.x, chunkPosition.z);
 
 		NetworkBuffer payload;
@@ -255,7 +255,7 @@ namespace Axiom {
 		}
 	}
 
-	void ChunkManager::UnloadChunk(const Ref<Connection>& connection, const ChunkPosition chunkPosition) {
+	void ChunkManager::UnloadChunk(Ref<Connection> connection, const ChunkPosition chunkPosition) {
 		NetworkBuffer payload;
 		// ForgetLevelChunk uses a packed long: x in low 32 bits, z in high 32 bits
 		int64_t packed = (static_cast<int64_t>(chunkPosition.x) & 0xFFFFFFFFL)

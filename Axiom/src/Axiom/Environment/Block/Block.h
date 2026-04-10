@@ -12,7 +12,7 @@ namespace Axiom {
 	 * A Block defines the properties of a type of block (stone, dirt, etc.)
 	 * It is NOT an instance in the world — block state IDs represent placed blocks.
 	 */
-	class Block {
+	class Block : public virtual RefCounted {
 	public:
 		Block(const int32_t blockId, std::string name, const int32_t defaultStateId)
 			: m_BlockId(blockId)

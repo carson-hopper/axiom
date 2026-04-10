@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/PlatformDetection.h"
+#include "Axiom/Utilities/Memory/Ref.h"
 
 #include <atomic>
 #include <memory>
@@ -24,17 +25,11 @@
 	#define AX_DEBUGBREAK()
 #endif
 
-// ----- Macro helpers --------------------------------------------
-
 #define AX_EXPAND_MACRO(x) x
 #define AX_STRINGIFY_IMPL(x) #x
 #define AX_STRINGIFY_MACRO(x) AX_STRINGIFY_IMPL(x)
 
 #define BIT(x) (1 << (x))
-
-#define AX_BIND_FN(function) [this](auto&&... arguments) { return this->function(std::forward<decltype(arguments)>(arguments)...); }
-
-// ----- Smart pointer aliases ------------------------------------
 
 namespace Axiom {
 
@@ -46,12 +41,9 @@ namespace Axiom {
 		return std::make_unique<T>(std::forward<Args>(arguments)...);
 	}
 
-	template<typename T>
-	using Ref = std::shared_ptr<T>;
-
 	template<typename T, typename... Args>
 	constexpr Ref<T> CreateRef(Args&&... arguments) {
-		return std::make_shared<T>(std::forward<Args>(arguments)...);
+		return Ref<T>::Create(std::forward<Args>(arguments)...);
 	}
 
 	/**

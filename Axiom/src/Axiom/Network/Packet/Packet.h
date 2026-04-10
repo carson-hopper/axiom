@@ -23,7 +23,7 @@ namespace Axiom {
      */
     template<typename... Ts>
     std::vector<Ref<IChainablePacket>> CreateChainPackets() {
-        return { std::static_pointer_cast<IChainablePacket>(CreateRef<Ts>())... };
+        return { CreateRef<Ts>().template As<IChainablePacket>()... };
     }
 
     /**
@@ -32,10 +32,8 @@ namespace Axiom {
      */
     template<typename T, typename Tuple>
     Ref<IChainablePacket> ConstructPacketFromTuple(Tuple&& argumentTuple) {
-        return std::apply([](auto&&... arguments) {
-            return std::static_pointer_cast<IChainablePacket>(
-                CreateRef<T>(std::forward<decltype(arguments)>(arguments)...)
-            );
+        return std::apply([](auto&&... arguments) -> Ref<IChainablePacket> {
+            return CreateRef<T>(std::forward<decltype(arguments)>(arguments)...);
         }, std::forward<Tuple>(argumentTuple));
     }
 

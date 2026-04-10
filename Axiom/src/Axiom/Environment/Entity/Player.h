@@ -5,6 +5,7 @@
 #include "Axiom/Environment/Entity/LivingEntity.h"
 #include "Axiom/Environment/Level/Level.h"
 #include "Axiom/Network/Connection.h"
+#include "Axiom/Utilities/Memory/WeakRef.h"
 
 #include <algorithm>
 #include <array>
@@ -50,8 +51,8 @@ namespace Axiom {
 		GameMode GetGameMode() const { return m_GameMode; }
 		void SetGameMode(const GameMode mode) { m_GameMode = mode; }
 
-		Ref<class Level> GetLevel() const { return m_Level.lock(); }
-		void SetLevel(const Ref<class Level>& level) { m_Level = level; }
+		Ref<Level> GetLevel() { return m_Level.IsValid() ? Ref<Level>(&(*m_Level)) : nullptr; }
+		void SetLevel(const Ref<Level>& level) { m_Level = WeakRef<Level>(level); }
 
 		int GetFoodLevel() const { return m_FoodLevel; }
 		void SetFoodLevel(const int level) { m_FoodLevel = level; }
@@ -99,7 +100,7 @@ namespace Axiom {
 
 	private:
 		Ref<Connection> m_Connection;
-		std::weak_ptr<Level> m_Level;
+		WeakRef<Level> m_Level;
 		std::string m_Name;
 		UUID m_Uuid;
 		std::vector<PlayerProperty> m_Properties;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Math.h"
+#include "Axiom/Utilities/Memory/Ref.h"
 
 
 namespace Axiom {
@@ -11,7 +12,7 @@ namespace Axiom {
 	 * tracked by the server (players, mobs, items, projectiles, etc.)
 	 * inherits from Entity.
 	 */
-	class Entity {
+	class Entity : public virtual RefCounted {
 	public:
 		explicit Entity(const int32_t entityId)
 			: m_EntityId(entityId) {}

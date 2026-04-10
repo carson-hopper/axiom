@@ -48,7 +48,7 @@ namespace Axiom {
 	 * };
 	 * @endcode
 	 */
-	class Command {
+	class Command : public virtual RefCounted {
 	public:
 		virtual ~Command() = default;
 
