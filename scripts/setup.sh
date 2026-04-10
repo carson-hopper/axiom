@@ -133,7 +133,11 @@ case "$IDE" in
         echo -e "      ${GREEN}done${RESET} — $(wc -l < "$ROOT_DIR/compile_commands.json" | tr -d ' ') lines"
         ;;
     clion)
-        echo -e "${YELLOW}[2/3]${RESET} Generating compile_commands.json..."
+        echo -e "${YELLOW}[2/3]${RESET} Generating CLion run configurations..."
+        "$PREMAKE" clion 2>&1 | grep -v "^$"
+        echo -e "      ${GREEN}run/debug configs generated${RESET}"
+
+        echo -e "      Generating compile_commands.json..."
 
         if ! command -v bear &>/dev/null; then
             echo -e "      ${RED}bear not found.${RESET} Installing..."
