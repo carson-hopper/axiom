@@ -12,11 +12,13 @@ namespace Axiom {
 	static constexpr int32_t COMPRESSION_THRESHOLD = 256;
 
 	PacketContext::PacketContext(ServerConfig& config, EventBus& eventBus,
-		CommandRegistry& commands, NetworkServer& server)
+		CommandRegistry& commands, NetworkServer& server,
+		AdminFileStore& adminFiles)
 		: m_Config(config)
 		, m_EventBus(eventBus)
 		, m_Commands(commands)
 		, m_Server(server)
+		, m_AdminFiles(adminFiles)
 		, m_ChunkManager(CreateRef<VanillaChunkGenerator>("./worlds/minecraft/overworld"), config.ViewDistance()) {
 
 		const auto dataPath = ResolvePath("data");

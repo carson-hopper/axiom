@@ -7,7 +7,7 @@
 #include "Axiom/Core/Assert.h"
 #include "Axiom/Event/ServerEvents.h"
 #include "Axiom/Plugin/CorePlugin.h"
-#include "Axiom/Command/CommandSender.h"
+#include "Axiom/Command/CommandSourceStack.h"
 
 #include "Axiom/Network/Packet/PacketFactory.h"
 
@@ -114,7 +114,8 @@ namespace Axiom {
 		m_PluginManager->EnableAll(*m_PluginContext);
 
 		m_NetworkServer = CreateRef<NetworkServer>();
-		m_PacketContext = CreateScope<PacketContext>(*m_Config, *m_EventBus, *m_CommandRegistry, *m_NetworkServer);
+		m_PacketContext = CreateScope<PacketContext>(*m_Config, *m_EventBus,
+			*m_CommandRegistry, *m_NetworkServer, m_AdminFiles);
 		PacketFactory::RegisterAll();
 
 		m_NetworkServer->SetPacketHandler(
@@ -137,7 +138,6 @@ namespace Axiom {
 
 		m_Watchdog.Start();
 
-		ConsoleSender consoleSender;
 		// Starship-style prompt segments
 		m_ConsoleInput.Prompt().AddLeft([]() -> ConsolePrompt::Segment {
 			return {"", "axiom", 15, 62};
@@ -238,13 +238,14 @@ namespace Axiom {
 			}
 			return results;
 		});
-		m_ConsoleInput.Start([this, &consoleSender](const std::string& input) {
+		m_ConsoleInput.Start([this](const std::string& input) {
 			if (input == "stop") {
 				m_Running = false;
 				m_TickScheduler.Stop();
 				return;
 			}
-			m_CommandRegistry->Dispatch(consoleSender, input);
+			auto source = CommandSourceStack::Console();
+			m_CommandRegistry->Dispatch(source, input);
 		});
 
 		m_TickScheduler.RunSyncLoop([this]() -> bool {

@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
+#include "Axiom/Core/Time.h"
 
 #include <nlohmann/json.hpp>
+#include <toml++/toml.hpp>
 
 #include <cstdint>
 #include <optional>
@@ -12,11 +14,12 @@
 namespace Axiom {
 
 /**
- * Entry in the operators list (ops.json).
+ * Entry in the operators list (ops.toml).
+ * The UUID is the stable identifier; player
+ * names live in usercache.json.
  */
 struct OpEntry {
 	std::string Uuid;
-	std::string Name;
 	int Level = 4;
 	bool BypassesPlayerLimit = false;
 };
@@ -53,12 +56,16 @@ struct BannedIpEntry {
 };
 
 /**
- * Entry in usercache.json.
+ * Entry in usercache.toml.
+ *
+ * ExpiresOn is a wall-clock instant; lookups
+ * ignore entries whose expiry has passed. A
+ * default-constructed Time means "never".
  */
 struct UserCacheEntry {
 	std::string Uuid;
 	std::string Name;
-	std::string ExpiresOn;
+	Time ExpiresOn;
 };
 
 /**
@@ -126,6 +133,8 @@ private:
 	std::string FilePath(const std::string& filename) const;
 	nlohmann::json LoadJsonFile(const std::string& filename);
 	void SaveJsonFile(const std::string& filename, const nlohmann::json& data);
+	toml::table LoadTomlFile(const std::string& filename);
+	void SaveTomlFile(const std::string& filename, const toml::table& data);
 
 	std::string m_Directory;
 	std::vector<OpEntry> m_Ops;

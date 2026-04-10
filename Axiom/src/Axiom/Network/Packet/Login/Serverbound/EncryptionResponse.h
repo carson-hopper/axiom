@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Core/Time.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
@@ -78,6 +79,17 @@ public:
 			auto player = context.Server().AddPlayer(
 				connectionRef, profile->name, playerUuid);
 			player->SetPosition({0.5, context.ChunkManagement().Generator().SpawnY(), 0.5});
+			player->SetOpLevel(static_cast<OpLevel>(
+				context.AdminFiles().OpLevel(playerUuid.ToString())));
+
+			// Refresh the usercache so offline-player
+			// lookups (ban/op/whitelist by name) work.
+			// Entries live for 7 days before expiring.
+			UserCacheEntry cacheEntry;
+			cacheEntry.Uuid = playerUuid.ToString();
+			cacheEntry.Name = profile->name;
+			cacheEntry.ExpiresOn = Time::Now().AddDays(7);
+			context.AdminFiles().UpdateCache(cacheEntry);
 
 			// Store Mojang properties (textures/skin)
 			std::vector<PlayerProperty> properties;

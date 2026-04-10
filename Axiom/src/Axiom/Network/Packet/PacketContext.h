@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
+#include "Axiom/Config/AdminFileStore.h"
 #include "Axiom/Network/NetworkServer.h"
 #include "Axiom/Network/Crypto/ServerKeyPair.h"
 #include "Axiom/Network/RegistryDataService.h"
@@ -32,13 +33,15 @@ namespace Axiom {
     class PacketContext {
     public:
         PacketContext(ServerConfig& config, EventBus& eventBus,
-            CommandRegistry& commands, NetworkServer& server);
+            CommandRegistry& commands, NetworkServer& server,
+            AdminFileStore& adminFiles);
         ~PacketContext() { m_WorldTicker.Stop(); m_WorldTime.Stop(); m_KeepAliveManager.Stop(); }
 
         ServerConfig& Config() { return m_Config; }
         EventBus& Events() { return m_EventBus; }
         CommandRegistry& Commands() { return m_Commands; }
         NetworkServer& Server() { return m_Server; }
+        AdminFileStore& AdminFiles() { return m_AdminFiles; }
         ServerKeyPair& KeyPair() { return m_KeyPair; }
         RegistryDataService& Registries() { return m_Registries; }
         ChunkManager& ChunkManagement() { return m_ChunkManager; }
@@ -61,6 +64,7 @@ namespace Axiom {
         EventBus& m_EventBus;
         CommandRegistry& m_Commands;
         NetworkServer& m_Server;
+        AdminFileStore& m_AdminFiles;
         ServerKeyPair m_KeyPair;
         RegistryDataService m_Registries;
         ChunkManager m_ChunkManager;
