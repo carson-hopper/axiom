@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Memory.h"
-
 #include <atomic>
 #include <cstddef>
 #include <type_traits>
@@ -42,20 +40,20 @@ namespace Axiom {
 
 		Ref(T* instance)
 			: m_Instance(instance) {
-			static_assert(std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!");
+			static_assert(std::is_base_of_v<RefCounted, T>, "Class is not RefCounted!");
 
 			IncRef();
 		}
 
 		template<typename T2>
-		Ref(const Ref<T2>& other) : m_Instance((T*)other.m_Instance) {
+		Ref(const Ref<T2>& other) : m_Instance(static_cast<T*>(other.m_Instance)) {
 			
 			IncRef();
 		}
 
 		template<typename T2>
 		Ref(Ref<T2>&& other) 
-            : m_Instance((T*)other.m_Instance) {
+            : m_Instance(static_cast<T*>(other.m_Instance)) {
 			other.m_Instance = nullptr;
 		}
 

@@ -25,7 +25,11 @@ Checks: >
   -readability-magic-numbers,
   -readability-function-cognitive-complexity,
   -readability-uppercase-literal-suffix,
-  -readability-convert-member-functions-to-static
+  -readability-convert-member-functions-to-static,
+  -google-explicit-constructor,
+  -hicpp-explicit-conversions,
+  -readability-isolate-declaration,
+  -cppcoreguidelines-init-variables
 
 WarningsAsErrors: ''
 
