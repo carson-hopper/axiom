@@ -1,7 +1,10 @@
 #include "axpch.h"
 #include "Axiom/Environment/Level/LevelTime.h"
 
+#include "Axiom/Core/Application.h"
 #include "Axiom/Core/Log.h"
+#include "Axiom/Event/EventBus.h"
+#include "Axiom/Event/LevelEvents.h"
 #include "Axiom/Network/NetworkServer.h"
 
 #include <chrono>
@@ -25,6 +28,16 @@ namespace Axiom {
 		WeatherType previous = m_Weather.exchange(weather);
 		if (previous != weather) {
 			BroadcastWeatherChange(weather);
+			LevelWeatherChangedEvent event(previous, weather);
+			Application::Instance().Events().Publish(event);
+		}
+	}
+
+	void LevelTime::SetTimeOfDay(int64_t time) {
+		const int64_t previous = m_TimeOfDay.exchange(time % TicksPerDay);
+		if (previous != time) {
+			LevelTimeChangedEvent event(previous, time);
+			Application::Instance().Events().Publish(event);
 		}
 	}
 

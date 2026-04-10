@@ -1,6 +1,9 @@
 #include "GameRules.h"
 
+#include "Axiom/Core/Application.h"
 #include "Axiom/Core/Log.h"
+#include "Axiom/Event/EventBus.h"
+#include "Axiom/Event/LevelEvents.h"
 
 #include <charconv>
 
@@ -76,7 +79,13 @@ bool GameRules::Set(const std::string& name, GameRuleValue value) {
 	if (definition.DefaultValue.IsBoolean() != value.IsBoolean())
 		return false;
 
+	const auto previous = Get(name);
 	m_Values[name] = value;
+
+	if (!(previous == value)) {
+		GameRuleChangedEvent event(name, previous.ToString(), value.ToString());
+		Application::Instance().Events().Publish(event);
+	}
 	return true;
 }
 

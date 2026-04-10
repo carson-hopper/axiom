@@ -44,7 +44,7 @@ namespace Axiom {
 		int64_t WorldAge() const { return m_WorldAge; }
 		int64_t TimeOfDay() const { return m_TimeOfDay; }
 
-		void SetTimeOfDay(int64_t time) { m_TimeOfDay = time % TicksPerDay; }
+		void SetTimeOfDay(int64_t time);
 		void SetTimeFrozen(bool frozen) { m_TimeFrozen = frozen; }
 		bool IsTimeFrozen() const { return m_TimeFrozen; }
 
