@@ -1,26 +1,26 @@
-# Build
+# Build output
+bin*/
 build/
 out/
 cmake-build-*/
-cmake/
-*.log
-logs/
-*.yml
-bin*/
-*.cache/
+
+# Generated files
+Makefile
+CMakeLists.txt
+compile_commands.json
+.buildcount
+.buildcount-commit
+*.generated.h
 
 # IDE
-*.code-workspace
-*.xcworkspace
-*.xcodeproj
 .idea/
 .vscode/
-*.swp
-*.swo
-*~
-.DS_Store
+*.code-workspace
+*.xcworkspace/
+*.xcodeproj/
+*.cache/
 
-# Compiled
+# Compiled objects
 *.o
 *.a
 *.so
@@ -28,13 +28,15 @@ bin*/
 *.dll
 *.exe
 
-Makefile
-
-# Dependencies (vendored via submodules)
-# vendor/ is tracked
-
 # OS
+.DS_Store
 Thumbs.db
-.buildcount
-Axiom/src/Axiom/Core/BuildCount.generated.h
-.buildcount-commit
+
+# Editor swap files
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
