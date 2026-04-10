@@ -28,7 +28,6 @@ namespace Axiom {
 
 	void CommandRegistry::Register(Ref<Command> command) {
 		const std::string& name = command->Name();
-		AX_CORE_TRACE("Registered command: {}", name);
 		m_Commands[name] = std::move(command);
 	}
 

@@ -27,20 +27,19 @@ namespace Axiom {
 		explicit VanillaChunkGenerator(const std::string& worldDirectory)
 			: m_AnvilReader(worldDirectory + "/region") {
 
-			const auto dataPath = ResolvePath("data");
-			m_BlockRegistry.LoadFromExtractorData(dataPath.string());
-			AX_CORE_INFO("VanillaChunkGenerator: loaded {} blocks, {} biomes",
-				m_BlockRegistry.BlockCount(), m_BlockRegistry.BiomeCount());
+			const auto DataPath = ResolvePath("data");
+			m_BlockRegistry.LoadFromExtractorData(DataPath.string());
+			// AX_CORE_INFO("VanillaChunkGenerator: loaded {} blocks, {} biomes", m_BlockRegistry.BlockCount(), m_BlockRegistry.BiomeCount());
 		}
 
-		ChunkData Generate(const int32_t chunkX, const int32_t chunkZ) override {
-			auto nbtData = m_AnvilReader.ReadChunkNbt(chunkX, chunkZ);
+		ChunkData Generate(const int32_t ChunkX, const int32_t ChunkZ) override {
+			const auto NbtData = m_AnvilReader.ReadChunkNbt(ChunkX, ChunkZ);
 
-			if (!nbtData) {
-				return GenerateEmptyChunk(chunkX, chunkZ);
+			if (!NbtData) {
+				return GenerateEmptyChunk(ChunkX, ChunkZ);
 			}
 
-			return ParseChunkNbt(chunkX, chunkZ, *nbtData);
+			return ParseChunkNbt(ChunkX, ChunkZ, *NbtData);
 		}
 
 		double SpawnY() const override {
@@ -56,7 +55,7 @@ namespace Axiom {
 		 * Save the chunk with player modifications back to the region file.
 		 * Rebuilds section NBT from the current block state (cache + overrides).
 		 */
-		void SaveChunk(int32_t chunkX, int32_t chunkZ, class WorldTicker& ticker) {
+		void SaveChunk(int32_t chunkX, int32_t chunkZ, const class WorldTicker& ticker) const {
 			NbtWriter writer;
 			writer.BeginRootCompound();
 

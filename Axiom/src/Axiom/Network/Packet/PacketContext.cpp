@@ -36,25 +36,25 @@ namespace Axiom {
 		// Save dirty chunks back to region files on unload
 		m_ChunkManager.SetChunkUnloadCallback(
 			[this](const ChunkPosition chunkPosition) {
-				auto& generator = dynamic_cast<VanillaChunkGenerator&>(m_ChunkManager.Generator());
+				const auto& generator = dynamic_cast<VanillaChunkGenerator&>(m_ChunkManager.Generator());
 				generator.SaveChunk(chunkPosition.x, chunkPosition.z, m_WorldTicker);
 			});
 		// Mark chunks dirty when blocks are modified
 		m_WorldTicker.SetBlockDirtyCallback(
-			[this](int32_t chunkX, int32_t chunkZ) {
+			[this](const int32_t chunkX, const int32_t chunkZ) {
 				m_ChunkManager.MarkChunkDirty(chunkX, chunkZ);
 			});
 
 		m_WorldTicker.Start();
 	}
 
-	void PacketContext::StorePendingLogin(ConnectionId connectionId, PendingLogin login) {
-		std::lock_guard<std::mutex> lock(m_PendingLoginsMutex);
+	void PacketContext::StorePendingLogin(const ConnectionId connectionId, PendingLogin login) {
+		std::scoped_lock const lock(m_PendingLoginsMutex);
 		m_PendingLogins[connectionId] = std::move(login);
 	}
 
-	std::optional<PendingLogin> PacketContext::TakePendingLogin(ConnectionId connectionId) {
-		std::lock_guard<std::mutex> lock(m_PendingLoginsMutex);
+	std::optional<PendingLogin> PacketContext::TakePendingLogin(const ConnectionId connectionId) {
+		std::scoped_lock const lock(m_PendingLoginsMutex);
 		const auto iterator = m_PendingLogins.find(connectionId);
 		if (iterator == m_PendingLogins.end()) {
 			return std::nullopt;
@@ -65,7 +65,7 @@ namespace Axiom {
 	}
 
 	std::array<uint8_t, 4> PacketContext::GenerateVerifyToken() {
-		std::array<uint8_t, 4> token;
+		std::array<uint8_t, 4> token{};
 		std::uniform_int_distribution<int> distribution(0, 255);
 		for (auto& byte : token) {
 			byte = static_cast<uint8_t>(distribution(m_Random));

@@ -30,8 +30,6 @@ namespace Axiom {
 		context.Commands().Register(CreateRef<ListCommand>());
         
         context.Commands().Register(CreateRef<HelpCommand>(context.Commands()));
-
-		AX_CORE_INFO("Core commands registered");
 	}
 
 	void CorePlugin::OnDisable() {

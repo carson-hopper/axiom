@@ -4,9 +4,11 @@
 
 #include <string>
 
+#define AX_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+
 namespace Axiom {
 
-	enum class EventType {
+	enum class EventType : std::uint8_t {
 		None = 0,
 		// Player
 		PlayerJoin, PlayerQuit, PlayerChat, PlayerMove,
@@ -20,7 +22,7 @@ namespace Axiom {
 		PluginEnable, PluginDisable
 	};
 
-	enum EventCategory {
+	enum EventCategory : std::uint8_t {
 		EventCategoryNone    = 0,
 		EventCategoryPlayer  = BIT(0),
 		EventCategoryBlock   = BIT(1),
@@ -32,7 +34,7 @@ namespace Axiom {
 #define AX_EVENT_CLASS_TYPE(type) \
 	static EventType StaticType() { return EventType::type; } \
 	EventType Type() const override { return StaticType(); } \
-	const char* Name() const override { return #type; }
+	const std::string& Name() const override { return #type; }
 
 #define AX_EVENT_CLASS_CATEGORY(category) \
 	int CategoryFlags() const override { return category; }
@@ -42,7 +44,7 @@ namespace Axiom {
 		virtual ~Event() = default;
 
 		virtual EventType Type() const = 0;
-		virtual const char* Name() const = 0;
+		virtual const std::string& Name() const = 0;
 		virtual int CategoryFlags() const = 0;
 		virtual std::string ToString() const { return Name(); }
 

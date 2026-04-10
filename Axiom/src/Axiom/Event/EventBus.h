@@ -15,7 +15,7 @@ namespace Axiom {
 	 * Events are dispatched from Lowest to Highest priority. Monitor priority
 	 * handlers are always called last, even if the event was cancelled.
 	 */
-	enum class EventPriority {
+	enum class EventPriority : std::uint8_t {
 		Lowest,   ///< Called first; good for early filtering/preprocessing
 		Low,      ///< Early handlers
 		Normal,   ///< Default priority for most handlers
