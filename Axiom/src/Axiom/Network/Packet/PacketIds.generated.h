@@ -6,102 +6,6 @@
 
 #ifndef PID_UNKNOWN
 #define PID_UNKNOWN 65535
-#ifndef PID_HANDSHAKE_SB_HANDSHAKE
-#define PID_HANDSHAKE_SB_HANDSHAKE 0,PacketDirection::Serverbound,PacketState::Handshake
-#endif
-#ifndef PID_LOGIN_SB_LOGINHELLO
-#define PID_LOGIN_SB_LOGINHELLO 0,PacketDirection::Serverbound,PacketState::Login
-#endif
-#ifndef PID_LOGIN_SB_LOGINACKNOWLEDGED
-#define PID_LOGIN_SB_LOGINACKNOWLEDGED 3,PacketDirection::Serverbound,PacketState::Login
-#endif
-#ifndef PID_LOGIN_SB_ENCRYPTIONRESPONSE
-#define PID_LOGIN_SB_ENCRYPTIONRESPONSE 1,PacketDirection::Serverbound,PacketState::Login
-#endif
-#ifndef PID_LOGIN_CB_LOGINFINISHED
-#define PID_LOGIN_CB_LOGINFINISHED 2,PacketDirection::Clientbound,PacketState::Login
-#endif
-#ifndef PID_LOGIN_CB_LOGINCOMPRESSION
-#define PID_LOGIN_CB_LOGINCOMPRESSION 3,PacketDirection::Clientbound,PacketState::Login
-#endif
-#ifndef PID_LOGIN_CB_HELLO
-#define PID_LOGIN_CB_HELLO 1,PacketDirection::Clientbound,PacketState::Login
-#endif
-#ifndef PID_LOGIN_CB_DISCONNECT
-#define PID_LOGIN_CB_DISCONNECT 0,PacketDirection::Clientbound,PacketState::Login
-#endif
-#ifndef PID_PLAY_SB_SETCARRIEDITEM
-#define PID_PLAY_SB_SETCARRIEDITEM 53,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_SWING
-#define PID_PLAY_SB_SWING 63,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_CLIENTTICKEND
-#define PID_PLAY_SB_CLIENTTICKEND 13,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_CHAT
-#define PID_PLAY_SB_CHAT 9,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_SETCREATIVEMODESLOT
-#define PID_PLAY_SB_SETCREATIVEMODESLOT 56,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION
-#define PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION 31,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERROTATION
-#define PID_PLAY_SB_MOVEPLAYERROTATION 32,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_ACCEPTTELEPORTATION
-#define PID_PLAY_SB_ACCEPTTELEPORTATION 0,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_USEITEMON
-#define PID_PLAY_SB_USEITEMON 66,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_CHUNKBATCHRECEIVED
-#define PID_PLAY_SB_CHUNKBATCHRECEIVED 11,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_PLAYERLOADED
-#define PID_PLAY_SB_PLAYERLOADED 44,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_PLAYERACTION
-#define PID_PLAY_SB_PLAYERACTION 41,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERSTATUSONLY
-#define PID_PLAY_SB_MOVEPLAYERSTATUSONLY 33,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_MOVEPLAYERPOSITION
-#define PID_PLAY_SB_MOVEPLAYERPOSITION 30,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_SB_PLAYKEEPALIVE
-#define PID_PLAY_SB_PLAYKEEPALIVE 28,PacketDirection::Serverbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_PLAYERPOSITION
-#define PID_PLAY_CB_PLAYERPOSITION 72,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_PLAYERABILITIES
-#define PID_PLAY_CB_PLAYERABILITIES 64,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_LOGIN
-#define PID_PLAY_CB_LOGIN 49,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_GAMEEVENT
-#define PID_PLAY_CB_GAMEEVENT 38,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_PLAYERCHAT
-#define PID_PLAY_CB_PLAYERCHAT 65,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_PLAYERINFOUPDATE
-#define PID_PLAY_CB_PLAYERINFOUPDATE 70,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_SETDEFAULTSPAWNPOSITION
-#define PID_PLAY_CB_SETDEFAULTSPAWNPOSITION 97,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_SYSTEMCHAT
-#define PID_PLAY_CB_SYSTEMCHAT 121,PacketDirection::Clientbound,PacketState::Play
-#endif
-#ifndef PID_PLAY_CB_BLOCKCHANGEDACK
-#define PID_PLAY_CB_BLOCKCHANGEDACK 4,PacketDirection::Clientbound,PacketState::Play
-#endif
 #ifndef PID_STATUS_SB_STATUSREQUEST
 #define PID_STATUS_SB_STATUSREQUEST 0,PacketDirection::Serverbound,PacketState::Status
 #endif
@@ -114,25 +18,691 @@
 #ifndef PID_STATUS_CB_PONGRESPONSE
 #define PID_STATUS_CB_PONGRESPONSE 1,PacketDirection::Clientbound,PacketState::Status
 #endif
-#ifndef PID_CONFIGURATION_SB_FINISHCONFIGURATION
-#define PID_CONFIGURATION_SB_FINISHCONFIGURATION 3,PacketDirection::Serverbound,PacketState::Configuration
+#ifndef PID_HANDSHAKE_SB_HANDSHAKE
+#define PID_HANDSHAKE_SB_HANDSHAKE 0,PacketDirection::Serverbound,PacketState::Handshake
+#endif
+#ifndef PID_LOGIN_SB_LOGINACKNOWLEDGED
+#define PID_LOGIN_SB_LOGINACKNOWLEDGED 3,PacketDirection::Serverbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_SB_CUSTOMQUERYANSWER
+#define PID_LOGIN_SB_CUSTOMQUERYANSWER 2,PacketDirection::Serverbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_SB_ENCRYPTIONRESPONSE
+#define PID_LOGIN_SB_ENCRYPTIONRESPONSE 1,PacketDirection::Serverbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_SB_LOGINHELLO
+#define PID_LOGIN_SB_LOGINHELLO 0,PacketDirection::Serverbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_SB_COOKIERESPONSE
+#define PID_LOGIN_SB_COOKIERESPONSE 4,PacketDirection::Serverbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_CB_LOGINFINISHED
+#define PID_LOGIN_CB_LOGINFINISHED 2,PacketDirection::Clientbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_CB_CUSTOMQUERY
+#define PID_LOGIN_CB_CUSTOMQUERY 4,PacketDirection::Clientbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_CB_DISCONNECT
+#define PID_LOGIN_CB_DISCONNECT 0,PacketDirection::Clientbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_CB_LOGINCOMPRESSION
+#define PID_LOGIN_CB_LOGINCOMPRESSION 3,PacketDirection::Clientbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_CB_HELLO
+#define PID_LOGIN_CB_HELLO 1,PacketDirection::Clientbound,PacketState::Login
+#endif
+#ifndef PID_LOGIN_CB_COOKIEREQUEST
+#define PID_LOGIN_CB_COOKIEREQUEST 5,PacketDirection::Clientbound,PacketState::Login
 #endif
 #ifndef PID_CONFIGURATION_SB_SELECTKNOWNPACKS
 #define PID_CONFIGURATION_SB_SELECTKNOWNPACKS 7,PacketDirection::Serverbound,PacketState::Configuration
 #endif
-#ifndef PID_CONFIGURATION_SB_CONFIGKEEPALIVE
-#define PID_CONFIGURATION_SB_CONFIGKEEPALIVE 4,PacketDirection::Serverbound,PacketState::Configuration
+#ifndef PID_CONFIGURATION_SB_PONG
+#define PID_CONFIGURATION_SB_PONG 5,PacketDirection::Serverbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_SB_COOKIERESPONSE
+#define PID_CONFIGURATION_SB_COOKIERESPONSE 1,PacketDirection::Serverbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_SB_FINISHCONFIGURATION
+#define PID_CONFIGURATION_SB_FINISHCONFIGURATION 3,PacketDirection::Serverbound,PacketState::Configuration
 #endif
 #ifndef PID_CONFIGURATION_SB_CLIENTINFORMATION
 #define PID_CONFIGURATION_SB_CLIENTINFORMATION 0,PacketDirection::Serverbound,PacketState::Configuration
 #endif
-#ifndef PID_CONFIGURATION_CB_FINISHCONFIGURATION
-#define PID_CONFIGURATION_CB_FINISHCONFIGURATION 3,PacketDirection::Clientbound,PacketState::Configuration
+#ifndef PID_CONFIGURATION_SB_RESOURCEPACK
+#define PID_CONFIGURATION_SB_RESOURCEPACK 6,PacketDirection::Serverbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_SB_CONFIGKEEPALIVE
+#define PID_CONFIGURATION_SB_CONFIGKEEPALIVE 4,PacketDirection::Serverbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_SB_CUSTOMPAYLOAD
+#define PID_CONFIGURATION_SB_CUSTOMPAYLOAD 2,PacketDirection::Serverbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_REGISTRYDATA
+#define PID_CONFIGURATION_CB_REGISTRYDATA 7,PacketDirection::Clientbound,PacketState::Configuration
 #endif
 #ifndef PID_CONFIGURATION_CB_UPDATETAGS
 #define PID_CONFIGURATION_CB_UPDATETAGS 13,PacketDirection::Clientbound,PacketState::Configuration
 #endif
-#ifndef PID_CONFIGURATION_CB_REGISTRYDATA
-#define PID_CONFIGURATION_CB_REGISTRYDATA 7,PacketDirection::Clientbound,PacketState::Configuration
+#ifndef PID_CONFIGURATION_CB_RESOURCEPACKPOP
+#define PID_CONFIGURATION_CB_RESOURCEPACKPOP 8,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_COOKIEREQUEST
+#define PID_CONFIGURATION_CB_COOKIEREQUEST 0,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_UPDATEENABLEDFEATURES
+#define PID_CONFIGURATION_CB_UPDATEENABLEDFEATURES 12,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_CONFIGDISCONNECT
+#define PID_CONFIGURATION_CB_CONFIGDISCONNECT 2,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_STORECOOKIE
+#define PID_CONFIGURATION_CB_STORECOOKIE 10,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_SELECTKNOWNPACKS
+#define PID_CONFIGURATION_CB_SELECTKNOWNPACKS 14,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_RESOURCEPACKPUSH
+#define PID_CONFIGURATION_CB_RESOURCEPACKPUSH 9,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_KEEPALIVE
+#define PID_CONFIGURATION_CB_KEEPALIVE 4,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_FINISHCONFIGURATION
+#define PID_CONFIGURATION_CB_FINISHCONFIGURATION 3,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_RESETCHAT
+#define PID_CONFIGURATION_CB_RESETCHAT 6,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_PING
+#define PID_CONFIGURATION_CB_PING 5,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_TRANSFER
+#define PID_CONFIGURATION_CB_TRANSFER 11,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_CONFIGURATION_CB_CUSTOMPAYLOAD
+#define PID_CONFIGURATION_CB_CUSTOMPAYLOAD 1,PacketDirection::Clientbound,PacketState::Configuration
+#endif
+#ifndef PID_PLAY_SB_CHAT
+#define PID_PLAY_SB_CHAT 9,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETSTRUCTUREBLOCK
+#define PID_PLAY_SB_SETSTRUCTUREBLOCK 59,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLACERECIPE
+#define PID_PLAY_SB_PLACERECIPE 39,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SEENADVANCEMENTS
+#define PID_PLAY_SB_SEENADVANCEMENTS 50,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_ATTACK
+#define PID_PLAY_SB_ATTACK 1,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETCOMMANDBLOCK
+#define PID_PLAY_SB_SETCOMMANDBLOCK 54,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CLIENTINFORMATION
+#define PID_PLAY_SB_CLIENTINFORMATION 14,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_ACCEPTTELEPORTATION
+#define PID_PLAY_SB_ACCEPTTELEPORTATION 0,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYERABILITIES
+#define PID_PLAY_SB_PLAYERABILITIES 40,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHANGEDIFFICULTY
+#define PID_PLAY_SB_CHANGEDIFFICULTY 4,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERPOSITION
+#define PID_PLAY_SB_MOVEPLAYERPOSITION 30,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETCOMMANDMINECART
+#define PID_PLAY_SB_SETCOMMANDMINECART 55,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_INTERACT
+#define PID_PLAY_SB_INTERACT 26,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHUNKBATCHRECEIVED
+#define PID_PLAY_SB_CHUNKBATCHRECEIVED 11,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_BUNDLEITEMSELECTED
+#define PID_PLAY_SB_BUNDLEITEMSELECTED 3,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PADDLEBOAT
+#define PID_PLAY_SB_PADDLEBOAT 35,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_ENTITYTAGQUERY
+#define PID_PLAY_SB_ENTITYTAGQUERY 25,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_TELEPORTTOENTITY
+#define PID_PLAY_SB_TELEPORTTOENTITY 64,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_RECIPEBOOKCHANGESETTINGS
+#define PID_PLAY_SB_RECIPEBOOKCHANGESETTINGS 46,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHATSESSIONUPDATE
+#define PID_PLAY_SB_CHATSESSIONUPDATE 10,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CLIENTCOMMAND
+#define PID_PLAY_SB_CLIENTCOMMAND 12,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_USEITEMON
+#define PID_PLAY_SB_USEITEMON 66,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PINGREQUEST
+#define PID_PLAY_SB_PINGREQUEST 38,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHATCOMMANDSIGNED
+#define PID_PLAY_SB_CHATCOMMANDSIGNED 8,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYERLOADED
+#define PID_PLAY_SB_PLAYERLOADED 44,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SWING
+#define PID_PLAY_SB_SWING 63,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CONTAINERSLOTSTATECHANGED
+#define PID_PLAY_SB_CONTAINERSLOTSTATECHANGED 20,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_EDITBOOK
+#define PID_PLAY_SB_EDITBOOK 24,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PICKITEMFROMBLOCK
+#define PID_PLAY_SB_PICKITEMFROMBLOCK 36,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETBEACON
+#define PID_PLAY_SB_SETBEACON 52,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHATACK
+#define PID_PLAY_SB_CHATACK 6,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SPECTATEENTITY
+#define PID_PLAY_SB_SPECTATEENTITY 62,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETCARRIEDITEM
+#define PID_PLAY_SB_SETCARRIEDITEM 53,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SELECTTRADE
+#define PID_PLAY_SB_SELECTTRADE 51,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETGAMERULE
+#define PID_PLAY_SB_SETGAMERULE 57,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_RESOURCEPACK
+#define PID_PLAY_SB_RESOURCEPACK 49,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_LOCKDIFFICULTY
+#define PID_PLAY_SB_LOCKDIFFICULTY 29,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYERACTION
+#define PID_PLAY_SB_PLAYERACTION 41,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_DEBUGSUBSCRIPTIONREQUEST
+#define PID_PLAY_SB_DEBUGSUBSCRIPTIONREQUEST 23,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_USEITEM
+#define PID_PLAY_SB_USEITEM 67,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETCREATIVEMODESLOT
+#define PID_PLAY_SB_SETCREATIVEMODESLOT 56,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SIGNUPDATE
+#define PID_PLAY_SB_SIGNUPDATE 61,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CUSTOMPAYLOAD
+#define PID_PLAY_SB_CUSTOMPAYLOAD 22,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_BLOCKENTITYTAGQUERY
+#define PID_PLAY_SB_BLOCKENTITYTAGQUERY 2,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_TESTINSTANCEBLOCKACTION
+#define PID_PLAY_SB_TESTINSTANCEBLOCKACTION 65,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_COMMANDSUGGESTION
+#define PID_PLAY_SB_COMMANDSUGGESTION 15,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION
+#define PID_PLAY_SB_MOVEPLAYERPOSITIONROTATION 31,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CONFIGURATIONACKNOWLEDGED
+#define PID_PLAY_SB_CONFIGURATIONACKNOWLEDGED 16,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PONG
+#define PID_PLAY_SB_PONG 45,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_JIGSAWGENERATE
+#define PID_PLAY_SB_JIGSAWGENERATE 27,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYKEEPALIVE
+#define PID_PLAY_SB_PLAYKEEPALIVE 28,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHATCOMMAND
+#define PID_PLAY_SB_CHATCOMMAND 7,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERSTATUSONLY
+#define PID_PLAY_SB_MOVEPLAYERSTATUSONLY 33,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PICKITEMFROMENTITY
+#define PID_PLAY_SB_PICKITEMFROMENTITY 37,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYERINPUT
+#define PID_PLAY_SB_PLAYERINPUT 43,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_PLAYERCOMMAND
+#define PID_PLAY_SB_PLAYERCOMMAND 42,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETTESTBLOCK
+#define PID_PLAY_SB_SETTESTBLOCK 60,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEVEHICLE
+#define PID_PLAY_SB_MOVEVEHICLE 34,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CONTAINERCLICK
+#define PID_PLAY_SB_CONTAINERCLICK 18,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CONTAINERBUTTONCLICK
+#define PID_PLAY_SB_CONTAINERBUTTONCLICK 17,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_RENAMEITEM
+#define PID_PLAY_SB_RENAMEITEM 48,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CONTAINERCLOSE
+#define PID_PLAY_SB_CONTAINERCLOSE 19,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_COOKIERESPONSE
+#define PID_PLAY_SB_COOKIERESPONSE 21,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_SETJIGSAWBLOCK
+#define PID_PLAY_SB_SETJIGSAWBLOCK 58,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CLIENTTICKEND
+#define PID_PLAY_SB_CLIENTTICKEND 13,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_CHANGEGAMEMODE
+#define PID_PLAY_SB_CHANGEGAMEMODE 5,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_MOVEPLAYERROTATION
+#define PID_PLAY_SB_MOVEPLAYERROTATION 32,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_SB_RECIPEBOOKSEENRECIPE
+#define PID_PLAY_SB_RECIPEBOOKSEENRECIPE 47,PacketDirection::Serverbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_DELETECHAT
+#define PID_PLAY_CB_DELETECHAT 31,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_MAPITEMDATA
+#define PID_PLAY_CB_MAPITEMDATA 51,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_RESOURCEPACKPOP
+#define PID_PLAY_CB_RESOURCEPACKPOP 80,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETEQUIPMENT
+#define PID_PLAY_CB_SETEQUIPMENT 102,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERINFOUPDATE
+#define PID_PLAY_CB_PLAYERINFOUPDATE 70,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERINFOREMOVE
+#define PID_PLAY_CB_PLAYERINFOREMOVE 69,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_STARTCONFIGURATION
+#define PID_PLAY_CB_STARTCONFIGURATION 118,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETSCORE
+#define PID_PLAY_CB_SETSCORE 110,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_FORGETLEVELCHUNK
+#define PID_PLAY_CB_FORGETLEVELCHUNK 37,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_MOVEVEHICLE
+#define PID_PLAY_CB_MOVEVEHICLE 57,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CONTAINERSETSLOT
+#define PID_PLAY_CB_CONTAINERSETSLOT 20,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETACTIONBARTEXT
+#define PID_PLAY_CB_SETACTIONBARTEXT 87,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERABILITIES
+#define PID_PLAY_CB_PLAYERABILITIES 64,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CHANGEDIFFICULTY
+#define PID_PLAY_CB_CHANGEDIFFICULTY 10,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_COOLDOWN
+#define PID_PLAY_CB_COOLDOWN 22,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BLOCKENTITYDATA
+#define PID_PLAY_CB_BLOCKENTITYDATA 6,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_DISGUISEDCHAT
+#define PID_PLAY_CB_DISGUISEDCHAT 33,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_UPDATETAGS
+#define PID_PLAY_CB_UPDATETAGS 134,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_UPDATERECIPES
+#define PID_PLAY_CB_UPDATERECIPES 133,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_MOVEENTITYPOSROT
+#define PID_PLAY_CB_MOVEENTITYPOSROT 54,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BLOCKEVENT
+#define PID_PLAY_CB_BLOCKEVENT 7,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETBORDERCENTER
+#define PID_PLAY_CB_SETBORDERCENTER 88,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERCOMBATEND
+#define PID_PLAY_CB_PLAYERCOMBATEND 66,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_UPDATEADVANCEMENTS
+#define PID_PLAY_CB_UPDATEADVANCEMENTS 130,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_KEEPALIVE
+#define PID_PLAY_CB_KEEPALIVE 44,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_TABLIST
+#define PID_PLAY_CB_TABLIST 122,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SELECTADVANCEMENTSTAB
+#define PID_PLAY_CB_SELECTADVANCEMENTSTAB 85,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETPLAYERTEAM
+#define PID_PLAY_CB_SETPLAYERTEAM 109,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PONGRESPONSE
+#define PID_PLAY_CB_PONGRESPONSE 62,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_TICKINGSTEP
+#define PID_PLAY_CB_TICKINGSTEP 128,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_TICKINGSTATE
+#define PID_PLAY_CB_TICKINGSTATE 127,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETBORDERSIZE
+#define PID_PLAY_CB_SETBORDERSIZE 90,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERCOMBATENTER
+#define PID_PLAY_CB_PLAYERCOMBATENTER 67,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_TELEPORTENTITY
+#define PID_PLAY_CB_TELEPORTENTITY 125,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BLOCKUPDATE
+#define PID_PLAY_CB_BLOCKUPDATE 8,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETSUBTITLETEXT
+#define PID_PLAY_CB_SETSUBTITLETEXT 112,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_TAGQUERY
+#define PID_PLAY_CB_TAGQUERY 123,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_ENTITYPOSITIONSYNC
+#define PID_PLAY_CB_ENTITYPOSITIONSYNC 35,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_DAMAGEEVENT
+#define PID_PLAY_CB_DAMAGEEVENT 25,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CHUNKBATCHFINISHED
+#define PID_PLAY_CB_CHUNKBATCHFINISHED 11,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_STORECOOKIE
+#define PID_PLAY_CB_STORECOOKIE 120,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_STOPSOUND
+#define PID_PLAY_CB_STOPSOUND 119,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_DISCONNECT
+#define PID_PLAY_CB_DISCONNECT 32,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CONTAINERCLOSE
+#define PID_PLAY_CB_CONTAINERCLOSE 17,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BOSSEVENT
+#define PID_PLAY_CB_BOSSEVENT 9,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERPOSITION
+#define PID_PLAY_CB_PLAYERPOSITION 72,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PROJECTILEPOWER
+#define PID_PLAY_CB_PROJECTILEPOWER 135,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERCHAT
+#define PID_PLAY_CB_PLAYERCHAT 65,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETENTITYLINK
+#define PID_PLAY_CB_SETENTITYLINK 100,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETENTITYDATA
+#define PID_PLAY_CB_SETENTITYDATA 99,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SOUNDENTITY
+#define PID_PLAY_CB_SOUNDENTITY 116,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETTITLESANIMATION
+#define PID_PLAY_CB_SETTITLESANIMATION 115,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_COMMANDSUGGESTIONS
+#define PID_PLAY_CB_COMMANDSUGGESTIONS 15,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETTITLETEXT
+#define PID_PLAY_CB_SETTITLETEXT 114,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_ENTITYEVENT
+#define PID_PLAY_CB_ENTITYEVENT 34,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_MOVEENTITYPOS
+#define PID_PLAY_CB_MOVEENTITYPOS 53,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETPASSENGERS
+#define PID_PLAY_CB_SETPASSENGERS 107,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_LEVELCHUNKWITHLIGHT
+#define PID_PLAY_CB_LEVELCHUNKWITHLIGHT 45,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_TAKEITEMENTITY
+#define PID_PLAY_CB_TAKEITEMENTITY 124,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETPLAYERINVENTORY
+#define PID_PLAY_CB_SETPLAYERINVENTORY 108,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_TRANSFER
+#define PID_PLAY_CB_TRANSFER 129,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_MERCHANTOFFERS
+#define PID_PLAY_CB_MERCHANTOFFERS 52,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETSIMULATIONDISTANCE
+#define PID_PLAY_CB_SETSIMULATIONDISTANCE 111,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETTIME
+#define PID_PLAY_CB_SETTIME 113,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_RECIPEBOOKADD
+#define PID_PLAY_CB_RECIPEBOOKADD 74,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_OPENSIGNEDITOR
+#define PID_PLAY_CB_OPENSIGNEDITOR 60,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_COOKIEREQUEST
+#define PID_PLAY_CB_COOKIEREQUEST 21,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETOBJECTIVE
+#define PID_PLAY_CB_SETOBJECTIVE 106,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CHUNKSBIOMES
+#define PID_PLAY_CB_CHUNKSBIOMES 13,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETHELDSLOT
+#define PID_PLAY_CB_SETHELDSLOT 105,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETHEALTH
+#define PID_PLAY_CB_SETHEALTH 104,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_RESOURCEPACKPUSH
+#define PID_PLAY_CB_RESOURCEPACKPUSH 81,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_HURTANIMATION
+#define PID_PLAY_CB_HURTANIMATION 42,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETEXPERIENCE
+#define PID_PLAY_CB_SETEXPERIENCE 103,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETDEFAULTSPAWNPOSITION
+#define PID_PLAY_CB_SETDEFAULTSPAWNPOSITION 97,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PING
+#define PID_PLAY_CB_PING 61,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CLEARTITLES
+#define PID_PLAY_CB_CLEARTITLES 14,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_COMMANDS
+#define PID_PLAY_CB_COMMANDS 16,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SOUND
+#define PID_PLAY_CB_SOUND 117,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_ANIMATE
+#define PID_PLAY_CB_ANIMATE 2,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CONTAINERSETDATA
+#define PID_PLAY_CB_CONTAINERSETDATA 19,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_UPDATEMOBEFFECT
+#define PID_PLAY_CB_UPDATEMOBEFFECT 132,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETENTITYMOTION
+#define PID_PLAY_CB_SETENTITYMOTION 101,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETCURSORITEM
+#define PID_PLAY_CB_SETCURSORITEM 96,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETCHUNKCACHERADIUS
+#define PID_PLAY_CB_SETCHUNKCACHERADIUS 95,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETDISPLAYOBJECTIVE
+#define PID_PLAY_CB_SETDISPLAYOBJECTIVE 98,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_REMOVEENTITIES
+#define PID_PLAY_CB_REMOVEENTITIES 77,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETCAMERA
+#define PID_PLAY_CB_SETCAMERA 93,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETBORDERWARNINGDISTANCE
+#define PID_PLAY_CB_SETBORDERWARNINGDISTANCE 92,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_OPENSCREEN
+#define PID_PLAY_CB_OPENSCREEN 59,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_AWARDSTATS
+#define PID_PLAY_CB_AWARDSTATS 3,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETBORDERWARNINGDELAY
+#define PID_PLAY_CB_SETBORDERWARNINGDELAY 91,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETBORDERLERPSIZE
+#define PID_PLAY_CB_SETBORDERLERPSIZE 89,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_EXPLODE
+#define PID_PLAY_CB_EXPLODE 36,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SERVERDATA
+#define PID_PLAY_CB_SERVERDATA 86,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_INITIALIZEBORDER
+#define PID_PLAY_CB_INITIALIZEBORDER 43,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BLOCKCHANGEDACK
+#define PID_PLAY_CB_BLOCKCHANGEDACK 4,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_LIGHTUPDATE
+#define PID_PLAY_CB_LIGHTUPDATE 48,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SECTIONBLOCKSUPDATE
+#define PID_PLAY_CB_SECTIONBLOCKSUPDATE 84,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_OPENBOOK
+#define PID_PLAY_CB_OPENBOOK 58,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_RECIPEBOOKREMOVE
+#define PID_PLAY_CB_RECIPEBOOKREMOVE 75,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_RECIPEBOOKSETTINGS
+#define PID_PLAY_CB_RECIPEBOOKSETTINGS 76,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SETCHUNKCACHECENTER
+#define PID_PLAY_CB_SETCHUNKCACHECENTER 94,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CONTAINERSETCONTENT
+#define PID_PLAY_CB_CONTAINERSETCONTENT 18,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BUNDLEDELIMITER
+#define PID_PLAY_CB_BUNDLEDELIMITER 0,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_RESPAWN
+#define PID_PLAY_CB_RESPAWN 82,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_MOVEENTITYROT
+#define PID_PLAY_CB_MOVEENTITYROT 56,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_RESETSCORE
+#define PID_PLAY_CB_RESETSCORE 79,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_REMOVEMOBEFFECT
+#define PID_PLAY_CB_REMOVEMOBEFFECT 78,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERROTATION
+#define PID_PLAY_CB_PLAYERROTATION 73,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_LEVELPARTICLES
+#define PID_PLAY_CB_LEVELPARTICLES 47,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CUSTOMCHATCOMPLETIONS
+#define PID_PLAY_CB_CUSTOMCHATCOMPLETIONS 23,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_UPDATEATTRIBUTES
+#define PID_PLAY_CB_UPDATEATTRIBUTES 131,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_BLOCKDESTRUCTION
+#define PID_PLAY_CB_BLOCKDESTRUCTION 5,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_ADDENTITY
+#define PID_PLAY_CB_ADDENTITY 1,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERCOMBATKILL
+#define PID_PLAY_CB_PLAYERCOMBATKILL 68,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_SYSTEMCHAT
+#define PID_PLAY_CB_SYSTEMCHAT 121,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CHUNKBATCHSTART
+#define PID_PLAY_CB_CHUNKBATCHSTART 12,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_LEVELEVENT
+#define PID_PLAY_CB_LEVELEVENT 46,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLACEGHOSTRECIPE
+#define PID_PLAY_CB_PLACEGHOSTRECIPE 63,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_LOGIN
+#define PID_PLAY_CB_LOGIN 49,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_GAMERULEVALUES
+#define PID_PLAY_CB_GAMERULEVALUES 39,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_GAMEEVENT
+#define PID_PLAY_CB_GAMEEVENT 38,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_CUSTOMPAYLOAD
+#define PID_PLAY_CB_CUSTOMPAYLOAD 24,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_PLAYERLOOKAT
+#define PID_PLAY_CB_PLAYERLOOKAT 71,PacketDirection::Clientbound,PacketState::Play
+#endif
+#ifndef PID_PLAY_CB_ROTATEHEAD
+#define PID_PLAY_CB_ROTATEHEAD 83,PacketDirection::Clientbound,PacketState::Play
 #endif
 #endif

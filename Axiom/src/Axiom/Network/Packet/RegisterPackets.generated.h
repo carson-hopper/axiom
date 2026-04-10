@@ -23,6 +23,7 @@
 #include "Axiom/Network/Packet/Play/Serverbound/Swing.h"
 #include "Axiom/Network/Packet/Play/Serverbound/PlayerLoaded.h"
 #include "Axiom/Network/Packet/Play/Serverbound/MovePlayerRotation.h"
+#include "Axiom/Network/Packet/Play/Serverbound/CustomPayload.h"
 #include "Axiom/Network/Packet/Login/Serverbound/LoginAcknowledged.h"
 #include "Axiom/Network/Packet/Login/Serverbound/LoginHello.h"
 #include "Axiom/Network/Packet/Login/Serverbound/EncryptionResponse.h"
