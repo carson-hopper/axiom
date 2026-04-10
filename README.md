@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/carson-hopper/axiom/blob/main/LICENSE"><img src="https://img.shields.io/github/license/carson-hopper/axiom?style=flat-square&color=7c6caf" alt="License"></a>
+  <a href="https://github.com/carson-hopper/axiom/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0%20%2F%20Apache--2.0-7c6caf?style=flat-square" alt="License"></a>
   <a href="https://github.com/carson-hopper/axiom/releases"><img src="https://img.shields.io/github/v/release/carson-hopper/axiom?style=flat-square&color=7c6caf&label=release" alt="Latest Release"></a>
   <a href="https://github.com/carson-hopper/axiom/actions"><img src="https://img.shields.io/github/actions/workflow/status/carson-hopper/axiom/build.yml?style=flat-square&label=build" alt="Build Status"></a>
   <img src="https://img.shields.io/badge/C%2B%2B-23-7c6caf?style=flat-square&logo=cplusplus&logoColor=white" alt="C++23">
@@ -188,8 +188,13 @@ Open an issue on GitHub with a clear title and as much detail as possible. Inclu
 
 ## License
 
-Axiom is licensed under the **GNU General Public License v3.0**. See the [`LICENSE`](LICENSE) file for details.
+Axiom uses a dual-license model. See [`NOTICE.md`](NOTICE.md) for details.
 
-This means you are **free to use, modify, and distribute** this software. Any modified versions **must also be open-source** under GPL v3. You must give credit to the original authors, indicate changes made, and include the original license and copyright notice in any distribution.
+| Component | License |
+|---|---|
+| **Server** (everything except the plugin API) | [AGPL-3.0](LICENSE) |
+| **Plugin API** (`Axiom/src/Axiom/Plugin/`) | [Apache-2.0](LICENSE-PLUGIN-API) |
+
+The server is licensed under the **GNU Affero General Public License v3.0**. Modifications to the server that are made publicly available (including via hosted services) must be released under the same license. The plugin API is licensed under the **Apache License 2.0**, meaning plugin developers are free to release their plugins under any license they choose, including proprietary licenses.
 
 ---
