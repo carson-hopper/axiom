@@ -56,22 +56,39 @@ namespace Axiom {
 			}
 		}
 
-		void Read(NetworkBuffer& buffer) override {
+		void Read(NetworkBuffer& buffer, NbtAccounter& accounter) override {
+			NbtAccounter::DepthGuard depth(accounter);
+
 			m_ElementType = static_cast<NbtTagType>(buffer.ReadByte());
 			const int32_t count = buffer.ReadInt();
+			if (count < 0) {
+				throw std::runtime_error("NbtList: negative count");
+			}
+			const size_t elementCount = static_cast<size_t>(count);
+			// Account for the pointer-array overhead before
+			// we `reserve` — a malicious count of 2 billion
+			// would otherwise try to allocate ~16 GiB of
+			// `Ref<NbtTag>` slots before the first read.
+			if (elementCount > SIZE_MAX / sizeof(Ref<NbtTag>)) {
+				throw std::runtime_error("NbtList: count overflow");
+			}
+			if (!accounter.AccountBytes(elementCount * sizeof(Ref<NbtTag>))) {
+				throw std::runtime_error(accounter.LastError());
+			}
+
 			m_Elements.clear();
-			m_Elements.reserve(count);
-			for (int32_t index = 0; index < count; index++) {
+			m_Elements.reserve(elementCount);
+			for (size_t index = 0; index < elementCount; index++) {
 				auto element = CreateNbtTag(m_ElementType);
 				if (element) {
-					element->Read(buffer);
+					element->Read(buffer, accounter);
 					m_Elements.push_back(element);
 				}
 			}
 		}
 
 		Ref<NbtTag> Clone() const override {
-			auto copy = CreateRef<NbtList>(m_ElementType);
+			auto copy = Ref<NbtList>::Create(m_ElementType);
 			copy->m_Elements.reserve(m_Elements.size());
 			for (const auto& element : m_Elements) {
 				copy->m_Elements.push_back(element->Clone());

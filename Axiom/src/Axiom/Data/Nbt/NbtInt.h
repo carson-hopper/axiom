@@ -19,12 +19,15 @@ namespace Axiom {
 			buffer.WriteInt(m_Value);
 		}
 
-		void Read(NetworkBuffer& buffer) override {
+		void Read(NetworkBuffer& buffer, NbtAccounter& accounter) override {
+			if (!accounter.AccountBytes(sizeof(int32_t))) {
+				throw std::runtime_error(accounter.LastError());
+			}
 			m_Value = buffer.ReadInt();
 		}
 
 		Ref<NbtTag> Clone() const override {
-			return CreateRef<NbtInt>(m_Value);
+			return Ref<NbtInt>::Create(m_Value);
 		}
 
 		std::string ToString() const override {

@@ -24,7 +24,7 @@ namespace Axiom {
 		 */
 		static Ref<NbtTag> ValueToTag(const nlohmann::json& value) {
 			if (value.is_object()) {
-				auto compound = CreateRef<NbtCompound>();
+				auto compound = Ref<NbtCompound>::Create();
 				for (auto& [key, val] : value.items()) {
 					auto child = ValueToTag(val);
 					if (child) {
@@ -37,26 +37,26 @@ namespace Axiom {
 				return ArrayToList(value);
 			}
 			if (value.is_string()) {
-				return CreateRef<NbtString>(value.get<std::string>());
+				return Ref<NbtString>::Create(value.get<std::string>());
 			}
 			if (value.is_boolean()) {
-				return CreateRef<NbtByte>(value.get<bool>() ? 1 : 0);
+				return Ref<NbtByte>::Create(value.get<bool>() ? 1 : 0);
 			}
 			if (value.is_number_integer()) {
 				const int64_t intValue = value.get<int64_t>();
 				if (intValue >= -128 && intValue <= 127) {
-					return CreateRef<NbtByte>(static_cast<int8_t>(intValue));
+					return Ref<NbtByte>::Create(static_cast<int8_t>(intValue));
 				}
 				if (intValue >= -32768 && intValue <= 32767) {
-					return CreateRef<NbtShort>(static_cast<int16_t>(intValue));
+					return Ref<NbtShort>::Create(static_cast<int16_t>(intValue));
 				}
 				if (intValue >= INT32_MIN && intValue <= INT32_MAX) {
-					return CreateRef<NbtInt>(static_cast<int32_t>(intValue));
+					return Ref<NbtInt>::Create(static_cast<int32_t>(intValue));
 				}
-				return CreateRef<NbtLong>(intValue);
+				return Ref<NbtLong>::Create(intValue);
 			}
 			if (value.is_number_float()) {
-				return CreateRef<NbtFloat>(value.get<float>());
+				return Ref<NbtFloat>::Create(value.get<float>());
 			}
 			return nullptr;
 		}
@@ -65,7 +65,7 @@ namespace Axiom {
 		 * Convert a JSON object to a root NbtCompound.
 		 */
 		static Ref<NbtCompound> ObjectToCompound(const nlohmann::json& object) {
-			auto compound = CreateRef<NbtCompound>();
+			auto compound = Ref<NbtCompound>::Create();
 			for (auto& [key, val] : object.items()) {
 				auto child = ValueToTag(val);
 				if (child) {
@@ -89,11 +89,11 @@ namespace Axiom {
 	private:
 		static Ref<NbtList> ArrayToList(const nlohmann::json& array) {
 			if (array.empty()) {
-				return CreateRef<NbtList>(NbtTagType::End);
+				return Ref<NbtList>::Create(NbtTagType::End);
 			}
 
 			const NbtTagType elementType = DeduceNbtType(array[0]);
-			auto list = CreateRef<NbtList>(elementType);
+			auto list = Ref<NbtList>::Create(elementType);
 			for (const auto& element : array) {
 				auto child = ValueToTag(element);
 				if (child && child->Type() == elementType) {

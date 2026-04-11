@@ -60,47 +60,47 @@ namespace Axiom {
 		}
 
 		void PutByte(const std::string& name, const int8_t value) {
-			m_Tags[name] = CreateRef<NbtByte>(value);
+			m_Tags[name] = Ref<NbtByte>::Create(value);
 		}
 
 		void PutShort(const std::string& name, const int16_t value) {
-			m_Tags[name] = CreateRef<NbtShort>(value);
+			m_Tags[name] = Ref<NbtShort>::Create(value);
 		}
 
 		void PutInt(const std::string& name, const int32_t value) {
-			m_Tags[name] = CreateRef<NbtInt>(value);
+			m_Tags[name] = Ref<NbtInt>::Create(value);
 		}
 
 		void PutLong(const std::string& name, const int64_t value) {
-			m_Tags[name] = CreateRef<NbtLong>(value);
+			m_Tags[name] = Ref<NbtLong>::Create(value);
 		}
 
 		void PutFloat(const std::string& name, const float value) {
-			m_Tags[name] = CreateRef<NbtFloat>(value);
+			m_Tags[name] = Ref<NbtFloat>::Create(value);
 		}
 
 		void PutDouble(const std::string& name, const double value) {
-			m_Tags[name] = CreateRef<NbtDouble>(value);
+			m_Tags[name] = Ref<NbtDouble>::Create(value);
 		}
 
 		void PutString(const std::string& name, const std::string& value) {
-			m_Tags[name] = CreateRef<NbtString>(value);
+			m_Tags[name] = Ref<NbtString>::Create(value);
 		}
 
 		void PutBoolean(const std::string& name, const bool value) {
-			m_Tags[name] = CreateRef<NbtByte>(value ? 1 : 0);
+			m_Tags[name] = Ref<NbtByte>::Create(value ? 1 : 0);
 		}
 
 		void PutByteArray(const std::string& name, std::vector<int8_t> value) {
-			m_Tags[name] = CreateRef<NbtByteArray>(std::move(value));
+			m_Tags[name] = Ref<NbtByteArray>::Create(std::move(value));
 		}
 
 		void PutIntArray(const std::string& name, std::vector<int32_t> value) {
-			m_Tags[name] = CreateRef<NbtIntArray>(std::move(value));
+			m_Tags[name] = Ref<NbtIntArray>::Create(std::move(value));
 		}
 
 		void PutLongArray(const std::string& name, std::vector<int64_t> value) {
-			m_Tags[name] = CreateRef<NbtLongArray>(std::move(value));
+			m_Tags[name] = Ref<NbtLongArray>::Create(std::move(value));
 		}
 
 		void PutList(const std::string& name, const Ref<NbtList>& list) {
@@ -224,14 +224,24 @@ namespace Axiom {
 			buffer.WriteByte(0); // TAG_End
 		}
 
-		void Read(NetworkBuffer& buffer) override {
+		void Read(NetworkBuffer& buffer, NbtAccounter& accounter) override {
+			NbtAccounter::DepthGuard depth(accounter);
+
 			m_Tags.clear();
 			while (true) {
 				const auto type = static_cast<NbtTagType>(buffer.ReadByte());
 				if (type == NbtTagType::End) return;
 
-				// Read name
+				// Read name length + body against the
+				// accounter. The length is a uint16 so
+				// it's naturally bounded at 65535, but
+				// the budget still has to cover it to
+				// prevent a thousand max-length names
+				// from exhausting memory.
 				const uint16_t nameLength = static_cast<uint16_t>(buffer.ReadShort()) & 0xFFFFU;
+				if (!accounter.AccountBytes(nameLength)) {
+					throw std::runtime_error(accounter.LastError());
+				}
 				std::string name(nameLength, '\0');
 				for (uint16_t index = 0; index < nameLength; index++) {
 					name[index] = static_cast<char>(buffer.ReadByte());
@@ -239,14 +249,14 @@ namespace Axiom {
 
 				auto tag = CreateNbtTag(type);
 				if (tag) {
-					tag->Read(buffer);
+					tag->Read(buffer, accounter);
 					m_Tags[name] = tag;
 				}
 			}
 		}
 
 		Ref<NbtTag> Clone() const override {
-			auto copy = CreateRef<NbtCompound>();
+			auto copy = Ref<NbtCompound>::Create();
 			for (const auto& [name, tag] : m_Tags) {
 				copy->m_Tags[name] = tag->Clone();
 			}

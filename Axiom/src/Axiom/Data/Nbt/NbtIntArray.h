@@ -26,16 +26,29 @@ namespace Axiom {
 			}
 		}
 
-		void Read(NetworkBuffer& buffer) override {
+		void Read(NetworkBuffer& buffer, NbtAccounter& accounter) override {
 			const int32_t length = buffer.ReadInt();
-			m_Value.resize(length);
-			for (int32_t index = 0; index < length; index++) {
+			if (length < 0) {
+				throw std::runtime_error("NbtIntArray: negative length");
+			}
+			const size_t count = static_cast<size_t>(length);
+			// Guard the multiply so `count * sizeof(int32_t)`
+			// can't wrap around SIZE_MAX before we feed it
+			// to the accounter.
+			if (count > SIZE_MAX / sizeof(int32_t)) {
+				throw std::runtime_error("NbtIntArray: length overflow");
+			}
+			if (!accounter.AccountBytes(count * sizeof(int32_t))) {
+				throw std::runtime_error(accounter.LastError());
+			}
+			m_Value.resize(count);
+			for (size_t index = 0; index < count; index++) {
 				m_Value[index] = buffer.ReadInt();
 			}
 		}
 
 		Ref<NbtTag> Clone() const override {
-			return CreateRef<NbtIntArray>(m_Value);
+			return Ref<NbtIntArray>::Create(m_Value);
 		}
 
 		std::string ToString() const override {

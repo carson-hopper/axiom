@@ -2,29 +2,38 @@
 #include "Axiom/Data/Nbt/NbtIo.h"
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Data/Nbt/NbtAccounter.h"
 
 #include <zlib.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 namespace Axiom {
+
+	// Hard cap for decompressed NBT payloads. 32 MiB is
+	// comfortably above any realistic single NBT file
+	// (level.dat, player dat, chunk root NBTs are all
+	// well under a megabyte) and well below enough to
+	// neutralise gzip bombs that expand to gigabytes.
+	static constexpr size_t MAX_DECOMPRESSED_NBT = 32 * 1024 * 1024;
 
 	// ----- Factory -----------------------------------------------------
 
 	Ref<NbtTag> CreateNbtTag(const NbtTagType type) {
 		switch (type) {
-			case NbtTagType::Byte:      return CreateRef<NbtByte>();
-			case NbtTagType::Short:     return CreateRef<NbtShort>();
-			case NbtTagType::Int:       return CreateRef<NbtInt>();
-			case NbtTagType::Long:      return CreateRef<NbtLong>();
-			case NbtTagType::Float:     return CreateRef<NbtFloat>();
-			case NbtTagType::Double:    return CreateRef<NbtDouble>();
-			case NbtTagType::ByteArray: return CreateRef<NbtByteArray>();
-			case NbtTagType::String:    return CreateRef<NbtString>();
-			case NbtTagType::List:      return CreateRef<NbtList>();
-			case NbtTagType::Compound:  return CreateRef<NbtCompound>();
-			case NbtTagType::IntArray:  return CreateRef<NbtIntArray>();
-			case NbtTagType::LongArray: return CreateRef<NbtLongArray>();
+			case NbtTagType::Byte:      return Ref<NbtByte>::Create();
+			case NbtTagType::Short:     return Ref<NbtShort>::Create();
+			case NbtTagType::Int:       return Ref<NbtInt>::Create();
+			case NbtTagType::Long:      return Ref<NbtLong>::Create();
+			case NbtTagType::Float:     return Ref<NbtFloat>::Create();
+			case NbtTagType::Double:    return Ref<NbtDouble>::Create();
+			case NbtTagType::ByteArray: return Ref<NbtByteArray>::Create();
+			case NbtTagType::String:    return Ref<NbtString>::Create();
+			case NbtTagType::List:      return Ref<NbtList>::Create();
+			case NbtTagType::Compound:  return Ref<NbtCompound>::Create();
+			case NbtTagType::IntArray:  return Ref<NbtIntArray>::Create();
+			case NbtTagType::LongArray: return Ref<NbtLongArray>::Create();
 			case NbtTagType::End:       return nullptr;
 		}
 		return nullptr;
@@ -46,8 +55,9 @@ namespace Axiom {
 		if (type != NbtTagType::Compound) {
 			return nullptr;
 		}
-		auto root = CreateRef<NbtCompound>();
-		root->Read(buffer);
+		auto root = Ref<NbtCompound>::Create();
+		NbtAccounter accounter;
+		root->Read(buffer, accounter);
 		return root;
 	}
 
@@ -76,8 +86,9 @@ namespace Axiom {
 		for (uint16_t index = 0; index < nameLength; index++) {
 			buffer.ReadByte();
 		}
-		auto root = CreateRef<NbtCompound>();
-		root->Read(buffer);
+		auto root = Ref<NbtCompound>::Create();
+		NbtAccounter accounter;
+		root->Read(buffer, accounter);
 		return root;
 	}
 
@@ -125,20 +136,37 @@ namespace Axiom {
 		stream.avail_in = static_cast<uInt>(data.size());
 
 		std::vector<uint8_t> decompressed;
-		decompressed.resize(data.size() * 4);
+		// Start with a 4x-compressed-size guess, but
+		// cap it at the hard ceiling so a tiny gzip
+		// bomb can't trick us into a multi-GiB initial
+		// reservation on the first line.
+		decompressed.resize(std::min(data.size() * 4, MAX_DECOMPRESSED_NBT));
 
 		while (true) {
 			stream.next_out = decompressed.data() + stream.total_out;
 			stream.avail_out = static_cast<uInt>(decompressed.size() - stream.total_out);
 
 			const int result = inflate(&stream, Z_NO_FLUSH);
-			if (result == Z_STREAM_END) break;
+			if (result == Z_STREAM_END) {
+				break;
+			}
 			if (result != Z_OK) {
 				inflateEnd(&stream);
 				throw std::runtime_error("NbtIo: gzip inflate failed");
 			}
 			if (stream.avail_out == 0) {
-				decompressed.resize(decompressed.size() * 2);
+				// Grow the window, but refuse to cross
+				// the ceiling. A classic gzip bomb that
+				// tries to expand a few kilobytes into
+				// hundreds of megabytes hits this gate.
+				if (decompressed.size() >= MAX_DECOMPRESSED_NBT) {
+					inflateEnd(&stream);
+					throw std::runtime_error(
+						"NbtIo: gzip decompression exceeded the NBT size cap "
+						"(possible decompression bomb)");
+				}
+				const size_t doubled = decompressed.size() * 2;
+				decompressed.resize(std::min(doubled, MAX_DECOMPRESSED_NBT));
 			}
 		}
 

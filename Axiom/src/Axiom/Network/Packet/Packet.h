@@ -24,7 +24,7 @@ namespace Axiom {
      */
     template<typename... Ts>
     std::vector<Ref<IChainablePacket>> CreateChainPackets() {
-        return { CreateRef<Ts>().template As<IChainablePacket>()... };
+        return { Ref<Ts>::Create().template As<IChainablePacket>()... };
     }
 
     /**
@@ -34,7 +34,7 @@ namespace Axiom {
     template<typename T, typename Tuple>
     Ref<IChainablePacket> ConstructPacketFromTuple(Tuple&& argumentTuple) {
         return std::apply([](auto&&... arguments) -> Ref<IChainablePacket> {
-            return CreateRef<T>(std::forward<decltype(arguments)>(arguments)...);
+            return Ref<T>::Create(std::forward<decltype(arguments)>(arguments)...);
         }, std::forward<Tuple>(argumentTuple));
     }
 
@@ -129,11 +129,15 @@ namespace Axiom {
 
             if constexpr (IsRefOfNbtTag<T>::value) {
                 // Consume the type byte, create the right subclass, read payload.
+                // Each NBT field gets its own fresh NbtAccounter so an abusive
+                // packet can't starve later fields in the same packet — every
+                // field starts with the full 2 MiB budget.
                 using Inner = typename ExtractRefInner<T>::type;
                 const auto type = static_cast<NbtTagType>(buffer.ReadByte());
                 auto tag = CreateNbtTag(type);
                 if (tag) {
-                    tag->Read(buffer);
+                    NbtAccounter accounter;
+                    tag->Read(buffer, accounter);
                     field.Value = tag.template As<Inner>();
                 } else {
                     field.Value = nullptr;

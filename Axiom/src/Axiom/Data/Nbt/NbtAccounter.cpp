@@ -1,6 +1,7 @@
 #include "NbtAccounter.h"
 
 #include <format>
+#include <stdexcept>
 
 namespace Axiom {
 
@@ -29,7 +30,12 @@ bool NbtAccounter::PopDepth() {
 }
 
 bool NbtAccounter::AccountBytes(size_t count) {
-	if (m_BytesAccounted + count > m_MaxBytes) {
+	// Overflow-safe check: rearrange `used + count > max`
+	// to `count > max - used`. Because we enforce
+	// `used <= max` as an invariant, the subtraction
+	// never underflows, and a near-SIZE_MAX `count`
+	// can't wrap the sum and silently pass.
+	if (count > m_MaxBytes - m_BytesAccounted) {
 		m_LastError = std::format(
 			"NBT byte budget exceeded: {} + {} > {}",
 			m_BytesAccounted, count, m_MaxBytes
@@ -44,6 +50,19 @@ void NbtAccounter::Reset() {
 	m_BytesAccounted = 0;
 	m_CurrentDepth = 0;
 	m_LastError.clear();
+}
+
+NbtAccounter::DepthGuard::DepthGuard(NbtAccounter& accounter)
+	: m_Accounter(&accounter) {
+	if (!m_Accounter->PushDepth()) {
+		throw std::runtime_error(m_Accounter->LastError());
+	}
+}
+
+NbtAccounter::DepthGuard::~DepthGuard() {
+	if (m_Accounter) {
+		m_Accounter->PopDepth();
+	}
 }
 
 }
