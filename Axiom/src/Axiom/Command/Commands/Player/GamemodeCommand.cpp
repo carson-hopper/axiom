@@ -4,7 +4,6 @@
 #include "Axiom/Chat/ChatComponent.h"
 #include "Axiom/Command/CommandNode.h"
 #include "Axiom/Command/CommandSourceStack.h"
-#include "Axiom/Command/Parsers/Parsers.h"
 #include "Axiom/Environment/Entity/Player.h"
 
 namespace Axiom {
@@ -57,6 +56,7 @@ namespace Axiom {
         root->Then(spectator);
 
     	for (const auto& children : root->GetChildren()) {
+			children->Requires(RequiredPermissionLevel());
     		children->Requires(RequiredPermission() + "." + children->GetName());
     	}
 
