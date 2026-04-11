@@ -11,11 +11,14 @@ namespace Axiom {
 	class Player;
 
 	enum class GameMode;
+	enum class OpLevel;
 
 	/**
 	 * Base class for all player property-change events.
-	 * Carries a raw pointer to the Player rather than a Ref to avoid
-	 * circular dependencies with Player.h.
+	 * Holds a Ref<Player> so the event remains valid
+	 * for the duration of dispatch even if the player
+	 * disconnects mid-publish. Player is forward-declared
+	 * above to avoid pulling Player.h into every consumer.
 	 */
 	class PlayerPropertyEvent : public Event {
 	public:
@@ -117,6 +120,21 @@ namespace Axiom {
 	private:
 		int m_OldLevel;
 		int m_NewLevel;
+	};
+
+	class PlayerOperatorLevelChangeEvent : public PlayerPropertyEvent {
+	public:
+		PlayerOperatorLevelChangeEvent(const Ref<Player>& player, const OpLevel oldLevel, const OpLevel newLevel)
+			: PlayerPropertyEvent(player), m_OldLevel(oldLevel), m_NewLevel(newLevel) {}
+
+		OpLevel OldLevel() const { return m_OldLevel; }
+		OpLevel NewLevel() const { return m_NewLevel; }
+
+		AX_EVENT_CLASS_TYPE(PlayerOperatorLevelChanged)
+
+	private:
+		OpLevel m_OldLevel;
+		OpLevel m_NewLevel;
 	};
 
 }

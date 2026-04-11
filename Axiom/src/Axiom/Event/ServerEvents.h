@@ -2,6 +2,8 @@
 
 #include "Axiom/Event/Event.h"
 
+#include <cstdint>
+
 namespace Axiom {
 
 	class ServerStartEvent : public Event {
@@ -26,10 +28,6 @@ namespace Axiom {
 			: m_TickNumber(tickNumber) {}
 
 		uint64_t TickNumber() const { return m_TickNumber; }
-
-		std::string ToString() const override {
-			return "ServerTickEvent: " + std::to_string(m_TickNumber);
-		}
 
 		AX_EVENT_CLASS_TYPE(ServerTick)
 		AX_EVENT_CLASS_CATEGORY(EventCategoryServer)

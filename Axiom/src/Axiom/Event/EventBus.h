@@ -32,12 +32,24 @@ namespace Axiom {
 	 * for specific event types.
 	 *
 	 * Thread safety:
-	 * - Subscribe/UnsubscribeAll: Thread-safe (acquires unique_lock)
-	 * - Publish: Thread-safe (acquires shared_lock)
+	 * - Subscribe / UnsubscribeAll: Thread-safe (acquires unique_lock)
+	 * - Publish: Thread-safe (acquires shared_lock ONLY while snapshotting
+	 *   matching subscriptions; dispatch runs after the lock is released)
 	 * - Callbacks are invoked synchronously on the caller's thread
 	 *
+	 * Reentrancy:
+	 * - Callbacks MAY call `Subscribe`, `UnsubscribeAll`, or `Publish` for
+	 *   nested events without deadlocking. These operations run outside the
+	 *   publish lock thanks to the snapshot-then-dispatch strategy.
+	 * - A subscription added inside a callback takes effect on the NEXT
+	 *   publish.
+	 * - A subscription removed inside a callback still fires once on the
+	 *   current publish (matching Bukkit/Spigot semantics).
+	 *
 	 * Performance note: Subscriptions are kept sorted by priority. Insertion
-	 * is O(n) but publishing is O(m) where m = matching subscriptions.
+	 * is O(n) but publishing is O(m) where m = matching subscriptions. Each
+	 * `Publish` copies its matching subscriptions into a local vector so the
+	 * dispatch is lock-free with respect to the bus itself.
 	 *
 	 * Example usage:
 	 * @code

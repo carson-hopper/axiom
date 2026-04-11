@@ -2,8 +2,6 @@
 
 #include "Axiom/Core/Base.h"
 
-#include <string>
-
 #define AX_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
 namespace Axiom {
@@ -14,6 +12,7 @@ namespace Axiom {
 		PlayerJoin, PlayerQuit, PlayerChat, PlayerMove,
 		PlayerHealthChanged, PlayerGameModeChanged, PlayerPositionChanged,
 		PlayerHotbarChanged, PlayerFoodChanged, PlayerExperienceChanged,
+		PlayerOperatorLevelChanged,
 		// Block
 		BlockPlace, BlockBreak,
 		// Server
@@ -40,8 +39,7 @@ namespace Axiom {
 
 #define AX_EVENT_CLASS_TYPE(type) \
 	static EventType StaticType() { return EventType::type; } \
-	EventType Type() const override { return StaticType(); } \
-	const std::string& Name() const override { return #type; }
+	EventType Type() const override { return StaticType(); }
 
 #define AX_EVENT_CLASS_CATEGORY(category) \
 	int CategoryFlags() const override { return category; }
@@ -51,11 +49,9 @@ namespace Axiom {
 		virtual ~Event() = default;
 
 		virtual EventType Type() const = 0;
-		virtual const std::string& Name() const = 0;
 		virtual int CategoryFlags() const = 0;
-		virtual std::string ToString() const { return Name(); }
 
-		bool IsInCategory(EventCategory category) const {
+		bool IsInCategory(const EventCategory category) const {
 			return CategoryFlags() & category;
 		}
 
