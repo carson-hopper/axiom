@@ -34,13 +34,19 @@ namespace Axiom {
 			m_BlockRegistry.LoadFromExtractorData(dataPath.string());
 		}
 
-		ChunkData Generate(const int32_t chunkX, const int32_t chunkZ) override {
+		ChunkData Generate(const int32_t chunkX, const int32_t chunkZ,
+			ChunkTier tier = ChunkTier::Full) override {
 			const auto nbtData = m_AnvilReader.ReadChunkNbt(chunkX, chunkZ);
 
 			if (!nbtData) {
 				return GenerateEmptyChunk(chunkX, chunkZ);
 			}
 
+			// Vanilla reads pre-generated Anvil data, so skeletal
+			// and full tiers are identical on disk. Distinguishing
+			// only matters once we grow an in-engine generator that
+			// can skip features/caves for the skeletal path.
+			(void)tier;
 			return ParseChunkNbt(chunkX, chunkZ, *nbtData);
 		}
 

@@ -46,21 +46,75 @@ namespace Axiom {
 		BiomeRegistry::Bootstrap();
 	}
 
-	ChunkData ClassicLevelSource::Generate(int32_t chunkX, int32_t chunkZ) {
+	ChunkData ClassicLevelSource::Generate(int32_t chunkX, int32_t chunkZ, ChunkTier tier) {
 		std::vector<int32_t> blocks(WORLD_HEIGHT * 16 * 16, BlockState::Air);
 		std::vector<int32_t> biomeGrid = m_BiomeSource.GetBiomes(chunkX * 16, chunkZ * 16, 16, 16);
 
 		PrepareHeights(chunkX, chunkZ, blocks, biomeGrid);
 		BuildSurfaces(chunkX, chunkZ, blocks, biomeGrid);
+
+		// Skeletal chunks skip cave carving and feature decoration
+		// — they are only used in the player's "cold" view ring
+		// and get upgraded to Full before they are ever interacted
+		// with. BuildSurfaces alone is enough to give the client
+		// a valid visual for the fringe of the loaded area.
+		if (tier == ChunkTier::Full) {
+			m_CaveGenerator.Generate(m_Seed, chunkX, chunkZ, blocks);
+
+			// Fill caves under water: any air block with water directly
+			// above gets replaced with water to prevent floating oceans
+			for (int localZ = 0; localZ < 16; localZ++) {
+				for (int localX = 0; localX < 16; localX++) {
+					for (int worldY = SEA_LEVEL; worldY >= 1; worldY--) {
+						int index = worldY * 256 + localZ * 16 + localX;
+						int aboveIndex = (worldY + 1) * 256 + localZ * 16 + localX;
+						if (blocks[index] == BlockState::Air &&
+							(blocks[aboveIndex] == BlockState::Water || FluidState::IsFluid(blocks[aboveIndex]))) {
+							blocks[index] = BlockState::Water;
+						}
+					}
+				}
+			}
+
+			m_FeatureDecorator.Decorate(m_Seed, chunkX, chunkZ, blocks, biomeGrid);
+		}
+
+		CacheBlocks(chunkX, chunkZ, blocks);
+
+		auto chunkData = EncodeChunk(chunkX, chunkZ, blocks, biomeGrid);
+		chunkData.skyLight = ComputeSkyLight(blocks);
+		return chunkData;
+	}
+
+	ChunkData ClassicLevelSource::Decorate(int32_t chunkX, int32_t chunkZ) {
+		// Promote a cached skeletal chunk without re-running
+		// heightmap or surface passes. If no skeletal entry
+		// exists for this chunk yet, fall through to the full
+		// Generate path — this handles the "player teleported
+		// straight into a cold ring we never stored" case.
+		std::vector<int32_t> blocks;
+		{
+			std::lock_guard<std::mutex> lock(m_CacheMutex);
+			const auto iterator = m_BlockCache.find(CacheKey(chunkX, chunkZ));
+			if (iterator == m_BlockCache.end()) {
+				return Generate(chunkX, chunkZ, ChunkTier::Full);
+			}
+			blocks = iterator->second;
+		}
+
+		// Biome grid is cheap to re-derive (pure noise lookup,
+		// no mutation), and we don't currently stash it. If this
+		// shows up in profiles, add a parallel m_BiomeGridCache.
+		const auto biomeGrid = m_BiomeSource.GetBiomes(chunkX * 16, chunkZ * 16, 16, 16);
+
 		m_CaveGenerator.Generate(m_Seed, chunkX, chunkZ, blocks);
 
-		// Fill caves under water: any air block with water directly
-		// above gets replaced with water to prevent floating oceans
+		// Same water fill pass as the Full path in Generate.
 		for (int localZ = 0; localZ < 16; localZ++) {
 			for (int localX = 0; localX < 16; localX++) {
 				for (int worldY = SEA_LEVEL; worldY >= 1; worldY--) {
-					int index = worldY * 256 + localZ * 16 + localX;
-					int aboveIndex = (worldY + 1) * 256 + localZ * 16 + localX;
+					const int index = worldY * 256 + localZ * 16 + localX;
+					const int aboveIndex = (worldY + 1) * 256 + localZ * 16 + localX;
 					if (blocks[index] == BlockState::Air &&
 						(blocks[aboveIndex] == BlockState::Water || FluidState::IsFluid(blocks[aboveIndex]))) {
 						blocks[index] = BlockState::Water;
@@ -71,6 +125,8 @@ namespace Axiom {
 
 		m_FeatureDecorator.Decorate(m_Seed, chunkX, chunkZ, blocks, biomeGrid);
 
+		// Overwrite the skeletal entry with the decorated one so
+		// subsequent physics queries see the caves and trees.
 		CacheBlocks(chunkX, chunkZ, blocks);
 
 		auto chunkData = EncodeChunk(chunkX, chunkZ, blocks, biomeGrid);

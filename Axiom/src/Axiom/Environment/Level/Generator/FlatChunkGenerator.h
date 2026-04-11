@@ -18,7 +18,11 @@ namespace Axiom {
 		explicit FlatChunkGenerator(const int32_t biomeId = Biome::Plains)
 			: m_BiomeId(biomeId) {}
 
-		ChunkData Generate(const int32_t chunkX, const int32_t chunkZ) override {
+		ChunkData Generate(const int32_t chunkX, const int32_t chunkZ,
+			ChunkTier /*tier*/ = ChunkTier::Full) override {
+			// Flat worlds have no features or caves, so a skeletal
+			// chunk is bit-identical to a full chunk — the tier is
+			// intentionally ignored.
 			return ChunkData{
 				chunkX,
 				chunkZ,

@@ -21,6 +21,18 @@ namespace Axiom {
 	};
 
 	/**
+	 * Level of detail at which a chunk should be generated. Skeletal
+	 * chunks skip the expensive cave-carving and feature-decoration
+	 * passes — they are used for the "cold" ring of a player's view
+	 * distance where the block data will never be interacted with
+	 * before it is upgraded to Full.
+	 */
+	enum class ChunkTier : uint8_t {
+		Skeletal = 0,
+		Full     = 1,
+	};
+
+	/**
 	 * Abstract interface for world chunk generation.
 	 * Implement this to create different world types (flat, noise, void, etc.)
 	 */
@@ -29,10 +41,27 @@ namespace Axiom {
 		virtual ~ChunkGenerator() = default;
 
 		/**
-		 * Generate chunk data for the given coordinates.
-		 * Called from any thread — must be thread-safe.
+		 * Generate chunk data for the given coordinates at the
+		 * requested level of detail. Called from any thread —
+		 * must be thread-safe. Implementations that cannot honour
+		 * a skeletal tier may simply fall through to the full
+		 * path; the tier is a hint, not a hard contract.
 		 */
-		virtual ChunkData Generate(int32_t chunkX, int32_t chunkZ) = 0;
+		virtual ChunkData Generate(int32_t chunkX, int32_t chunkZ,
+			ChunkTier tier = ChunkTier::Full) = 0;
+
+		/**
+		 * Promote an already-generated skeletal chunk to Full
+		 * without re-running heightmap/biome work. The default
+		 * implementation just calls `Generate(..., Full)` — only
+		 * override this if your generator keeps an internal
+		 * cache of the skeletal block data that can be mutated
+		 * in place by the cave and feature passes. Called from
+		 * any thread — must be thread-safe.
+		 */
+		virtual ChunkData Decorate(int32_t chunkX, int32_t chunkZ) {
+			return Generate(chunkX, chunkZ, ChunkTier::Full);
+		}
 
 		/**
 		 * The Y coordinate where players should spawn.

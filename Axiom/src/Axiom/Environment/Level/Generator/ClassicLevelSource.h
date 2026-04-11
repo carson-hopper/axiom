@@ -23,7 +23,9 @@ namespace Axiom {
 	public:
 		explicit ClassicLevelSource(int64_t seed = 0);
 
-		ChunkData Generate(int32_t chunkX, int32_t chunkZ) override;
+		ChunkData Generate(int32_t chunkX, int32_t chunkZ,
+			ChunkTier tier = ChunkTier::Full) override;
+		ChunkData Decorate(int32_t chunkX, int32_t chunkZ) override;
 		double SpawnY() const override;
 		int32_t GetBlockAt(int32_t worldX, int32_t worldY, int32_t worldZ) const override;
 

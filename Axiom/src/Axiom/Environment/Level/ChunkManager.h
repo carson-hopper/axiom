@@ -54,9 +54,27 @@ namespace Axiom {
 		ChunkManager(const ChunkManager&) = delete;
 		ChunkManager& operator=(const ChunkManager&) = delete;
 
-		void SendInitialChunks(Ref<Connection> connection, double playerX, double playerZ);
+		void SendInitialChunks(const Ref<Connection> &connection, double playerX, double playerZ);
 		void OnPlayerMove(const Ref<Connection> &connection, double playerX, double playerZ);
 		void RemovePlayer(ConnectionId connectionId);
+
+		/**
+		 * Promote a skeletal chunk to Full and re-send it to
+		 * every player that currently has it loaded. Called by
+		 * the hot-radius sweep when a player approaches a cold
+		 * chunk; the regeneration and the re-send happen on the
+		 * generator worker pool, off the tick thread.
+		 */
+		void UpgradeChunk(ChunkPosition chunkPosition);
+
+		/**
+		 * Radius, in chunks, inside which chunks are generated
+		 * at Full tier. Chunks outside this radius (but inside
+		 * the player's total view distance) are generated at
+		 * Skeletal tier and upgraded lazily.
+		 */
+		int HotRadius() const { return m_HotRadius; }
+		void SetHotRadius(const int radius) { m_HotRadius = radius; }
 
 		int32_t GetBlockAt(int32_t worldX, int32_t worldY, int32_t worldZ) const;
 
@@ -80,6 +98,7 @@ namespace Axiom {
 
 	private:
 		struct PlayerChunkState {
+			Ref<Connection> connection;
 			int32_t lastChunkX = 0;
 			int32_t lastChunkZ = 0;
 			int effectiveViewDistance = 0;
@@ -93,8 +112,26 @@ namespace Axiom {
 		// the lock — keeps blocking network I/O off the lock.
 		std::vector<ChunkPosition> CollectDistantChunks(const ChunkPosition& centerPosition, PlayerChunkState& state);
 
-		void SendChunk(Ref<Connection> connection, ChunkPosition chunkPosition);
+		void SendChunk(Ref<Connection> connection, ChunkPosition chunkPosition, ChunkTier tier);
 		void UnloadChunk(Ref<Connection> connection, ChunkPosition chunkPosition);
+
+		/**
+		 * Drop the wire-byte cache entry for a chunk when no
+		 * player has it loaded anymore. Called after UnloadChunk
+		 * and from RemovePlayer; bounds m_ChunkDataCache so it
+		 * can't grow without limit over a long-running session.
+		 */
+		void EvictChunkDataIfOrphaned(ChunkPosition chunkPosition);
+
+		/**
+		 * Returns the generation tier for a chunk at chunk-space
+		 * Chebyshev distance `distance` from a player whose hot
+		 * radius is `m_HotRadius`. Chunks inside the hot radius
+		 * are Full; everything else is Skeletal.
+		 */
+		ChunkTier TierForDistance(int distance) const {
+			return distance <= m_HotRadius ? ChunkTier::Full : ChunkTier::Skeletal;
+		}
 
 		void WorkerLoop();
 		void SubmitTask(std::function<void()> task);
@@ -105,6 +142,7 @@ namespace Axiom {
 
 		Scope<ChunkGenerator> m_Generator;
 		int m_ViewDistance;
+		int m_HotRadius = 8;
 
 		mutable std::mutex m_StateMutex;
 		std::unordered_map<ConnectionId, PlayerChunkState> m_PlayerStates;
@@ -121,6 +159,23 @@ namespace Axiom {
 
 		mutable std::mutex m_ChunkCacheMutex;
 		std::unordered_map<int64_t, Ref<Chunk>> m_ChunkCache;
+
+		/**
+		 * Wire-bytes cache keyed by chunk position. Stores the
+		 * most recent `ChunkData` produced for a chunk along
+		 * with the tier it was generated at, so SendChunk can
+		 * skip re-running the generator if a request for the
+		 * same-or-lower tier comes in while the entry is still
+		 * live, and UpgradeChunk can cheaply detect whether
+		 * promotion is needed.
+		 */
+		struct CachedChunkData {
+			ChunkData data;
+			ChunkTier tier;
+		};
+
+		mutable std::mutex m_ChunkDataCacheMutex;
+		std::unordered_map<int64_t, CachedChunkData> m_ChunkDataCache;
 
 		static int64_t ChunkKey(int32_t chunkX, int32_t chunkZ) {
 			return (static_cast<int64_t>(chunkX) << 32) | (static_cast<uint32_t>(chunkZ));
