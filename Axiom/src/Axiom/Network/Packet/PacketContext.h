@@ -14,7 +14,6 @@
 #include <array>
 #include <cstdint>
 #include <mutex>
-#include <random>
 #include <string>
 #include <unordered_map>
 
@@ -25,9 +24,11 @@ namespace Axiom {
     class EventBus;
     class CommandRegistry;
 
+    static constexpr std::size_t VerifyTokenSize = 16;
+
     struct PendingLogin {
         std::string playerName;
-        std::array<uint8_t, 4> verifyToken;
+        std::array<uint8_t, VerifyTokenSize> verifyToken;
     };
 
     class PacketContext {
@@ -57,7 +58,7 @@ namespace Axiom {
 
         // ----- Utility --------------------------------------------------
 
-        std::array<uint8_t, 4> GenerateVerifyToken();
+        std::array<uint8_t, VerifyTokenSize> GenerateVerifyToken();
         std::string FormatUuid(const std::string& trimmedUuid) const;
     private:
         ServerConfig& m_Config;
@@ -75,8 +76,6 @@ namespace Axiom {
 
         std::mutex m_PendingLoginsMutex;
         std::unordered_map<ConnectionId, PendingLogin> m_PendingLogins;
-
-        std::mt19937 m_Random{std::random_device{}()};
     };
 
 }

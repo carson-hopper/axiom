@@ -136,10 +136,25 @@ public:
 		return value;
 	}
 
+	/**
+	 * Read a VarInt-length-prefixed string.
+	 *
+	 * The maxLength is measured in *characters*, not
+	 * bytes. The on-wire byte length may be up to 3x
+	 * that because each UTF-16 code unit encodes to at
+	 * most 3 bytes in Modified UTF-8 (Minecraft's
+	 * String wire format). The byte length is also
+	 * bounded against the remaining buffer so malformed
+	 * packets can never force an allocation larger
+	 * than the frame itself.
+	 */
 	std::string ReadString(const int32_t maxLength = 0x7FFF) {
 		const int32_t length = ReadVarInt();
-		if (length < 0 || length > maxLength * 4) {
+		if (length < 0 || length > maxLength * 3) {
 			throw std::runtime_error("String length out of bounds");
+		}
+		if (static_cast<size_t>(length) > ReadableBytes()) {
+			throw std::runtime_error("String length exceeds remaining buffer");
 		}
 		EnsureReadable(length);
 		std::string result(reinterpret_cast<const char*>(&m_Data[m_ReaderIndex]), length);
@@ -226,7 +241,9 @@ public:
 			return MakeError<std::string>(ErrorCode::InvalidPacket);
 		}
 		int32_t length = *lengthResult;
-		if (length < 0 || length > maxLength * 4) {
+		// See ReadString for the *3 rationale (Modified
+		// UTF-8 worst case per UTF-16 code unit).
+		if (length < 0 || length > maxLength * 3) {
 			return MakeError<std::string>(ErrorCode::InvalidPacket);
 		}
 		if (!CanRead(length)) {

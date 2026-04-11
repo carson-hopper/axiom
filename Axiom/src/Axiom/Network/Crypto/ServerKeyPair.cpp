@@ -21,7 +21,7 @@ namespace Axiom {
 			throw std::runtime_error("Failed to init keygen");
 		}
 
-		if (EVP_PKEY_CTX_set_rsa_keygen_bits(context, 1024) <= 0) {
+		if (EVP_PKEY_CTX_set_rsa_keygen_bits(context, 2048) <= 0) {
 			EVP_PKEY_CTX_free(context);
 			throw std::runtime_error("Failed to set RSA key size");
 		}
@@ -35,7 +35,7 @@ namespace Axiom {
 
 		// Export public key as DER
 		unsigned char* derBuffer = nullptr;
-		int derLength = i2d_PUBKEY(m_KeyPair, &derBuffer);
+		const int derLength = i2d_PUBKEY(m_KeyPair, &derBuffer);
 		if (derLength <= 0) {
 			throw std::runtime_error("Failed to export public key as DER");
 		}
@@ -43,7 +43,7 @@ namespace Axiom {
 		m_PublicKeyDer.assign(derBuffer, derBuffer + derLength);
 		OPENSSL_free(derBuffer);
 
-		AX_CORE_INFO("Generated 1024-bit RSA keypair ({} bytes public key)", m_PublicKeyDer.size());
+		AX_CORE_INFO("Generated 2048-bit RSA keypair ({} bytes public key)", m_PublicKeyDer.size());
 	}
 
 	ServerKeyPair::~ServerKeyPair() {

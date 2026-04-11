@@ -59,18 +59,18 @@ public:
 
 		auto synced = LoadExtractorJson("synced_registries.json");
 		for (auto& [registryName, registryEntries] : synced.items()) {
-			chain.push_back(CreateRef<Clientbound::RegistryDataPacket>(
+			chain.push_back(Ref<Clientbound::RegistryDataPacket>::Create(
 				"minecraft:" + registryName, registryEntries));
 		}
 
-		chain.push_back(CreateRef<Clientbound::UpdateTagsPacket>());
+		chain.push_back(Ref<Clientbound::UpdateTagsPacket>::Create());
 
 		// Probe for Meteor client: ping the meteor-client:play channel
 		// and log whatever the client echoes back.
-		chain.push_back(CreateRef<Clientbound::CustomPayloadPacket>(
+		chain.push_back(Ref<Clientbound::CustomPayloadPacket>::Create(
 			"meteor-client:play"));
 
-		chain.push_back(CreateRef<Clientbound::FinishConfigurationPacket>());
+		chain.push_back(Ref<Clientbound::FinishConfigurationPacket>::Create());
 		return chain;
 	}
 

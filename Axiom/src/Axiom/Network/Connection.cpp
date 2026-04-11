@@ -10,7 +10,20 @@ namespace Axiom {
 		: m_Socket(std::move(socket)) {}
 
 	Connection::~Connection() {
-		Disconnect();
+		m_Connected.store(false, std::memory_order_release);
+
+		try {
+			m_ReadTimer.cancel();
+		} catch (const std::exception& exception) {
+			AX_CORE_TRACE("Read timer cancel error: {}", exception.what());
+		}
+
+		asio::error_code errorCode;
+		m_Socket.shutdown(asio::ip::tcp::socket::shutdown_both, errorCode);
+		if (errorCode && errorCode != asio::error::not_connected) {
+			AX_CORE_TRACE("Socket shutdown error in destructor: {}", errorCode.message());
+		}
+		m_Socket.close(errorCode);
 	}
 
 	void Connection::Start() {
@@ -20,7 +33,6 @@ namespace Axiom {
 	}
 
 	void Connection::Disconnect(const std::string& reason) {
-		// Use exchange to ensure we only disconnect once
 		bool expected = true;
 		if (!m_Connected.compare_exchange_strong(expected, false, std::memory_order_acq_rel)) {
 			return;  // Already disconnected
@@ -30,13 +42,26 @@ namespace Axiom {
 			AX_CORE_INFO("Disconnecting {}: {}", RemoteAddress(), reason);
 		}
 
-		// Close socket with proper error handling
-		asio::error_code errorCode;
-		m_Socket.shutdown(asio::ip::tcp::socket::shutdown_both, errorCode);
-		if (errorCode && errorCode != asio::error::not_connected) {
-			AX_CORE_TRACE("Socket shutdown error: {}", errorCode.message());
+		try {
+			m_ReadTimer.cancel();
+		} catch (const std::exception& exception) {
+			AX_CORE_TRACE("Read timer cancel error: {}", exception.what());
 		}
-		m_Socket.close(errorCode);
+
+		{
+			std::lock_guard<std::mutex> const lock(m_WriteMutex);
+			m_WriteQueue.clear();
+		}
+
+		auto self = Self();
+		asio::post(m_Socket.get_executor(), [self]() {
+			asio::error_code errorCode;
+			self->m_Socket.shutdown(asio::ip::tcp::socket::shutdown_both, errorCode);
+			if (errorCode && errorCode != asio::error::not_connected) {
+				AX_CORE_TRACE("Socket shutdown error: {}", errorCode.message());
+			}
+			self->m_Socket.close(errorCode);
+		});
 	}
 
 	void Connection::SendRawPacket(const int32_t packetId, const NetworkBuffer& payload) {
@@ -60,21 +85,81 @@ namespace Axiom {
 			frameData = std::move(frame.Data());
 		}
 
-		// Lock covers encryption + write: cipher is stateful and packets
-		// must arrive in the order they were encrypted
-		std::lock_guard<std::mutex> lock(m_WriteMutex);
+		// Encryption and queue insertion happen under the
+		// mutex so that: (a) the cipher state advances in
+		// the same order frames enter the queue, (b) the
+		// read path's decrypt step sees a consistent cipher
+		// snapshot. The actual socket write is issued
+		// WITHOUT the mutex held (see StartNextWrite) so
+		// that a slow client cannot stall other writers
+		// or the read loop.
+		bool shouldStartWrite = false;
+		bool overflow = false;
+		{
+			std::lock_guard<std::mutex> const lock(m_WriteMutex);
 
-		if (m_Cipher) {
-			frameData = m_Cipher->Encrypt(frameData);
+			if (m_Cipher) {
+				frameData = m_Cipher->Encrypt(frameData);
+			}
+
+			if (m_WriteQueue.size() >= MaxQueuedWriteFrames) {
+				AX_CORE_WARN("Write queue overflow for {} ({} frames); disconnecting",
+					RemoteAddress(), m_WriteQueue.size());
+				overflow = true;
+			} else {
+				m_WriteQueue.push_back(std::move(frameData));
+
+				if (!m_WriteInFlight) {
+					m_WriteInFlight = true;
+					shouldStartWrite = true;
+				}
+			}
 		}
 
-		asio::error_code errorCode;
-		asio::write(m_Socket, asio::buffer(frameData), errorCode);
-
-		if (errorCode) {
-			AX_CORE_TRACE("Write error to {}: {}", RemoteAddress(), errorCode.message());
-			Disconnect();
+		if (shouldStartWrite) {
+			StartNextWrite();
+		} else if (overflow) {
+			// We failed to enqueue because the queue was
+			// already at its cap. Force-disconnect the
+			// client (its buffer is too far behind). Must
+			// not read m_WriteInFlight here — that would
+			// race with a concurrent StartNextWrite drain.
+			Disconnect("Write queue overflow");
 		}
+	}
+
+	void Connection::StartNextWrite() {
+		// Pop the next frame from the queue (still under
+		// the mutex) but issue the async_write outside so
+		// readers and other writers are not blocked by the
+		// duration of a single socket write.
+		auto bufferToSend = std::make_shared<std::vector<uint8_t>>();
+		{
+			std::lock_guard<std::mutex> const lock(m_WriteMutex);
+			if (m_WriteQueue.empty()) {
+				m_WriteInFlight = false;
+				return;
+			}
+			*bufferToSend = std::move(m_WriteQueue.front());
+			m_WriteQueue.pop_front();
+		}
+
+		auto self = Self();
+		asio::async_write(m_Socket, asio::buffer(*bufferToSend),
+			[this, self, bufferToSend](const asio::error_code& errorCode, size_t /*bytesWritten*/) {
+				if (errorCode) {
+					if (errorCode != asio::error::eof && errorCode != asio::error::operation_aborted) {
+						AX_CORE_TRACE("Write error to {}: {}", RemoteAddress(), errorCode.message());
+					}
+					Disconnect();
+					return;
+				}
+
+				// Chain: dispatch the next queued frame
+				// if any. StartNextWrite clears the
+				// in-flight flag if the queue is now empty.
+				StartNextWrite();
+			});
 	}
 
 	void Connection::SetPacketHandler(PacketHandler handler) {
@@ -106,74 +191,84 @@ namespace Axiom {
 		ReadFrameLength();
 	}
 
-	void Connection::ReadFrameLength() {
-		// Check if still connected before starting async read
+	static constexpr size_t MaxVarIntBytes = 5;
+
+	void Connection::ArmReadTimeout() {
+		m_ReadTimer.expires_after(FrameReadTimeout);
+
+		auto self = Self();
+		m_ReadTimer.async_wait([this, self](const asio::error_code& errorCode) {
+			if (errorCode == asio::error::operation_aborted) {
+				return;
+			}
+			if (!m_Connected.load(std::memory_order_acquire)) {
+				return;
+			}
+			AX_CORE_TRACE("Frame read timeout from {}", RemoteAddress());
+			Disconnect("Frame read timeout");
+		});
+	}
+
+	void Connection::ReadFrameLength(std::vector<uint8_t> preDecrypted) {
 		if (!m_Connected.load(std::memory_order_acquire)) {
 			return;
 		}
 
-		auto self = Ref<Connection>(this);
-		auto lengthBuffer = std::make_shared<std::vector<uint8_t>>();
+		ArmReadTimeout();
 
-		auto singleByte = std::make_shared<uint8_t>(0);
-		auto readNextByte = std::make_shared<std::function<void()>>();
+		auto self = Self();
+		auto accumulatedBytes = std::make_shared<std::vector<uint8_t>>();
+		accumulatedBytes->reserve(MaxVarIntBytes);
 
-		*readNextByte = [this, self, lengthBuffer, singleByte, readNextByte]() {
-			asio::async_read(m_Socket, asio::buffer(singleByte.get(), 1),
-				[this, self, lengthBuffer, singleByte, readNextByte](
-					const asio::error_code& errorCode, size_t /*bytesTransferred*/) {
+		for (size_t byteIndex = 0; byteIndex < preDecrypted.size(); byteIndex++) {
+			const uint8_t decryptedByte = preDecrypted[byteIndex];
+			accumulatedBytes->push_back(decryptedByte);
 
-					if (errorCode) {
-						if (errorCode != asio::error::eof && errorCode != asio::error::operation_aborted) {
-							AX_CORE_TRACE("Read error from {}: {}", RemoteAddress(), errorCode.message());
-						}
-						Disconnect();
-						return;
-					}
+			if ((decryptedByte & 0x80) != 0) {
+				if (accumulatedBytes->size() >= MaxVarIntBytes) {
+					Disconnect("VarInt too long");
+					return;
+				}
+				continue;
+			}
 
-					// Decrypt byte with proper synchronization
-					uint8_t decryptedByte = *singleByte;
-					{
-						std::lock_guard<std::mutex> lock(m_WriteMutex);
-						if (m_Cipher) {
-							const auto decrypted = m_Cipher->Decrypt({*singleByte});
-							if (decrypted.empty()) {
-								Disconnect("Decryption failed");
-								return;
-							}
-							decryptedByte = decrypted[0];
-						}
-					}
+			NetworkBuffer parser(*accumulatedBytes);
+			int32_t frameLength = 0;
+			try {
+				frameLength = parser.ReadVarInt();
+			} catch (...) {
+				Disconnect("VarInt parse failed");
+				return;
+			}
 
-					lengthBuffer->push_back(decryptedByte);
+			if (frameLength <= 0 || frameLength > 0x200000) {
+				Disconnect("Invalid frame length");
+				return;
+			}
 
-					if ((decryptedByte & 0x80) == 0) {
-						NetworkBuffer buffer(*lengthBuffer);
-						const int32_t frameLength = buffer.ReadVarInt();
+			std::vector<uint8_t> bodyLeftover(
+				preDecrypted.begin() + byteIndex + 1,
+				preDecrypted.end());
+			ReadFrameBody(frameLength, std::move(bodyLeftover));
+			return;
+		}
 
-						if (frameLength <= 0 || frameLength > 0x200000) {
-							Disconnect("Invalid frame length");
-							return;
-						}
-
-						ReadFrameBody(frameLength);
-					} else if (lengthBuffer->size() >= 5) {
-						Disconnect("VarInt too long");
-					} else {
-						(*readNextByte)();
-					}
-				});
-		};
-
-		(*readNextByte)();
+		ReadVarIntChunk(std::move(self), std::move(accumulatedBytes));
 	}
 
-	void Connection::ReadFrameBody(int32_t frameLength) {
-		auto self = Ref<Connection>(this);
-		auto bodyBuffer = std::make_shared<std::vector<uint8_t>>(frameLength);
+	void Connection::ReadVarIntChunk(Ref<Connection> self,
+		std::shared_ptr<std::vector<uint8_t>> accumulatedBytes) {
 
-		asio::async_read(m_Socket, asio::buffer(*bodyBuffer),
-			[this, self, bodyBuffer](const asio::error_code& errorCode, size_t /*bytesTransferred*/) {
+		const size_t alreadyHave = accumulatedBytes->size();
+		const size_t slotsLeft = MaxVarIntBytes - alreadyHave;
+
+		auto chunk = std::make_shared<std::vector<uint8_t>>(slotsLeft);
+
+		asio::async_read(m_Socket, asio::buffer(*chunk),
+			asio::transfer_at_least(1),
+			[this, self, accumulatedBytes, chunk](
+				const asio::error_code& errorCode, size_t bytesTransferred) {
+
 				if (errorCode) {
 					if (errorCode != asio::error::eof && errorCode != asio::error::operation_aborted) {
 						AX_CORE_TRACE("Read error from {}: {}", RemoteAddress(), errorCode.message());
@@ -182,17 +277,111 @@ namespace Axiom {
 					return;
 				}
 
-				std::vector<uint8_t> data = std::move(*bodyBuffer);
-
-				// Decrypt with proper synchronization
+				std::vector<uint8_t> newlyDecrypted(chunk->begin(), chunk->begin() + bytesTransferred);
 				{
-					std::lock_guard<std::mutex> lock(m_WriteMutex);
+					std::lock_guard<std::mutex> const lock(m_WriteMutex);
 					if (m_Cipher) {
-						data = m_Cipher->Decrypt(data);
+						newlyDecrypted = m_Cipher->Decrypt(newlyDecrypted);
+						if (newlyDecrypted.size() != bytesTransferred) {
+							Disconnect("Decryption failed");
+							return;
+						}
 					}
 				}
 
-				ProcessPacket(std::move(data));
+				for (size_t byteIndex = 0; byteIndex < newlyDecrypted.size(); byteIndex++) {
+					const uint8_t decryptedByte = newlyDecrypted[byteIndex];
+					accumulatedBytes->push_back(decryptedByte);
+
+					if ((decryptedByte & 0x80) != 0) {
+						if (accumulatedBytes->size() >= MaxVarIntBytes) {
+							Disconnect("VarInt too long");
+							return;
+						}
+						continue;
+					}
+
+					NetworkBuffer parser(*accumulatedBytes);
+					int32_t frameLength = 0;
+					try {
+						frameLength = parser.ReadVarInt();
+					} catch (...) {
+						Disconnect("VarInt parse failed");
+						return;
+					}
+
+					if (frameLength <= 0 || frameLength > 0x200000) {
+						Disconnect("Invalid frame length");
+						return;
+					}
+
+					std::vector<uint8_t> bodyLeftover(
+						newlyDecrypted.begin() + byteIndex + 1,
+						newlyDecrypted.end());
+					ReadFrameBody(frameLength, std::move(bodyLeftover));
+					return;
+				}
+
+				if (accumulatedBytes->size() >= MaxVarIntBytes) {
+					Disconnect("VarInt too long");
+					return;
+				}
+				ReadVarIntChunk(self, accumulatedBytes);
+			});
+	}
+
+	void Connection::ReadFrameBody(int32_t frameLength, std::vector<uint8_t> leftover) {
+		if (leftover.size() >= static_cast<size_t>(frameLength)) {
+			std::vector<uint8_t> data(leftover.begin(), leftover.begin() + frameLength);
+
+			std::vector<uint8_t> nextFrameCarryover(
+				leftover.begin() + static_cast<ptrdiff_t>(frameLength),
+				leftover.end());
+
+			ProcessPacket(std::move(data));
+
+			if (m_Connected.load(std::memory_order_acquire)) {
+				ReadFrameLength(std::move(nextFrameCarryover));
+			}
+			return;
+		}
+
+		auto self = Self();
+		auto bodyBuffer = std::make_shared<std::vector<uint8_t>>(frameLength);
+		std::ranges::copy(leftover, bodyBuffer->begin());
+		const size_t leftoverSize = leftover.size();
+		const size_t remaining = static_cast<size_t>(frameLength) - leftoverSize;
+
+		asio::async_read(m_Socket,
+			asio::buffer(bodyBuffer->data() + leftoverSize, remaining),
+			[this, self, bodyBuffer, leftoverSize, remaining](
+				const asio::error_code& errorCode, size_t /*bytesTransferred*/) {
+
+				if (errorCode) {
+					if (errorCode != asio::error::eof && errorCode != asio::error::operation_aborted) {
+						AX_CORE_TRACE("Read error from {}: {}", RemoteAddress(), errorCode.message());
+					}
+					Disconnect();
+					return;
+				}
+
+				{
+					std::lock_guard<std::mutex> const lock(m_WriteMutex);
+					if (m_Cipher) {
+						const std::vector<uint8_t> encryptedTail(
+							bodyBuffer->begin() + leftoverSize,
+							bodyBuffer->end());
+						auto decryptedTail = m_Cipher->Decrypt(encryptedTail);
+						if (decryptedTail.size() != remaining) {
+							Disconnect("Decryption failed");
+							return;
+						}
+						std::ranges::copy(decryptedTail,
+							bodyBuffer->begin() + leftoverSize);
+					}
+				}
+
+				ProcessPacket(std::move(*bodyBuffer));
 
 				if (m_Connected.load(std::memory_order_acquire)) {
 					ReadFrameLength();
@@ -201,42 +390,62 @@ namespace Axiom {
 	}
 
 	void Connection::ProcessPacket(std::vector<uint8_t> data) {
-		const int32_t compressionThreshold = m_CompressionThreshold.load(std::memory_order_acquire);
+		static constexpr int32_t MaxUncompressedPacketSize = 8 * 1024 * 1024;
 
-		if (compressionThreshold >= 0) {
-			// Compressed format: DataLength (VarInt) + CompressedData
-			NetworkBuffer compressedBuffer(std::move(data));
-			const int32_t dataLength = compressedBuffer.ReadVarInt();
+		try {
+			const int32_t compressionThreshold = m_CompressionThreshold.load(std::memory_order_acquire);
 
-			if (dataLength == 0) {
-				// Below threshold — rest is uncompressed packet data
-				auto remaining = compressedBuffer.ReadRemainingBytes();
-				NetworkBuffer buffer(std::move(remaining));
-				const int32_t packetId = buffer.ReadVarInt();
-				InvokePacketHandler(packetId, buffer);
-			} else {
-				// Decompress
-				const auto compressedData = compressedBuffer.ReadRemainingBytes();
-				std::vector<uint8_t> decompressed(dataLength);
-				uLongf decompressedSize = static_cast<uLongf>(dataLength);
+			if (compressionThreshold >= 0) {
+				NetworkBuffer compressedBuffer(std::move(data));
+				const int32_t dataLength = compressedBuffer.ReadVarInt();
 
-				const int result = uncompress(decompressed.data(), &decompressedSize,
-					compressedData.data(), static_cast<uLong>(compressedData.size()));
+				if (dataLength == 0) {
+					auto remaining = compressedBuffer.ReadRemainingBytes();
+					NetworkBuffer buffer(std::move(remaining));
+					const int32_t packetId = buffer.ReadVarInt();
+					InvokePacketHandler(packetId, buffer);
+				} else {
+					if (dataLength < compressionThreshold) {
+						Disconnect("Decompressed size below compression threshold");
+						return;
+					}
+					if (dataLength > MaxUncompressedPacketSize) {
+						Disconnect("Decompressed size exceeds maximum");
+						return;
+					}
 
-				if (result != Z_OK) {
-					Disconnect("Decompression failed");
-					return;
+					const auto compressedData = compressedBuffer.ReadRemainingBytes();
+					std::vector<uint8_t> decompressed(static_cast<size_t>(dataLength));
+					uLongf decompressedSize = static_cast<uLongf>(dataLength);
+
+					const int result = uncompress(decompressed.data(), &decompressedSize,
+						compressedData.data(), static_cast<uLong>(compressedData.size()));
+
+					if (result != Z_OK) {
+						Disconnect("Decompression failed");
+						return;
+					}
+
+					if (static_cast<int32_t>(decompressedSize) != dataLength) {
+						Disconnect("Decompressed size mismatch");
+						return;
+					}
+
+					NetworkBuffer buffer(std::move(decompressed));
+					const int32_t packetId = buffer.ReadVarInt();
+					InvokePacketHandler(packetId, buffer);
 				}
-
-				decompressed.resize(decompressedSize);
-				NetworkBuffer buffer(std::move(decompressed));
+			} else {
+				NetworkBuffer buffer(std::move(data));
 				const int32_t packetId = buffer.ReadVarInt();
 				InvokePacketHandler(packetId, buffer);
 			}
-		} else {
-			NetworkBuffer buffer(std::move(data));
-			const int32_t packetId = buffer.ReadVarInt();
-			InvokePacketHandler(packetId, buffer);
+		} catch (const std::exception& exception) {
+			AX_CORE_WARN("Malformed packet from {}: {}", RemoteAddress(), exception.what());
+			Disconnect("Malformed packet");
+		} catch (...) {
+			AX_CORE_WARN("Unknown exception processing packet from {}", RemoteAddress());
+			Disconnect("Malformed packet");
 		}
 	}
 
@@ -248,7 +457,6 @@ namespace Axiom {
 		const int32_t dataLength = static_cast<int32_t>(uncompressedBody.Size());
 
 		if (dataLength < threshold) {
-			// Below threshold — send uncompressed with dataLength=0
 			NetworkBuffer frame;
 			const int32_t packetLength = NetworkBuffer::VarIntSize(0) + dataLength;
 			frame.WriteVarInt(packetLength);
@@ -257,7 +465,6 @@ namespace Axiom {
 			return std::move(frame.Data());
 		}
 
-		// Compress with zlib
 		uLongf compressedSize = compressBound(static_cast<uLong>(uncompressedBody.Size()));
 		std::vector<uint8_t> compressed(compressedSize);
 
@@ -278,14 +485,12 @@ namespace Axiom {
 		return std::move(frame.Data());
 	}
 
-	void Connection::InvokePacketHandler(int32_t packetId, NetworkBuffer& buffer) {
+	void Connection::InvokePacketHandler(const int32_t packetId, NetworkBuffer& buffer) {
 		std::shared_lock lock(m_HandlerMutex);
 		if (m_PacketHandler) {
-			// Unlock during handler invocation to avoid deadlock
-			// if handler tries to modify the handler
 			const auto handler = m_PacketHandler;
 			lock.unlock();
-			handler(Ref<Connection>(this), packetId, buffer);
+			handler(Self(), packetId, buffer);
 		}
 	}
 

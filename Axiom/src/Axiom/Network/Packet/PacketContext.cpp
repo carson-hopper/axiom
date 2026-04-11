@@ -7,6 +7,10 @@
 #include "Axiom/Config/ServerConfig.h"
 #include "Axiom/Environment/Level/Generator/VanillaChunkGenerator.h"
 
+#include <openssl/rand.h>
+
+#include <stdexcept>
+
 namespace Axiom {
 
 	static constexpr int32_t COMPRESSION_THRESHOLD = 256;
@@ -19,7 +23,14 @@ namespace Axiom {
 		, m_Commands(commands)
 		, m_Server(server)
 		, m_AdminFiles(adminFiles)
-		, m_ChunkManager(CreateRef<VanillaChunkGenerator>("./worlds/minecraft/overworld"), config.ViewDistance()) {
+		, m_ChunkManager(CreateScope<VanillaChunkGenerator>("./worlds/minecraft/overworld"), config.ViewDistance()) {
+
+		// Expose the chunk manager to the network server so
+		// BroadcastPacketNearby can snapshot per-player view
+		// distances for its min(source, observer) radius test.
+		// Non-owning — this context outlives the server for
+		// the whole process lifetime.
+		server.SetChunkManager(&m_ChunkManager);
 
 		const auto dataPath = ResolvePath("data");
 		m_Registries.LoadAll(dataPath.string());
@@ -66,11 +77,10 @@ namespace Axiom {
 		return login;
 	}
 
-	std::array<uint8_t, 4> PacketContext::GenerateVerifyToken() {
-		std::array<uint8_t, 4> token{};
-		std::uniform_int_distribution<int> distribution(0, 255);
-		for (auto& byte : token) {
-			byte = static_cast<uint8_t>(distribution(m_Random));
+	std::array<uint8_t, VerifyTokenSize> PacketContext::GenerateVerifyToken() {
+		std::array<uint8_t, VerifyTokenSize> token{};
+		if (RAND_bytes(token.data(), static_cast<int>(token.size())) != 1) {
+			throw std::runtime_error("OpenSSL RAND_bytes failed to generate verify token");
 		}
 		return token;
 	}

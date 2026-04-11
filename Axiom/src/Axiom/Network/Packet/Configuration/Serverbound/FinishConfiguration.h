@@ -57,7 +57,7 @@ public:
 		std::vector<Ref<IChainablePacket>> chain;
 
 		// 1. Login/JoinGame — from player + config
-		chain.push_back(CreateRef<Play::Clientbound::LoginPacket>(
+		chain.push_back(Ref<Play::Clientbound::LoginPacket>::Create(
 			player->GetEntityId(),
 			context.Config().MaxPlayers(),
 			context.Config().ViewDistance(),
@@ -66,7 +66,7 @@ public:
 			63));
 
 		// 2. Player info (skin textures) — all online players
-		auto infoPacket = CreateRef<Play::Clientbound::PlayerInfoUpdatePacket>();
+		auto infoPacket = Ref<Play::Clientbound::PlayerInfoUpdatePacket>::Create();
 		infoPacket->AddPlayer(player);
 		for (const auto& other : context.Server().AllPlayers()) {
 			if (other->GetConnection()->Id() != connection->Id())
@@ -81,17 +81,17 @@ public:
 		} else if (player->GetGameMode() == GameMode::Spectator) {
 			abilityFlags = 0x01 | 0x02 | 0x04; // invulnerable + flying + allow fly
 		}
-		chain.push_back(CreateRef<Play::Clientbound::PlayerAbilitiesPacket>(
+		chain.push_back(Ref<Play::Clientbound::PlayerAbilitiesPacket>::Create(
 			static_cast<int8_t>(abilityFlags), 0.05f, 0.1f));
 
 		// 3b. Commands — send the Brigadier command graph filtered by
 		//     the viewer so they only see commands they can run.
-		chain.push_back(CreateRef<Play::Clientbound::CommandsPacket>(
+		chain.push_back(Ref<Play::Clientbound::CommandsPacket>::Create(
 			context.Commands().GetRootNodes(), player));
 
 		// 4. Spawn position — from player position
 		auto& spawnPos = player->GetPosition();
-		chain.push_back(CreateRef<Play::Clientbound::SetDefaultSpawnPositionPacket>(
+		chain.push_back(Ref<Play::Clientbound::SetDefaultSpawnPositionPacket>::Create(
 			"minecraft:overworld",
 			static_cast<int32_t>(spawnPos.x),
 			static_cast<int32_t>(spawnPos.y),
@@ -100,7 +100,7 @@ public:
 			player->GetRotation().y));
 
 		// 5. Player position — from player entity
-		chain.push_back(CreateRef<Play::Clientbound::PlayerPositionPacket>(
+		chain.push_back(Ref<Play::Clientbound::PlayerPositionPacket>::Create(
 			0,
 			player->GetPosition(),
 			player->GetVelocity(),
@@ -109,11 +109,11 @@ public:
 
 		// 6. Start waiting for chunks — OnSent triggers chunk delivery
 		//    after the client has processed Login and created the world
-		chain.push_back(CreateRef<ChunkLoadStartEvent>(
+		chain.push_back(Ref<ChunkLoadStartEvent>::Create(
 			context, player->GetPosition()));
 
 		// Broadcast new player to existing players
-		auto broadcastPacket = CreateRef<Play::Clientbound::PlayerInfoUpdatePacket>();
+		auto broadcastPacket = Ref<Play::Clientbound::PlayerInfoUpdatePacket>::Create();
 		broadcastPacket->AddPlayer(player);
 		NetworkBuffer broadcastPayload;
 		broadcastPacket->Write(broadcastPayload);

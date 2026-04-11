@@ -11,11 +11,25 @@ class ClientInformationPacket : public Packet<ClientInformationPacket,
     PID_CONFIGURATION_SB_CLIENTINFORMATION> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection> &connection, PacketContext& /*context*/, NetworkBuffer& /*buffer*/) {
+    Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer& /*buffer*/) {
         AX_CORE_TRACE(
             "Client info from {}: locale={}, viewDistance={}, mainHand={}",
             connection->RemoteAddress(), m_Locale.Value,
             m_ViewDistance.Value, m_MainHand.Value);
+
+        // Stash the client's requested view distance on
+        // the connection. `SendInitialChunks` picks it up
+        // when the player transitions into Play state and
+        // clamps it to the server maximum. If we arrive
+        // here after that transition (e.g. the player
+        // later re-sends ClientInformation in Play state),
+        // push the change through to ChunkManagement so
+        // the per-player radius updates immediately.
+        connection->RequestedViewDistance(m_ViewDistance.Value);
+        if (connection->State() == ConnectionState::Play) {
+            context.ChunkManagement().SetPlayerViewDistance(
+                connection, m_ViewDistance.Value);
+        }
 
         return std::nullopt;
     }

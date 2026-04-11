@@ -8,6 +8,8 @@
 #include <asio.hpp>
 
 #include <atomic>
+#include <chrono>
+#include <deque>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -94,7 +96,31 @@ namespace Axiom {
 		 *
 		 * Thread-safe. Uses atomic operations.
 		 */
-		void ProtocolVersion(int32_t version) { m_ProtocolVersion.store(version, std::memory_order_release); }
+		void ProtocolVersion(const int32_t version) { m_ProtocolVersion.store(version, std::memory_order_release); }
+
+		/**
+		 * View distance the client asked for via the
+		 * `ClientInformation` packet during Configuration
+		 * state. Returns `-1` when the client has not yet
+		 * sent a preference. The chunk manager clamps
+		 * this to the server's maximum when the player
+		 * joins the Play state.
+		 *
+		 * Thread-safe. Uses atomic operations.
+		 */
+		int8_t RequestedViewDistance() const {
+			return m_RequestedViewDistance.load(std::memory_order_acquire);
+		}
+
+		/**
+		 * Records the client's requested view distance.
+		 * Called from the `ClientInformation` handler.
+		 *
+		 * Thread-safe. Uses atomic operations.
+		 */
+		void RequestedViewDistance(const int8_t distance) {
+			m_RequestedViewDistance.store(distance, std::memory_order_release);
+		}
 
 		/**
 		 * Sets the packet handler callback.
@@ -146,33 +172,100 @@ namespace Axiom {
 		bool IsConnected() const { return m_Connected.load(std::memory_order_acquire); }
 
 	private:
+		/**
+		 * Build a Ref<Connection> to this object. The
+		 * intrusive refcount on RefCounted means calling
+		 * Ref<Connection>(this) is a legitimate way to
+		 * extend the object's lifetime from inside any
+		 * method — it increments the existing counter
+		 * rather than creating an independent control
+		 * block. This helper documents that intent at
+		 * every call site (async handler captures, posted
+		 * lambdas, callbacks invoked with a Ref argument)
+		 * and keeps the idiom searchable in one place.
+		 *
+		 * Requires: m_RefCount > 0. Calling Self() from
+		 * the destructor or before Start() is UB — by
+		 * then no external owner is keeping us alive and
+		 * the resurrected Ref would dangle.
+		 */
+		Ref<Connection> Self() { return Ref<Connection>(this); }
+
 		void ReadLoop();
-		void ReadFrameLength();
-		void ReadFrameBody(int32_t frameLength);
+		void ReadFrameLength(std::vector<uint8_t> preDecrypted = {});
+		void ReadVarIntChunk(Ref<Connection> self, std::shared_ptr<std::vector<uint8_t>> accumulatedBytes);
+		void ReadFrameBody(int32_t frameLength, std::vector<uint8_t> leftover = {});
 		void ProcessPacket(std::vector<uint8_t> data);
+
+		/**
+		 * Arm or re-arm the frame read deadline. Called at
+		 * the start of every ReadFrameLength so a slow or
+		 * trickling client cannot hold the connection past
+		 * FrameReadTimeout without making progress.
+		 */
+		void ArmReadTimeout();
+
+		/**
+		 * Pop the next frame off m_WriteQueue and issue an
+		 * async_write for it. Called from SendRawPacket when
+		 * no write is in flight, and from the write handler
+		 * when a previous write completes. Holds m_WriteMutex
+		 * only while popping the queue, not during the
+		 * actual I/O.
+		 */
+		void StartNextWrite();
 
 		std::vector<uint8_t> CompressPacket(int32_t packetId, const NetworkBuffer& payload, int32_t threshold);
 
 		// Invokes the packet handler with proper synchronization
 		void InvokePacketHandler(int32_t packetId, NetworkBuffer& buffer);
 
-	private:
+		/**
+		 * Maximum wall-clock time a single frame may take
+		 * to arrive in full (varint length + body). Matches
+		 * the industry default used by Netty, Paper, and
+		 * Velocity for Minecraft server read timeouts.
+		 */
+		static constexpr auto FrameReadTimeout = std::chrono::seconds(30);
+
+		/**
+		 * Cap on the number of frames queued for write but
+		 * not yet sent. A slow or hung client past this
+		 * limit is force-disconnected rather than letting
+		 * the per-connection memory grow unbounded. Must be
+		 * large enough to absorb the initial chunk-data
+		 * burst on world join (view distance 10 ≈ 441
+		 * chunks).
+		 */
+		static constexpr size_t MaxQueuedWriteFrames = 2048;
+
 		ConnectionId m_Id;
 		asio::ip::tcp::socket m_Socket;
+		asio::steady_timer m_ReadTimer{m_Socket.get_executor()};
 
 		// Atomic state variables for thread-safe access
 		std::atomic<ConnectionState> m_State{ConnectionState::Handshake};
 		std::atomic<int32_t> m_ProtocolVersion{0};
 		std::atomic<bool> m_Connected{false};
 		std::atomic<int32_t> m_CompressionThreshold{-1};
+		// -1 = client has not yet sent a ClientInformation packet.
+		// Otherwise the client's requested render distance in chunks,
+		// clamped to the server maximum at SendInitialChunks time.
+		std::atomic<int8_t> m_RequestedViewDistance{-1};
 
 		// Handler mutex protects callback modification
 		mutable std::shared_mutex m_HandlerMutex;
 		PacketHandler m_PacketHandler;
 
-		// Write mutex protects socket writes and cipher operations
+		// Write mutex protects m_Cipher, m_WriteQueue, and
+		// m_WriteInFlight. The actual async_write to the
+		// socket runs *without* the mutex held so a slow
+		// client cannot stall other writers or the read
+		// path (which shares the cipher under the same mutex).
 		std::mutex m_WriteMutex;
 		Scope<AesCipher> m_Cipher;
+		std::deque<std::vector<uint8_t>> m_WriteQueue;
+		bool m_WriteInFlight = false;
 	};
 
 }

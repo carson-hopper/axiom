@@ -12,7 +12,7 @@ public:
 	SystemChatPacket() = default;
 
 	SystemChatPacket(const Ref<ChatComponent>& component, const bool actionBar) {
-		m_Message.Value = component ? component->ToNbt() : CreateRef<NbtCompound>();
+		m_Message.Value = component ? component->ToNbt() : Ref<NbtCompound>::Create();
 		m_ActionBar.Value = actionBar;
 	}
 

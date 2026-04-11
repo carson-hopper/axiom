@@ -45,7 +45,7 @@ public:
 			: static_cast<int32_t>(lastSpace + 2); // after space, after '/'
 		const int32_t tokenLength = static_cast<int32_t>(typed.size()) - (tokenStart - 1);
 
-		auto response = CreateRef<Clientbound::CommandSuggestionsPacket>(
+		auto response = Ref<Clientbound::CommandSuggestionsPacket>::Create(
 			m_TransactionId.Value,
 			tokenStart,
 			tokenLength < 0 ? 0 : tokenLength,

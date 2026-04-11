@@ -274,10 +274,23 @@ class ByteArray : public NetworkType<std::vector<uint8_t>> {
 public:
 	using NetworkType::NetworkType;
 
+	/**
+	 * Hard upper bound on a single ByteArray field.
+	 * Matches the protocol's general string / array
+	 * max (32767 bytes). Per-field tighter caps should
+	 * be added for pre-auth fields (RSA ciphertext is
+	 * 256 bytes for a 2048-bit key) once a bounded
+	 * ByteArray wrapper exists.
+	 */
+	static constexpr int32_t MaxLength = 0x7FFF;
+
 protected:
 	std::vector<uint8_t> ReadImpl(NetworkBuffer& buffer) override {
 		const int32_t length = buffer.ReadVarInt();
-		return buffer.ReadBytes(length);
+		if (length < 0 || length > MaxLength) {
+			throw std::runtime_error("ByteArray length out of bounds");
+		}
+		return buffer.ReadBytes(static_cast<size_t>(length));
 	}
 	void WriteImpl(NetworkBuffer& buffer) const override {
 		buffer.WriteVarInt(static_cast<int32_t>(m_Value.size()));

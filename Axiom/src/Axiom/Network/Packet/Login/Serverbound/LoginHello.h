@@ -61,8 +61,8 @@ public:
 
 		// Chain: LoginCompression (OnSent enables compression) → LoginFinished
 		std::vector<Ref<IChainablePacket>> chain;
-		chain.push_back(CreateRef<Clientbound::LoginCompressionPacket>(256));
-		chain.push_back(CreateRef<Clientbound::LoginFinishedPacket>(offlineUuid, m_PlayerName.GetValue()));
+		chain.push_back(Ref<Clientbound::LoginCompressionPacket>::Create(256));
+		chain.push_back(Ref<Clientbound::LoginFinishedPacket>::Create(offlineUuid, m_PlayerName.GetValue()));
 		return chain;
 	}
 

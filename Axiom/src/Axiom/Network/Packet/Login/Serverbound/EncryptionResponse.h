@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Axiom/Core/Application.h"
+#include "Axiom/Core/AsyncExecutor.h"
 #include "Axiom/Core/Log.h"
 #include "Axiom/Core/Time.h"
 #include "Axiom/Network/Connection.h"
@@ -9,8 +11,6 @@
 #include "Axiom/Network/Crypto/MojangAuth.h"
 #include "Axiom/Network/Packet/Login/Clientbound/LoginCompression.h"
 #include "Axiom/Network/Packet/Login/Clientbound/LoginFinished.h"
-
-#include <thread>
 
 namespace Axiom::Login::Serverbound {
 
@@ -44,64 +44,83 @@ public:
 
 		connection->EnableEncryption(sharedSecret);
 
-		const auto& connectionRef = connection;
 		std::string playerName = pendingLogin->playerName;
 		auto publicKey = context.KeyPair().PublicKeyDer();
 
-		std::thread([&context, connectionRef, playerName, sharedSecret, publicKey]() {
-			const std::string serverHash = MinecraftServerHash("", sharedSecret, publicKey);
+		// Dispatch the Mojang session-server call on the
+		// shared AsyncExecutor instead of a detached thread.
+		//
+		// Lifetime invariant: Application::~Application calls
+		// AsyncExecutor::Shutdown() explicitly BEFORE any
+		// member is destroyed, and Shutdown joins every
+		// worker. That means any task submitted here is
+		// guaranteed to complete before PacketContext (or any
+		// other subsystem the task touches) is freed, so
+		// capturing `&context` by reference is safe.
+		//
+		// The `connection` Ref<Connection> is captured by
+		// value — its refcount keeps the Connection alive
+		// until the task is done, even if the client TCP
+		// disconnects mid-auth.
+		//
+		// The returned std::future is intentionally discarded:
+		// the task still runs to completion because its promise
+		// is held inside the task lambda captured in the queue.
+		(void)Application::Instance().GetAsyncExecutor().Submit(
+			[&context, connection, playerName, sharedSecret, publicKey]() {
+				const std::string serverHash = MinecraftServerHash("", sharedSecret, publicKey);
 
-			auto profile = MojangAuth::HasJoined(playerName, serverHash);
-			if (!profile) {
-				connectionRef->Disconnect("Failed to verify username");
-				return;
-			}
+				auto profile = MojangAuth::HasJoined(playerName, serverHash);
+				if (!profile) {
+					connection->Disconnect("Failed to verify username");
+					return;
+				}
 
-			AX_CORE_INFO("Authenticated {} (UUID: {})", profile->name, profile->uuid);
+				AX_CORE_INFO("Authenticated {} (UUID: {})", profile->name, profile->uuid);
 
-			std::string formattedUuid = context.FormatUuid(profile->uuid);
+				std::string formattedUuid = context.FormatUuid(profile->uuid);
 
-			// Send compression (OnSent enables it)
-			Clientbound::LoginCompressionPacket compressionPacket(256);
-			NetworkBuffer compressionPayload;
-			compressionPacket.Write(compressionPayload);
-			connectionRef->SendRawPacket(compressionPacket.GetPacketId(), compressionPayload);
-			compressionPacket.OnSent(connectionRef);
+				// Send compression (OnSent enables it)
+				Clientbound::LoginCompressionPacket compressionPacket(256);
+				NetworkBuffer compressionPayload;
+				compressionPacket.Write(compressionPayload);
+				connection->SendRawPacket(compressionPacket.GetPacketId(), compressionPayload);
+				compressionPacket.OnSent(connection);
 
-			// Send login finished
-			Clientbound::LoginFinishedPacket finishedPacket(formattedUuid, profile->name);
-			NetworkBuffer finishedPayload;
-			finishedPacket.Write(finishedPayload);
-			connectionRef->SendRawPacket(finishedPacket.GetPacketId(), finishedPayload);
+				// Send login finished
+				Clientbound::LoginFinishedPacket finishedPacket(formattedUuid, profile->name);
+				NetworkBuffer finishedPayload;
+				finishedPacket.Write(finishedPayload);
+				connection->SendRawPacket(finishedPacket.GetPacketId(), finishedPayload);
 
-			// Register player with skin properties
-			UUID playerUuid = UUID::FromString(formattedUuid);
-			auto player = context.Server().AddPlayer(
-				connectionRef, profile->name, playerUuid);
-			player->SetPosition({0.5, context.ChunkManagement().Generator().SpawnY(), 0.5});
-			player->SetOpLevel(static_cast<OpLevel>(
-				context.AdminFiles().OpLevel(playerUuid.ToString())));
+				// Register player with skin properties
+				UUID playerUuid = UUID::FromString(formattedUuid);
+				auto player = context.Server().AddPlayer(
+					connection, profile->name, playerUuid);
+				player->SetPosition({0.5, context.ChunkManagement().Generator().SpawnY(), 0.5});
+				player->SetOpLevel(static_cast<OpLevel>(
+					context.AdminFiles().OpLevel(playerUuid.ToString())));
 
-			// Refresh the usercache so offline-player
-			// lookups (ban/op/whitelist by name) work.
-			// Entries live for 7 days before expiring.
-			UserCacheEntry cacheEntry;
-			cacheEntry.Uuid = playerUuid.ToString();
-			cacheEntry.Name = profile->name;
-			cacheEntry.ExpiresOn = Time::Now().AddDays(7);
-			context.AdminFiles().UpdateCache(cacheEntry);
+				// Refresh the usercache so offline-player
+				// lookups (ban/op/whitelist by name) work.
+				// Entries live for 7 days before expiring.
+				UserCacheEntry cacheEntry;
+				cacheEntry.Uuid = playerUuid.ToString();
+				cacheEntry.Name = profile->name;
+				cacheEntry.ExpiresOn = Time::Now().AddDays(7);
+				context.AdminFiles().UpdateCache(cacheEntry);
 
-			// Store Mojang properties (textures/skin)
-			std::vector<PlayerProperty> properties;
-			for (const auto& prop : profile->properties) {
-				properties.push_back({
-					prop.value("name", ""),
-					prop.value("value", ""),
-					prop.value("signature", "")
-				});
-			}
-			player->SetProperties(std::move(properties));
-		}).detach();
+				// Store Mojang properties (textures/skin)
+				std::vector<PlayerProperty> properties;
+				for (const auto& prop : profile->properties) {
+					properties.push_back({
+						prop.value("name", ""),
+						prop.value("value", ""),
+						prop.value("signature", "")
+					});
+				}
+				player->SetProperties(std::move(properties));
+			});
 
 		return std::nullopt;
 	}
