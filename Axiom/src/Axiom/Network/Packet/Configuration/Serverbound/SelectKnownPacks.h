@@ -5,13 +5,7 @@
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
 #include "Axiom/Network/Packet/Configuration/Clientbound/CustomPayload.h"
-#include "Axiom/Network/Packet/Configuration/Clientbound/RegistryData.h"
-#include "Axiom/Network/Packet/Configuration/Clientbound/UpdateTags.h"
 #include "Axiom/Network/Packet/Configuration/Clientbound/FinishConfiguration.h"
-
-#include <nlohmann/json.hpp>
-
-#include <fstream>
 
 namespace Axiom::Configuration::Serverbound {
 
@@ -30,20 +24,20 @@ protected:
 	std::vector<KnownPack> ReadImpl(NetworkBuffer& buffer) override {
 		const int32_t count = buffer.ReadVarInt();
 		std::vector<KnownPack> packs(count);
-		for (auto& pack : packs) {
-			pack.Namespace = buffer.ReadString(256);
-			pack.Identifier = buffer.ReadString(256);
-			pack.Version = buffer.ReadString(256);
+		for (auto& [Namespace, Identifier, Version] : packs) {
+			Namespace = buffer.ReadString(256);
+			Identifier = buffer.ReadString(256);
+			Version = buffer.ReadString(256);
 		}
 		return packs;
 	}
 
 	void WriteImpl(NetworkBuffer& buffer) const override {
 		buffer.WriteVarInt(static_cast<int32_t>(m_Value.size()));
-		for (const auto& pack : m_Value) {
-			buffer.WriteString(pack.Namespace);
-			buffer.WriteString(pack.Identifier);
-			buffer.WriteString(pack.Version);
+		for (const auto& [Namespace, Identifier, Version] : m_Value) {
+			buffer.WriteString(Namespace);
+			buffer.WriteString(Identifier);
+			buffer.WriteString(Version);
 		}
 	}
 };
@@ -52,24 +46,18 @@ class SelectKnownPacksPacket : public Packet<SelectKnownPacksPacket,
 	PID_CONFIGURATION_SB_SELECTKNOWNPACKS> {
 public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
-	Handle(const Ref<Connection>&, PacketContext&, NetworkBuffer&) {
+	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer&) {
 		AX_CORE_TRACE("Client selected {} known packs", m_KnownPacks.Value.GetValue().size());
 
+		// Authoritative registry + tag send through RegistryDataService.
+		// Queued synchronously before the chain below so the client sees
+		// them in order: registries → tags → custom payload → finish.
+		context.Registries().SendRegistries(connection);
+		context.Registries().SendTags(connection);
+
 		std::vector<Ref<IChainablePacket>> chain;
-
-		auto synced = LoadExtractorJson("synced_registries.json");
-		for (auto& [registryName, registryEntries] : synced.items()) {
-			chain.push_back(Ref<Clientbound::RegistryDataPacket>::Create(
-				"minecraft:" + registryName, registryEntries));
-		}
-
-		chain.push_back(Ref<Clientbound::UpdateTagsPacket>::Create());
-
-		// Probe for Meteor client: ping the meteor-client:play channel
-		// and log whatever the client echoes back.
 		chain.push_back(Ref<Clientbound::CustomPayloadPacket>::Create(
 			"meteor-client:play"));
-
 		chain.push_back(Ref<Clientbound::FinishConfigurationPacket>::Create());
 		return chain;
 	}
@@ -79,17 +67,6 @@ public:
 	AX_END_FIELDS()
 
 	AX_FIELD(KnownPacks, KnownPackList)
-
-private:
-	static nlohmann::json LoadExtractorJson(const std::string& fileName) {
-		std::string path = "data/" + fileName;
-		std::ifstream file(path);
-		if (!file.good()) {
-			AX_CORE_WARN("Missing extractor data: {}", path);
-			return nlohmann::json::object();
-		}
-		return nlohmann::json::parse(file);
-	}
 };
 
 } // namespace Axiom::Configuration::Serverbound

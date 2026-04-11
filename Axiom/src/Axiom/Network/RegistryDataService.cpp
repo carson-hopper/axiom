@@ -53,7 +53,6 @@ namespace Axiom {
 			int32_t tagCount = static_cast<int32_t>(tagMap.size());
 			payload.WriteVarInt(tagCount);
 
-			// Find the ID map for this registry
 			IdMap* idMap = nullptr;
 			auto mapIterator = m_IdMaps.find(registryName);
 			if (mapIterator != m_IdMaps.end()) {
