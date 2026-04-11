@@ -48,7 +48,7 @@ public:
 
 	uint16_t ReadUnsignedShort() {
 		EnsureReadable(2);
-		uint16_t value =
+		const uint16_t value =
 			(static_cast<uint16_t>(m_Data[m_ReaderIndex]) << 8) |
 			static_cast<uint16_t>(m_Data[m_ReaderIndex + 1]);
 		m_ReaderIndex += 2;
@@ -57,7 +57,7 @@ public:
 
 	int32_t ReadInt() {
 		EnsureReadable(4);
-		int32_t value =
+		const int32_t value =
 			(static_cast<int32_t>(m_Data[m_ReaderIndex]) << 24) |
 			(static_cast<int32_t>(m_Data[m_ReaderIndex + 1]) << 16) |
 			(static_cast<int32_t>(m_Data[m_ReaderIndex + 2]) << 8) |
@@ -107,7 +107,7 @@ public:
 
 		do {
 			currentByte = ReadByte();
-			value |= static_cast<int32_t>(currentByte & 0x7F) << position;
+			value |= (currentByte & 0x7F) << position;
 			position += 7;
 
 			if (position >= 32) {
@@ -438,7 +438,7 @@ public:
 	}
 
 private:
-	void EnsureReadable(size_t count) const {
+	void EnsureReadable(const size_t count) const {
 		if (m_ReaderIndex + count > m_Data.size()) {
 			throw std::runtime_error("Buffer underflow: tried to read " +
 				std::to_string(count) + " bytes, only " +

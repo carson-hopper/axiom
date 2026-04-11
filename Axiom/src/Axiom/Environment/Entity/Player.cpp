@@ -31,14 +31,6 @@ namespace Axiom {
 			PlayerGameModeChangedEvent event(this, oldMode, newMode);
 			Application::Instance().Events().Publish(event);
 
-			// Mirror the mode change onto the owning
-			// client via GameEvent(ChangeGameMode). Only
-			// while the connection is in Play state —
-			// earlier gamemode sets during login/config
-			// are carried by the initial LoginPacket, and
-			// sending this packet before Play is either
-			// dropped by the client or desyncs its state
-			// machine.
 			if (!m_Connection || !m_Connection->IsConnected()
 				|| m_Connection->State() != ConnectionState::Play) {
 				return;
@@ -69,27 +61,18 @@ namespace Axiom {
 	}
 
 	bool Player::IsValidPosition(const Vector3& position) {
-		// 1. Reject non-finite coordinates outright. A NaN
-		//    here would poison every physics / collision /
-		//    chunk-streaming computation downstream.
 		if (!std::isfinite(position.x)
 			|| !std::isfinite(position.y)
 			|| !std::isfinite(position.z)) {
 			return false;
 		}
 
-		// 2. Reject positions past the vanilla world border
-		//    hard limit. Legitimate clients never go here.
 		constexpr double WorldBorderLimit = 30'000'000.0;
 		if (std::abs(position.x) > WorldBorderLimit
 			|| std::abs(position.z) > WorldBorderLimit) {
 			return false;
 		}
 
-		// 3. Reject Y outside a generous envelope. The real
-		//    build range is [-64, 319] in 26.1 but we leave
-		//    headroom for falling / jumping / levitation so
-		//    legitimate edge cases aren't flagged.
 		constexpr double MinY = -512.0;
 		constexpr double MaxY = 1024.0;
 		if (position.y < MinY || position.y > MaxY) {
@@ -100,21 +83,10 @@ namespace Axiom {
 	}
 
 	bool Player::IsValidMoveTarget(const Vector3& position) const {
-		// Client moves must clear the shared positional
-		// sanity checks (finite + world border + Y range)
-		// AND the per-tick delta cap. Teleports share the
-		// positional checks but not the delta cap because
-		// teleports are supposed to jump.
 		if (!IsValidPosition(position)) {
 			return false;
 		}
 
-		// Reject impossibly large single-tick deltas.
-		// Vanilla's "moved too quickly" threshold is 100
-		// blocks per move (non-vehicle, non-elytra). We
-		// use the same single cap — it covers every mode
-		// we support today including creative fly,
-		// elytra, and riptide dashes.
 		constexpr double MaxDeltaSquared = 100.0 * 100.0;
 		if (position.DistanceSquaredTo(GetPosition()) > MaxDeltaSquared) {
 			return false;
@@ -132,13 +104,6 @@ namespace Axiom {
 			return;
 		}
 
-		// Capture the rollback target ONLY when there
-		// is no pending teleport chain already in
-		// flight. A second teleport that lands before
-		// the first is acked must NOT overwrite the
-		// snapshot — we still want the original
-		// pre-chain position as the rollback target if
-		// any ack in the chain mismatches.
 		if (m_PendingTeleportId.load(std::memory_order_acquire) == 0) {
 			m_LastGoodPosition = GetPosition();
 		}
@@ -152,7 +117,6 @@ namespace Axiom {
 
 		const int32_t teleportId =
 			m_NextTeleportId.fetch_add(1, std::memory_order_relaxed);
-
 		m_PendingTeleportId.store(teleportId, std::memory_order_release);
 
 		Play::Clientbound::PlayerPositionPacket packet{
@@ -163,14 +127,15 @@ namespace Axiom {
 
 	void Player::ConfirmTeleport(const int32_t teleportId) {
 		int32_t expected = teleportId;
-		if (m_PendingTeleportId.compare_exchange_strong(expected, 0, std::memory_order_acq_rel, std::memory_order_relaxed)) {
+		if (m_PendingTeleportId.compare_exchange_strong(expected, 0,
+				std::memory_order_acq_rel, std::memory_order_relaxed)) {
 			m_LastGoodPosition = GetPosition();
 			return;
 		}
 
 		AX_CORE_WARN(
 			"{} sent mismatched teleport ack (got {}, pending {}); "
-			"reverting authoritative position to last good",
+			"reverting to last good",
 			m_Name, teleportId, expected);
 		SetPosition(m_LastGoodPosition);
 		m_PendingTeleportId.store(0, std::memory_order_release);

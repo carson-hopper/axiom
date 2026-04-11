@@ -1,13 +1,6 @@
 #pragma once
 
 #include "Axiom/Core/PlatformDetection.h"
-#include "Axiom/Utilities/Memory/Ref.h"
-
-#include <atomic>
-#include <memory>
-#include <utility>
-
-// ----- Debug break ----------------------------------------------
 
 #ifdef AX_DEBUG
 	#if defined(AX_PLATFORM_WINDOWS)
@@ -31,6 +24,12 @@
 
 #define BIT(x) (1 << (x))
 
+#include "Axiom/Utilities/Memory/Ref.h"
+
+#include <atomic>
+#include <memory>
+#include <utility>
+
 namespace Axiom {
 
 	template<typename T>
@@ -40,47 +39,5 @@ namespace Axiom {
 	[[nodiscard]] constexpr Scope<T> CreateScope(Args&&... arguments) {
 		return std::make_unique<T>(std::forward<Args>(arguments)...);
 	}
-
-	/**
-	 * Note: intentionally no CreateRef helper. Per
-	 * STYLE.md §4.2, construct Ref<T> instances via
-	 * Ref<T>::Create(args...) directly so the allocation
-	 * and the refcount increment happen in one place
-	 * visible at the call site.
-	 */
-
-	/**
-	 * Monotonic identifier for objects that should not
-	 * be keyed by raw pointer (e.g. connections).
-	 */
-	template<typename Tag>
-	class TypedId {
-	public:
-		TypedId() : m_Value(s_Next++) {}
-		explicit TypedId(const uint64_t value) : m_Value(value) {}
-
-		uint64_t Value() const { return m_Value; }
-
-		bool operator==(const TypedId&) const = default;
-		auto operator<=>(const TypedId&) const = default;
-
-	private:
-		uint64_t m_Value;
-		static inline std::atomic<uint64_t> s_Next{1};
-	};
-
-	struct ConnectionIdTag {};
-	using ConnectionId = TypedId<ConnectionIdTag>;
-
-}
-
-namespace std {
-
-	template<typename Tag>
-	struct hash<Axiom::TypedId<Tag>> {
-		std::size_t operator()(const Axiom::TypedId<Tag>& identifier) const noexcept {
-			return std::hash<uint64_t>{}(identifier.Value());
-		}
-	};
 
 }

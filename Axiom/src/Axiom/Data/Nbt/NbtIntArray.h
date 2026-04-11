@@ -32,9 +32,6 @@ namespace Axiom {
 				throw std::runtime_error("NbtIntArray: negative length");
 			}
 			const size_t count = static_cast<size_t>(length);
-			// Guard the multiply so `count * sizeof(int32_t)`
-			// can't wrap around SIZE_MAX before we feed it
-			// to the accounter.
 			if (count > SIZE_MAX / sizeof(int32_t)) {
 				throw std::runtime_error("NbtIntArray: length overflow");
 			}

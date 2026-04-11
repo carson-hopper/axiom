@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Base.h"
+#include "Axiom/Core/Identifier.h"
 #include "Axiom/Network/Protocol.h"
 #include "Axiom/Network/NetworkBuffer.h"
 #include "Axiom/Network/Crypto/AesCipher.h"
@@ -19,6 +20,9 @@
 #include <vector>
 
 namespace Axiom {
+
+	struct ConnectionIdTag {};
+	using ConnectionId = Identifier<ConnectionIdTag>;
 
 	/**
 	 * Represents a TCP connection to a Minecraft client.
@@ -60,34 +64,7 @@ namespace Axiom {
 		 */
 		void Disconnect(const std::string& reason = "");
 
-		/**
-		 * Serialises `packet` into a fresh NetworkBuffer
-		 * via its virtual `Write` and forwards the result
-		 * plus `GetPacketId()` to the raw overload.
-		 *
-		 * Thread-safe. Can be called from any thread. If the
-		 * connection is not connected, the packet is silently
-		 * dropped. Takes a non-const reference because
-		 * `IChainablePacket::Write` is non-const (it may
-		 * lazily materialise fields before writing).
-		 *
-		 * @param packet Any concrete `Packet<T, Id>` or other
-		 *               IChainablePacket subclass.
-		 */
 		void SendRawPacket(IChainablePacket& packet);
-
-		/**
-		 * Sends a raw packet to the client.
-		 *
-		 * Thread-safe. Can be called from any thread. If the connection
-		 * is not connected, the packet is silently dropped. Use this
-		 * overload when the caller has already built the payload by
-		 * hand — for example when the protocol encodes a trivial
-		 * packet and constructing a `Packet<T>` wrapper adds no value.
-		 *
-		 * @param packetId The packet ID to send.
-		 * @param payload The packet payload data.
-		 */
 		void SendRawPacket(int32_t packetId, const NetworkBuffer& payload);
 
 		/**
@@ -118,26 +95,10 @@ namespace Axiom {
 		 */
 		void ProtocolVersion(const int32_t version) { m_ProtocolVersion.store(version, std::memory_order_release); }
 
-		/**
-		 * View distance the client asked for via the
-		 * `ClientInformation` packet during Configuration
-		 * state. Returns `-1` when the client has not yet
-		 * sent a preference. The chunk manager clamps
-		 * this to the server's maximum when the player
-		 * joins the Play state.
-		 *
-		 * Thread-safe. Uses atomic operations.
-		 */
 		int8_t RequestedViewDistance() const {
 			return m_RequestedViewDistance.load(std::memory_order_acquire);
 		}
 
-		/**
-		 * Records the client's requested view distance.
-		 * Called from the `ClientInformation` handler.
-		 *
-		 * Thread-safe. Uses atomic operations.
-		 */
 		void RequestedViewDistance(const int8_t distance) {
 			m_RequestedViewDistance.store(distance, std::memory_order_release);
 		}

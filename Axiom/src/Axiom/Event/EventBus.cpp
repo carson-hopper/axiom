@@ -23,23 +23,9 @@ namespace Axiom {
 	}
 
 	void EventBus::Publish(Event& event) {
-		// Snapshot-then-dispatch. We MUST NOT call user
-		// callbacks while holding `m_Mutex` because they
-		// are free to re-enter the bus (Subscribe a new
-		// handler, UnsubscribeAll for their plugin, or
-		// Publish a nested event). `std::shared_mutex`
-		// is not reentrant — any of those would either
-		// deadlock on self (unique_lock + held shared),
-		// deadlock against a waiting writer (recursive
-		// shared_lock under writer preference), or
-		// invalidate the iterator we're walking.
-		//
-		// Instead: copy matching subscriptions into a
-		// local vector under a shared_lock, release the
-		// lock, then dispatch from the local copy. A
-		// callback that unsubscribes itself still fires
-		// once on THIS dispatch (matching Bukkit/Spigot
-		// semantics) but is gone for the next one.
+		// Snapshot matching subscriptions then dispatch outside the
+		// lock so callbacks can freely Subscribe / UnsubscribeAll /
+		// Publish(nested) without self-deadlocking on m_Mutex.
 		struct DispatchTarget {
 			EventCallback callback;
 			EventPriority priority;
@@ -56,10 +42,6 @@ namespace Axiom {
 			}
 		}
 
-		// Dispatch without holding the lock. Callbacks
-		// are free to mutate the bus — the mutations
-		// land in `m_Subscriptions` and take effect on
-		// the next publish.
 		for (const auto& target : targets) {
 			if (event.m_Handled && target.priority != EventPriority::Monitor) {
 				continue;

@@ -21,10 +21,6 @@
 
 namespace Axiom {
 
-	/**
-	 * Compound tag: a keyed map of named child tags. This is the primary
-	 * container for nested NBT data (chunks, level.dat, text components).
-	 */
 	class NbtCompound : public NbtTag {
 	public:
 		NbtCompound() = default;
@@ -232,12 +228,6 @@ namespace Axiom {
 				const auto type = static_cast<NbtTagType>(buffer.ReadByte());
 				if (type == NbtTagType::End) return;
 
-				// Read name length + body against the
-				// accounter. The length is a uint16 so
-				// it's naturally bounded at 65535, but
-				// the budget still has to cover it to
-				// prevent a thousand max-length names
-				// from exhausting memory.
 				const uint16_t nameLength = static_cast<uint16_t>(buffer.ReadShort()) & 0xFFFFU;
 				if (!accounter.AccountBytes(nameLength)) {
 					throw std::runtime_error(accounter.LastError());

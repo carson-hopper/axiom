@@ -62,8 +62,7 @@ namespace Axiom {
      *   Direction - Serverbound or Clientbound
      *   State     - protocol state this packet belongs to
      */
-    template<typename Derived, uint16_t PacketId,
-             PacketDirection Direction, PacketState State>
+    template<typename Derived, uint16_t PacketId, PacketDirection Direction, PacketState State>
     class Packet : public IChainablePacket {
     public:
         static constexpr uint16_t GetPacketIdStatic() { return PacketId; }
@@ -125,20 +124,20 @@ namespace Axiom {
 
         template<typename F>
         void ReadField(NetworkBuffer& buffer, F& field) {
-            using T = typename F::FieldType;
+            using T =  F::FieldType;
 
             if constexpr (IsRefOfNbtTag<T>::value) {
                 // Consume the type byte, create the right subclass, read payload.
                 // Each NBT field gets its own fresh NbtAccounter so an abusive
                 // packet can't starve later fields in the same packet — every
                 // field starts with the full 2 MiB budget.
-                using Inner = typename ExtractRefInner<T>::type;
+                using Inner = ExtractRefInner<T>::type;
                 const auto type = static_cast<NbtTagType>(buffer.ReadByte());
                 auto tag = CreateNbtTag(type);
                 if (tag) {
                     NbtAccounter accounter;
                     tag->Read(buffer, accounter);
-                    field.Value = tag.template As<Inner>();
+                    field.Value = tag. As<Inner>();
                 } else {
                     field.Value = nullptr;
                 }
@@ -189,7 +188,7 @@ namespace Axiom {
 
         template<typename F>
         void WriteField(NetworkBuffer& buffer, const F& field) {
-            using T = typename F::FieldType;
+            using T =  F::FieldType;
 
             if constexpr (IsRefOfNbtTag<T>::value) {
                 // Emit type byte + payload for network-format root framing.

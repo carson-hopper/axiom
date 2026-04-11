@@ -9,10 +9,6 @@ namespace Axiom {
 
 	class NbtCompound;
 
-	/**
-	 * Homogeneous list of NBT tags. All elements must have the same type.
-	 * Adding a tag of the wrong type is silently ignored.
-	 */
 	class NbtList : public NbtTag {
 	public:
 		NbtList() = default;
@@ -65,10 +61,6 @@ namespace Axiom {
 				throw std::runtime_error("NbtList: negative count");
 			}
 			const size_t elementCount = static_cast<size_t>(count);
-			// Account for the pointer-array overhead before
-			// we `reserve` — a malicious count of 2 billion
-			// would otherwise try to allocate ~16 GiB of
-			// `Ref<NbtTag>` slots before the first read.
 			if (elementCount > SIZE_MAX / sizeof(Ref<NbtTag>)) {
 				throw std::runtime_error("NbtList: count overflow");
 			}

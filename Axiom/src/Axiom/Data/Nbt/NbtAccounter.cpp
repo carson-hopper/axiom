@@ -30,11 +30,8 @@ bool NbtAccounter::PopDepth() {
 }
 
 bool NbtAccounter::AccountBytes(size_t count) {
-	// Overflow-safe check: rearrange `used + count > max`
-	// to `count > max - used`. Because we enforce
-	// `used <= max` as an invariant, the subtraction
-	// never underflows, and a near-SIZE_MAX `count`
-	// can't wrap the sum and silently pass.
+	// Written as `count > max - used` not `used + count > max` so a
+	// near-SIZE_MAX count can't wrap the sum around and silently pass.
 	if (count > m_MaxBytes - m_BytesAccounted) {
 		m_LastError = std::format(
 			"NBT byte budget exceeded: {} + {} > {}",

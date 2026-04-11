@@ -1,11 +1,11 @@
 #include "PacketContext.h"
 
 #include "Axiom/Core/Log.h"
-#include "Axiom/Core/PathUtil.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Protocol.h"
 #include "Axiom/Config/ServerConfig.h"
 #include "Axiom/Environment/Level/Generator/VanillaChunkGenerator.h"
+#include "Axiom/Utilities/FileSystem.h"
 
 #include <openssl/rand.h>
 
@@ -32,7 +32,7 @@ namespace Axiom {
 		// the whole process lifetime.
 		server.SetChunkManager(&m_ChunkManager);
 
-		const auto dataPath = ResolvePath("data");
+		const auto dataPath = FileSystem::GetPersistentStoragePath() / "data";
 		m_Registries.LoadAll(dataPath.string());
 		m_ItemToBlock.LoadFromExtractorData(dataPath.string());
 		m_KeepAliveManager.Start();

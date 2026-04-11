@@ -1,6 +1,5 @@
 #include "axpch.h"
 
-#include <cassert>
 #include <unordered_set>
 
 namespace Axiom {
@@ -11,13 +10,13 @@ namespace Axiom {
 	namespace RefUtils {
 
 		void AddToLiveReferences(void* instance) {
-			std::scoped_lock<std::mutex> lock(s_LiveReferenceMutex);
-			assert(instance);
+			std::scoped_lock lock(s_LiveReferenceMutex);
+			AX_CORE_ASSERT(instance);
 			s_LiveReferences.insert(instance);
 		}
 
 		void RemoveFromLiveReferences(void* instance) {
-			std::scoped_lock<std::mutex> lock(s_LiveReferenceMutex);
+			std::scoped_lock lock(s_LiveReferenceMutex);
 			s_LiveReferences.erase(instance);
 		}
 

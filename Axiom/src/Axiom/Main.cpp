@@ -2,7 +2,7 @@
 
 namespace Axiom {
     
-	Scope<Application> CreateApplication(ApplicationCommandLineArgs args) {
+	Scope<Application> CreateApplication(const ApplicationCommandLineArgs args) {
 		ApplicationSpecification spec;
 		spec.Name = "Axiom Server";
 		spec.CommandLineArgs = args;

@@ -5,8 +5,8 @@
 #include "Axiom/Environment/Level/Generator/BlockRegistry.h"
 #include "Axiom/Environment/Level/Generator/BlockStates.h"
 #include "Axiom/Environment/Level/ChunkEncoder.h"
-#include "Axiom/Core/PathUtil.h"
 #include "Axiom/Core/Log.h"
+#include "Axiom/Utilities/FileSystem.h"
 #include "Axiom/Data/Nbt/NbtCompound.h"
 #include "Axiom/Data/Nbt/NbtIo.h"
 #include "Axiom/Data/Nbt/NbtList.h"
@@ -30,7 +30,7 @@ namespace Axiom {
 		explicit VanillaChunkGenerator(const std::string& worldDirectory)
 			: m_AnvilReader(worldDirectory + "/region") {
 
-			const auto dataPath = ResolvePath("data");
+			const auto dataPath = FileSystem::GetPersistentStoragePath() / "data";
 			m_BlockRegistry.LoadFromExtractorData(dataPath.string());
 		}
 

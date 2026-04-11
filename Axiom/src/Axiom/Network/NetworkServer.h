@@ -67,37 +67,11 @@ namespace Axiom {
 			BroadcastPacketExcept(packet, exclude->Id());
 		}
 
-		/**
-		 * Broadcast `packet` only to players whose chunk is
-		 * within `min(source, observer)` view distance of
-		 * `source`'s chunk — i.e. both players must have
-		 * picked a render radius that covers the other. The
-		 * source itself is always excluded; callers that
-		 * need an echo should use `BroadcastPacket` or
-		 * `BroadcastPacketExcept`.
-		 *
-		 * Typical callers: block-break / block-place, entity
-		 * movement, particles, sounds, break progress. These
-		 * events are only meaningful to players who have the
-		 * affected chunk loaded, and the `min(a, b)` radius
-		 * test is a cheap, symmetric way to approximate
-		 * "both players have each other's chunk loaded".
-		 *
-		 * Requires `SetChunkManager` to have been called —
-		 * without the chunk manager there's no per-player
-		 * view distance to test against, and the call
-		 * falls back to the full broadcast so events still
-		 * reach everyone (logged at warn level).
-		 */
+		// Broadcasts only to players whose chunk is within
+		// min(source, observer) view distance of the source.
+		// Source is always excluded.
 		void BroadcastPacketNearby(const Player& source, IChainablePacket& packet);
 
-		/**
-		 * Install the chunk manager pointer this server uses
-		 * to look up per-player view distances for
-		 * `BroadcastPacketNearby`. Non-owning — the chunk
-		 * manager must outlive the network server. Called
-		 * once during `PacketContext` construction.
-		 */
 		void SetChunkManager(ChunkManager* chunkManager) {
 			m_ChunkManager = chunkManager;
 		}
@@ -110,23 +84,9 @@ namespace Axiom {
 	private:
 		void AcceptLoop();
 
-		/**
-		 * Shared mutex: reads (GetPlayer*, AllPlayers,
-		 * PlayerCount, broadcast iteration via AllPlayers)
-		 * use std::shared_lock so many callers can run
-		 * concurrently; writes (AddPlayer, RemovePlayer)
-		 * use std::lock_guard for exclusive access. Mutable
-		 * so const accessors (PlayerCount) can still lock.
-		 */
 		mutable std::shared_mutex m_PlayerMutex;
 		std::unordered_map<ConnectionId, Ref<Player>> m_Players;
 
-		/**
-		 * Separate mutex for the level registry. Levels are
-		 * added infrequently (world load) and read often
-		 * (dimension lookup), so a shared_mutex is the right
-		 * fit here too.
-		 */
 		mutable std::shared_mutex m_LevelMutex;
 		std::unordered_map<std::string, Ref<Level>> m_Levels;
 
@@ -136,15 +96,6 @@ namespace Axiom {
 		Connection::PacketHandler m_PacketHandler;
 		std::atomic<bool> m_Running = false;
 
-		/**
-		 * Non-owning pointer to the chunk manager.
-		 * Used only by `BroadcastPacketNearby` to snapshot
-		 * per-player view distances. `nullptr` until
-		 * `PacketContext` calls `SetChunkManager` during
-		 * its constructor; `BroadcastPacketNearby` degrades
-		 * to a full broadcast (with a warning) when it's
-		 * still null.
-		 */
 		ChunkManager* m_ChunkManager = nullptr;
 	};
 

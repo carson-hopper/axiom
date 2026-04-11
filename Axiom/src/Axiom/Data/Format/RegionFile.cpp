@@ -10,8 +10,6 @@
 
 namespace Axiom {
 
-	// ---- Byte-order helpers -------------------------------------------
-
 	static uint32_t ReadBigEndianU32(const uint8_t* bytes) {
 		return (static_cast<uint32_t>(bytes[0]) << 24)
 			| (static_cast<uint32_t>(bytes[1]) << 16)
@@ -26,14 +24,7 @@ namespace Axiom {
 		bytes[3] = static_cast<uint8_t>(value & 0xFFu);
 	}
 
-	// ---- zlib helpers -------------------------------------------------
-
-	/**
-	 * Hard cap on a single decompressed chunk. 16 MiB
-	 * is comfortably above any realistic chunk payload
-	 * and well below memory-exhaustion territory for
-	 * malicious or corrupted region files.
-	 */
+	// Decompression-bomb guard — above any realistic chunk payload.
 	static constexpr size_t MaxInflatedChunkBytes = 16 * 1024 * 1024;
 
 	static std::optional<std::vector<uint8_t>> InflateZlib(
@@ -139,8 +130,6 @@ namespace Axiom {
 			return std::nullopt;
 		}
 
-		// Header: 4 bytes big-endian length, 1 byte compression type.
-		// `length` covers the compression-type byte + compressed payload.
 		std::array<uint8_t, 5> header{};
 		m_File.read(reinterpret_cast<char*>(header.data()), header.size());
 		if (static_cast<size_t>(m_File.gcount()) != header.size()) {
@@ -170,10 +159,8 @@ namespace Axiom {
 		}
 
 		switch (compressionType) {
-			case 2: // zlib (the only type vanilla Minecraft writes today)
-				return InflateZlib(compressed);
-			case 3: // uncompressed
-				return compressed;
+			case 2: return InflateZlib(compressed);
+			case 3: return compressed;
 			default:
 				AX_CORE_WARN("RegionFile: unsupported compression type {} for chunk ({}, {}) in {}",
 					compressionType, localX, localZ, m_Path.filename().string());
@@ -197,20 +184,14 @@ namespace Axiom {
 			return;
 		}
 
-		// On-disk layout per chunk: 4-byte length + 1-byte compression
-		// type + compressed bytes, padded to the next 4 KiB boundary.
 		const size_t totalBytes = 5 + compressed->size();
 		const uint32_t sectorsNeeded = static_cast<uint32_t>(
 			(totalBytes + SectorSize - 1) / SectorSize);
 		if (sectorsNeeded > 0xFFu) {
-			// Anvil's 1-byte sectorCount field caps in-region chunks
-			// at ~1 MiB. Vanilla 1.15+ spills bigger chunks into an
-			// external `c.X.Z.mcc` file; implementing that is future
-			// work. Log and drop so the caller sees the failure.
+			// Anvil caps in-region chunks at ~1 MiB via its 1-byte
+			// sectorCount field. External .mcc overflow is future work.
 			AX_CORE_ERROR(
-				"RegionFile: chunk ({}, {}) needs {} sectors (>{}) and"
-				" external .mcc overflow files are not yet implemented; "
-				"chunk will NOT be saved",
+				"RegionFile: chunk ({}, {}) needs {} sectors (>{}); dropped",
 				localX, localZ, sectorsNeeded, 0xFF);
 			return;
 		}
@@ -222,16 +203,8 @@ namespace Axiom {
 
 		uint32_t targetSectorOffset = 0;
 		if (oldLocation != 0 && oldSectorCount >= sectorsNeeded) {
-			// Existing slot is large enough — reuse in place and
-			// leave any surplus sectors claimed but harmless. They
-			// stay part of this chunk's run until the chunk grows
-			// again or is released.
 			targetSectorOffset = oldSectorOffset;
 		} else {
-			// Either first write, or the new encoding outgrew the
-			// old slot. Release the old sectors to the free list
-			// first so the allocator can pick them up for a later
-			// chunk.
 			if (oldLocation != 0) {
 				FreeSectors(oldSectorOffset, oldSectorCount);
 			}
@@ -258,8 +231,6 @@ namespace Axiom {
 		m_File.write(reinterpret_cast<const char*>(compressed->data()),
 			static_cast<std::streamsize>(compressed->size()));
 
-		// Pad the tail of the allocated run with zeros so the
-		// file doesn't expose stale bytes from a previous chunk.
 		const size_t padding =
 			(static_cast<size_t>(sectorsNeeded) * SectorSize) - totalBytes;
 		if (padding > 0) {
@@ -268,9 +239,6 @@ namespace Axiom {
 				static_cast<std::streamsize>(padding));
 		}
 
-		// Update the in-memory tables, then persist the two
-		// 4-byte header entries for this chunk so a crash here
-		// leaves the file recoverable.
 		m_Offsets[index] = (targetSectorOffset << 8) | (sectorsNeeded & 0xFFu);
 
 		const auto now = std::chrono::duration_cast<std::chrono::seconds>(
@@ -312,7 +280,6 @@ namespace Axiom {
 			return;
 		}
 
-		// Create parent directories if needed
 		auto parentDirectory = m_Path.parent_path();
 		if (!parentDirectory.empty() && !std::filesystem::exists(parentDirectory)) {
 			std::filesystem::create_directories(parentDirectory);
@@ -322,7 +289,6 @@ namespace Axiom {
 		if (existed) {
 			m_File.open(m_Path, std::ios::in | std::ios::out | std::ios::binary);
 		} else {
-			// Create new region file with empty header
 			m_File.open(m_Path,
 				std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
 			if (m_File.good()) {
@@ -340,8 +306,6 @@ namespace Axiom {
 		}
 
 		if (existed) {
-			// Read the location + timestamp tables from the first
-			// two sectors. Any short read is treated as corrupt.
 			std::array<uint8_t, SectorSize> locationBytes{};
 			std::array<uint8_t, SectorSize> timestampBytes{};
 			m_File.seekg(0);
@@ -366,7 +330,6 @@ namespace Axiom {
 	}
 
 	void RegionFile::BuildSectorMap() {
-		// Figure out the file's current length in 4 KiB sectors.
 		m_File.seekg(0, std::ios::end);
 		const auto fileSize = m_File.tellg();
 		const auto fileSizeBytes = fileSize > 0
@@ -376,7 +339,6 @@ namespace Axiom {
 			(fileSizeBytes + SectorSize - 1) / SectorSize);
 
 		m_UsedSectors.assign(totalSectors, false);
-		// The two header sectors are always claimed.
 		m_UsedSectors[0] = true;
 		m_UsedSectors[1] = true;
 
@@ -397,8 +359,6 @@ namespace Axiom {
 	}
 
 	uint32_t RegionFile::AllocateSectors(uint32_t count) {
-		// First-fit scan past the 2-sector header for a run of
-		// `count` contiguous free sectors.
 		const size_t total = m_UsedSectors.size();
 		size_t runStart = 2;
 		size_t runLength = 0;
@@ -417,7 +377,6 @@ namespace Axiom {
 			}
 		}
 
-		// No in-file fit — append at the end and grow the bitmap.
 		const uint32_t newStart = static_cast<uint32_t>(total);
 		m_UsedSectors.resize(total + count, true);
 		return newStart;

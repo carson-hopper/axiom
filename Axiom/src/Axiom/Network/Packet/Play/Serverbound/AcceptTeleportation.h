@@ -20,13 +20,6 @@ public:
             return std::nullopt;
         }
 
-        // Hand the echoed id to the player. On match the
-        // pending slot clears and the current position is
-        // committed as the new rollback snapshot. On
-        // mismatch the player rolls authoritative position
-        // back to its last good snapshot without sending a
-        // new sync packet — see Player::ConfirmTeleport for
-        // the full reasoning.
         player->ConfirmTeleport(m_TeleportId.Value);
 
         return std::nullopt;

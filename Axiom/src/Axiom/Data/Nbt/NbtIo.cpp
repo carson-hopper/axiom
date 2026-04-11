@@ -11,14 +11,8 @@
 
 namespace Axiom {
 
-	// Hard cap for decompressed NBT payloads. 32 MiB is
-	// comfortably above any realistic single NBT file
-	// (level.dat, player dat, chunk root NBTs are all
-	// well under a megabyte) and well below enough to
-	// neutralise gzip bombs that expand to gigabytes.
+	// Hard cap for decompressed NBT. Neutralises gzip bombs.
 	static constexpr size_t MAX_DECOMPRESSED_NBT = 32 * 1024 * 1024;
-
-	// ----- Factory -----------------------------------------------------
 
 	Ref<NbtTag> CreateNbtTag(const NbtTagType type) {
 		switch (type) {
@@ -39,8 +33,6 @@ namespace Axiom {
 		return nullptr;
 	}
 
-	// ----- Network format ---------------------------------------------
-
 	void NbtIo::WriteNetwork(const Ref<NbtCompound>& root, NetworkBuffer& buffer) {
 		if (!root) {
 			buffer.WriteByte(0); // TAG_End
@@ -60,8 +52,6 @@ namespace Axiom {
 		root->Read(buffer, accounter);
 		return root;
 	}
-
-	// ----- File format -------------------------------------------------
 
 	void NbtIo::WriteFile(const Ref<NbtCompound>& root, NetworkBuffer& buffer,
 		const std::string& name) {
@@ -92,8 +82,7 @@ namespace Axiom {
 		return root;
 	}
 
-	// ----- Gzip helpers (15 + 16 window bits = gzip wrapper) -----------
-
+	// 15 + 16 window bits = gzip wrapper.
 	std::vector<uint8_t> NbtIo::WriteGzipCompressed(const Ref<NbtCompound>& root,
 		const std::string& rootName) {
 
@@ -136,10 +125,6 @@ namespace Axiom {
 		stream.avail_in = static_cast<uInt>(data.size());
 
 		std::vector<uint8_t> decompressed;
-		// Start with a 4x-compressed-size guess, but
-		// cap it at the hard ceiling so a tiny gzip
-		// bomb can't trick us into a multi-GiB initial
-		// reservation on the first line.
 		decompressed.resize(std::min(data.size() * 4, MAX_DECOMPRESSED_NBT));
 
 		while (true) {
@@ -155,10 +140,6 @@ namespace Axiom {
 				throw std::runtime_error("NbtIo: gzip inflate failed");
 			}
 			if (stream.avail_out == 0) {
-				// Grow the window, but refuse to cross
-				// the ceiling. A classic gzip bomb that
-				// tries to expand a few kilobytes into
-				// hundreds of megabytes hits this gate.
 				if (decompressed.size() >= MAX_DECOMPRESSED_NBT) {
 					inflateEnd(&stream);
 					throw std::runtime_error(

@@ -26,20 +26,11 @@ bool LevelStorage::AcquireSessionLock() {
 
 	const std::string lockPath = m_WorldDirectory + "/session.lock";
 
-	/**
-	 * Check whether another process already
-	 * holds the session lock file.
-	 */
 	if (std::filesystem::exists(lockPath)) {
 		AX_CORE_WARN("session.lock already exists at {}", lockPath);
 		return false;
 	}
 
-	/**
-	 * Write the current timestamp as 8 bytes
-	 * in big-endian order, matching the
-	 * vanilla Minecraft format.
-	 */
 	std::ofstream lockFile(lockPath, std::ios::binary);
 	if (!lockFile) {
 		AX_CORE_ERROR("Failed to create session.lock at {}", lockPath);
@@ -89,11 +80,6 @@ std::unordered_map<std::string, std::string> LevelStorage::LoadLevelData() {
 		return result;
 	}
 
-	// Slurp the whole file into a byte buffer so the
-	// NBT reader can pick its own decompression path
-	// (gzip) without streaming concerns. level.dat is
-	// typically a few KB, so the full-file read is not
-	// a concern here.
 	const std::vector<uint8_t> bytes(
 		(std::istreambuf_iterator<char>(file)),
 		std::istreambuf_iterator<char>());
@@ -105,12 +91,6 @@ std::unordered_map<std::string, std::string> LevelStorage::LoadLevelData() {
 			return result;
 		}
 
-		// Walk the top-level compound and hand every
-		// child back to the caller keyed by name. String
-		// tags pass through verbatim; everything else is
-		// rendered via its `ToString` for inspection.
-		// Callers that need typed access should migrate
-		// to the NbtCompound API directly.
 		for (const auto& [name, tag] : root->Tags()) {
 			if (!tag) {
 				continue;
@@ -137,9 +117,6 @@ void LevelStorage::SaveLevelData(
 	const std::string levelPath = m_WorldDirectory + "/level.dat";
 	const std::string backupPath = m_WorldDirectory + "/level.dat_old";
 
-	// Back up the existing level.dat to level.dat_old
-	// before overwriting, matching vanilla Minecraft's
-	// recovery strategy.
 	if (std::filesystem::exists(levelPath)) {
 		std::error_code errorCode;
 		std::filesystem::copy_file(
@@ -155,9 +132,6 @@ void LevelStorage::SaveLevelData(
 		}
 	}
 
-	// Build a flat compound where every entry is a
-	// TAG_String. NbtIo takes care of gzip framing so
-	// the on-disk format matches vanilla's level.dat.
 	auto root = Ref<NbtCompound>::Create();
 	for (const auto& [key, value] : data) {
 		root->PutString(key, value);

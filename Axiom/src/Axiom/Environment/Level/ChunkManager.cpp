@@ -43,11 +43,7 @@ namespace Axiom {
 			auto& state = m_PlayerStates[connection->Id()];
 			state.lastChunkX = center.x;
 			state.lastChunkZ = center.z;
-			// Seed the effective view distance from the
-			// client's ClientInformation request (clamped
-			// to the server maximum). A client that never
-			// sent ClientInformation defaults to the full
-			// server-wide radius.
+
 			const int8_t requested = connection->RequestedViewDistance();
 			if (requested > 0) {
 				state.effectiveViewDistance = std::clamp(
@@ -80,10 +76,6 @@ namespace Axiom {
 			std::lock_guard<std::mutex> const lock(m_StateMutex);
 			const auto iterator = m_PlayerStates.find(connection->Id());
 			if (iterator == m_PlayerStates.end()) {
-				// Player hasn't entered Play state yet. The
-				// connection-level RequestedViewDistance will
-				// be picked up by SendInitialChunks when the
-				// player finishes the configuration handshake.
 				return;
 			}
 
@@ -101,20 +93,11 @@ namespace Axiom {
 			}
 		}
 
-		// Network I/O happens AFTER releasing the state
-		// mutex — a slow client must never stall the chunk
-		// state updates of other players. `UnloadChunk` and
-		// `QueueChunksInRadius` each perform their own
-		// per-chunk lookups and dispatches.
 		for (const auto& position : distantChunks) {
 			UnloadChunk(connection, position);
 		}
 
 		if (!shrinking) {
-			// Expanding — queue the new outer rings. Chunks
-			// that were already loaded are filtered out by
-			// the `state.loadedChunks.contains(position)`
-			// check inside QueueChunksInRadius.
 			QueueChunksInRadius(connection, center);
 		}
 
@@ -136,11 +119,6 @@ namespace Axiom {
 	void ChunkManager::OnPlayerMove(const Ref<Connection>& connection, const double playerX, const double playerZ) {
 		const ChunkPosition center{BlockToChunk(playerX), BlockToChunk(playerZ)};
 
-		// Collect-under-lock, dispatch-outside-lock:
-		// network I/O must never happen while
-		// m_StateMutex is held, or a slow client
-		// can stall every other thread touching
-		// chunk state.
 		std::vector<ChunkPosition> distantChunks;
 
 		{
@@ -161,7 +139,6 @@ namespace Axiom {
 			distantChunks = CollectDistantChunks(center, state);
 		}
 
-		// Lock is released. Safe to send packets now.
 		for (const auto& position : distantChunks) {
 			UnloadChunk(connection, position);
 		}
@@ -213,12 +190,6 @@ namespace Axiom {
 			if (stateIterator == m_PlayerStates.end()) return;
 			auto& state = stateIterator->second;
 
-			// Per-player effective radius — seeded from the
-			// client's ClientInformation request at join and
-			// updated by SetPlayerViewDistance for mid-game
-			// changes. Always `<= m_ViewDistance` so this
-			// never generates more chunks than the server
-			// maximum regardless of what the client asks for.
 			const int playerDistance = state.effectiveViewDistance;
 
 			for (int radius = 0; radius <= playerDistance; radius++) {
@@ -243,7 +214,6 @@ namespace Axiom {
 			return;
 		}
 
-		// Sort by distance — closest chunks generate first
 		std::sort(toGenerate.begin(), toGenerate.end(),
 			[&centerPosition](const ChunkPosition& positionA, const ChunkPosition& positionB) {
 				int distanceA = (positionA.x - centerPosition.x) * (positionA.x - centerPosition.x)
@@ -276,19 +246,6 @@ namespace Axiom {
 	std::vector<ChunkPosition> ChunkManager::CollectDistantChunks(
 		const ChunkPosition& centerPosition, PlayerChunkState& state) {
 
-		// Caller must be holding m_StateMutex. This
-		// function is pure bookkeeping — it mutates
-		// state.loadedChunks and returns the list of
-		// positions the caller should unload over the
-		// network *after* releasing the lock.
-		//
-		// The unload radius is the PLAYER's effective
-		// view distance, not the server-wide maximum,
-		// so a player who shrinks their render distance
-		// via ClientInformation immediately has the
-		// now-out-of-range chunks dropped on their next
-		// movement tick (or inside `SetPlayerViewDistance`
-		// when shrinking).
 		const int playerDistance = state.effectiveViewDistance;
 		std::vector<ChunkPosition> toUnload;
 

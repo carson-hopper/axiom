@@ -7,8 +7,8 @@
 #include "Axiom/Command/Parsers/Parsers.h"
 #include "Axiom/Core/Application.h"
 #include "Axiom/Core/Log.h"
-#include "Axiom/Core/PathUtil.h"
 #include "Axiom/Environment/Entity/Player.h"
+#include "Axiom/Utilities/FileSystem.h"
 
 #if defined(AX_PLATFORM_MACOS) || defined(AX_PLATFORM_LINUX)
     #include <cerrno>
@@ -43,7 +43,7 @@ namespace Axiom {
             AX_CORE_INFO("Server restarting...");
 
 #if defined(AX_PLATFORM_MACOS) || defined(AX_PLATFORM_LINUX)
-            auto exePath = ExecutableDirectory().string() + "/Axiom";
+            auto exePath = FileSystem::GetPersistentStoragePath().string();
 
             app.Stop();
             app.~Application();
