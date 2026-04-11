@@ -31,7 +31,7 @@ namespace Axiom {
             return 1;
         });
 
-        const auto rule = Argument("rule", CreateRef<StringParser>(StringParser::Mode::SingleWord));
+        const auto rule = Argument("rule", Ref<StringParser>::Create(StringParser::Mode::SingleWord));
         rule->Executes([](CommandSourceStack& source, const std::unordered_map<std::string, std::string>& arguments) {
             const auto iterator = arguments.find("rule");
             if (iterator == arguments.end()) {
@@ -54,7 +54,7 @@ namespace Axiom {
             return 1;
         });
 
-        const auto value = Argument("value", CreateRef<StringParser>(StringParser::Mode::GreedyPhrase));
+        const auto value = Argument("value", Ref<StringParser>::Create(StringParser::Mode::GreedyPhrase));
         value->Executes([](CommandSourceStack& source, const std::unordered_map<std::string, std::string>& arguments) {
             const auto ruleIterator = arguments.find("rule");
             const auto valueIterator = arguments.find("value");

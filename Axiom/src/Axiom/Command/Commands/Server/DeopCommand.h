@@ -9,8 +9,15 @@ namespace Axiom {
  *
  * Usage: /deop <player>
  *
- * Removes the target player from ops.json
- * and resets their in-memory op level to None.
+ * Removes the target player from ops.toml
+ * and resets their in-memory op level to
+ * None via the Player::m_OpLevel Observable,
+ * which fires a PlayerOperatorLevelChangeEvent.
+ *
+ * Escalation rule: a player may only deop a
+ * target whose current op level is strictly
+ * below their own. The console bypasses the
+ * escalation check.
  */
 class DeopCommand : public Command {
 public:

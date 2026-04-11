@@ -52,7 +52,7 @@ namespace Axiom {
             return 1;
         });
 
-        const auto commandArgument = Argument("command", CreateRef<StringParser>(StringParser::Mode::SingleWord));
+        const auto commandArgument = Argument("command", Ref<StringParser>::Create(StringParser::Mode::SingleWord));
         commandArgument->Executes([registry](CommandSourceStack& source,
             const std::unordered_map<std::string, std::string>& arguments) {
 

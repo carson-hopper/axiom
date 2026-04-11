@@ -17,7 +17,7 @@ namespace Axiom {
         auto root = Literal("tp");
         root->Requires(RequiredPermissionLevel());
 
-        const auto target = Argument("target", CreateRef<EntityParser>(true, false));
+        const auto target = Argument("target", Ref<EntityParser>::Create(true, false));
         target->Executes([](CommandSourceStack& source, const std::unordered_map<std::string, std::string>& arguments) {
             const auto iterator = arguments.find("target");
             const std::string& targetName = iterator != arguments.end() ? iterator->second : "";
@@ -28,9 +28,9 @@ namespace Axiom {
             return 1;
         });
 
-        const auto xArgument = Argument("x", CreateRef<DoubleParser>());
-        const auto yArgument = Argument("y", CreateRef<DoubleParser>());
-        const auto zArgument = Argument("z", CreateRef<DoubleParser>());
+        const auto xArgument = Argument("x", Ref<DoubleParser>::Create());
+        const auto yArgument = Argument("y", Ref<DoubleParser>::Create());
+        const auto zArgument = Argument("z", Ref<DoubleParser>::Create());
 
         zArgument->Executes([](CommandSourceStack& source, const std::unordered_map<std::string, std::string>& arguments) {
             auto player = source.GetPlayer();

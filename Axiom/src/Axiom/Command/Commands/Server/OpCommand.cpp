@@ -69,7 +69,7 @@ namespace Axiom {
 			// Resend the command graph so the
 			// target immediately sees any newly
 			// permitted commands in their client.
-			auto refreshPacket = CreateRef<Play::Clientbound::CommandsPacket>(
+			auto refreshPacket = Ref<Play::Clientbound::CommandsPacket>::Create(
 				application.Commands().GetRootNodes(), target);
 			NetworkBuffer payload;
 			refreshPacket->Write(payload);
@@ -97,7 +97,7 @@ namespace Axiom {
 		root->Requires(RequiredPermissionLevel());
 		root->Requires(RequiredPermission());
 
-		const auto target = Argument("target", CreateRef<EntityParser>(true, true));
+		const auto target = Argument("target", Ref<EntityParser>::Create(true, true));
 		target->Executes([](CommandSourceStack& source,
 			const std::unordered_map<std::string, std::string>& arguments) {
 
@@ -129,7 +129,7 @@ namespace Axiom {
 			return ApplyOp(source, iterator->second, newLevel);
 		});
 
-		const auto levelArgument = Argument("level", CreateRef<IntegerParser>(1, 4));
+		const auto levelArgument = Argument("level", Ref<IntegerParser>::Create(1, 4));
 		levelArgument->Executes([](CommandSourceStack& source,
 			const std::unordered_map<std::string, std::string>& arguments) {
 

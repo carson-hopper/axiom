@@ -53,7 +53,7 @@ namespace Axiom {
         set->Then(MakePreset("night", 13000));
         set->Then(MakePreset("midnight", 18000));
 
-        const auto value = Argument("value", CreateRef<IntegerParser>(0));
+        const auto value = Argument("value", Ref<IntegerParser>::Create(0));
         value->Executes([](CommandSourceStack& source, const std::unordered_map<std::string, std::string>& arguments) {
             const auto iterator = arguments.find("value");
             if (iterator == arguments.end()) {

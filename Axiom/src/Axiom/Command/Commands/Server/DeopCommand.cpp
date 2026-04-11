@@ -16,7 +16,7 @@ namespace Axiom {
 		auto root = Literal("deop");
 		root->Requires(RequiredPermissionLevel());
 
-		const auto target = Argument("target", CreateRef<EntityParser>(true, true));
+		const auto target = Argument("target", Ref<EntityParser>::Create(true, true));
 		target->Executes([](CommandSourceStack& source,
 			const std::unordered_map<std::string, std::string>& arguments) {
 
@@ -74,7 +74,7 @@ namespace Axiom {
 			// Resend the command graph so the
 			// target immediately loses access
 			// to any now-restricted commands.
-			auto refreshPacket = CreateRef<Play::Clientbound::CommandsPacket>(
+			auto refreshPacket = Ref<Play::Clientbound::CommandsPacket>::Create(
 				application.Commands().GetRootNodes(), target);
 			NetworkBuffer payload;
 			refreshPacket->Write(payload);

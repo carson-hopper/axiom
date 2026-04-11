@@ -184,12 +184,12 @@ namespace Axiom {
 
 	/** Factory: Create a literal node. */
 	inline Ref<LiteralNode> Literal(const std::string& name) {
-		return CreateRef<LiteralNode>(name);
+		return Ref<LiteralNode>::Create(name);
 	}
 
 	/** Factory: Create an argument node with a parser. */
 	inline Ref<ArgumentNode> Argument(const std::string& name, Ref<ArgumentParser> parser) {
-		return CreateRef<ArgumentNode>(name, std::move(parser));
+		return Ref<ArgumentNode>::Create(name, std::move(parser));
 	}
 
 }

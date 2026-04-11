@@ -57,7 +57,7 @@ namespace Axiom {
         root->Then(spectator);
 
     	for (const auto& children : root->GetChildren()) {
-    		children->Requires(RequiredPermission() + "." + survival->GetName());
+    		children->Requires(RequiredPermission() + "." + children->GetName());
     	}
 
         return root;

@@ -22,7 +22,7 @@ public:
     }
 
 	const std::string& RequiredPermission() const override {
-    	static constexpr std::string perm = "axiom.world.gamrtule";
+    	static constexpr std::string perm = "axiom.world.gamerule";
     	return perm;
     }
 

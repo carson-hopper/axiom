@@ -32,7 +32,7 @@ namespace Axiom {
 	 *     Ref<LiteralNode> BuildTree() override {
 	 *         auto root = Literal("kill");
 	 *         root->Requires(RequiredPermissionLevel());
-	 *         root->Then(Argument("target", CreateRef<EntityParser>())
+	 *         root->Then(Argument("target", Ref<EntityParser>::Create())
 	 *             ->Executes([](CommandSourceStack& source, auto&) {
 	 *                 // ...
 	 *                 return 1;

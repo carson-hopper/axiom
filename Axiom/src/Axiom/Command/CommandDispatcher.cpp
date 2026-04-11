@@ -160,6 +160,14 @@ void CommandDispatcher::CollectSuggestions(CommandSourceStack& source,
 	}
 
 	for (auto& child : node->GetChildren()) {
+		// Mirror `Execute`: permission-gate BEFORE matching so
+		// tab-completion can't walk into a forbidden subnode and
+		// enumerate its descendants. Without this check a source
+		// that has permission for the parent but not this child
+		// would still see suggestions underneath it.
+		if (!CheckPermission(source, *child)) {
+			continue;
+		}
 		if (index - 1 < tokens.size() && child->Matches(tokens[index - 1])) {
 			CollectSuggestions(source, child, tokens, index - 1, output);
 		}

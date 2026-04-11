@@ -33,7 +33,7 @@ namespace Axiom {
             return 1;
         });
 
-        const auto positionArgument = Argument("pos", CreateRef<BlockPosParser>());
+        const auto positionArgument = Argument("pos", Ref<BlockPosParser>::Create());
         positionArgument->Executes([](CommandSourceStack& source, const std::unordered_map<std::string, std::string>& arguments) {
             const auto iterator = arguments.find("pos");
             const std::string& positionText = iterator != arguments.end() ? iterator->second : "";
