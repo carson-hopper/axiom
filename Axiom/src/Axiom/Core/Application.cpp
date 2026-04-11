@@ -1,8 +1,6 @@
 #include "axpch.h"
 #include "Axiom/Core/Application.h"
 
-#include "Axiom/Core/PathUtil.h"
-#include "Axiom/Core/BuildCount.generated.h"
 #include "Axiom/Core/Assert.h"
 #include "Axiom/Event/ServerEvents.h"
 #include "Axiom/Plugin/CorePlugin.h"
@@ -18,6 +16,10 @@
 
 #if defined(AX_PLATFORM_MACOS)
 #include <mach/mach.h>
+#endif
+
+#ifdef AX_DEBUG
+#include "Axiom/Core/BuildCount.generated.h"
 #endif
 
 namespace Axiom {
@@ -46,7 +48,6 @@ namespace Axiom {
 	Application::~Application() {
 		AX_CORE_TRACE("Shutting down Axiom Server");
 
-		// Save all modified chunks before shutdown
 		if (m_PacketContext) {
 			m_PacketContext->ChunkManagement().SaveAllDirtyChunks();
 		}
@@ -148,11 +149,12 @@ namespace Axiom {
 		});
 		m_ConsoleInput.Prompt().AddLeft([]() -> ConsolePrompt::Segment {
 #ifdef AX_DEBUG
-			return {"", "v26.1-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT) "+b" AX_STRINGIFY_MACRO(AX_BUILD_COUNT), 15, 33};
+			return {"", "v" AX_MINECRAFT_VERSION "-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT) "+b" AX_STRINGIFY_MACRO(AX_BUILD_COUNT), 15, 33};
 #else
-			return {"", "v26.1-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT), 15, 33};
+			return {"", "v" AX_MINECRAFT_VERSION "-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT), 15, 33};
 #endif
 		});
+
 		m_ConsoleInput.Prompt().AddRight([this]() -> ConsolePrompt::Segment {
 			const int count = static_cast<int>(m_PacketContext->Server().PlayerCount());
 			const std::string text = std::to_string(count) + (count == 1 ? " player" : " players");

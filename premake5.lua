@@ -46,7 +46,25 @@ newaction {
         cmakeFile:write('    "${CMAKE_SOURCE_DIR}/Axiom/src/**.cpp"\n')
         cmakeFile:write(')\n\n')
 
-        cmakeFile:write('add_executable(Axiom ${AXIOM_SOURCES})\n\n')
+        -- Platform-specific sources (Axiom/Platform/<OS>/**.cpp)
+        cmakeFile:write('if(APPLE)\n')
+        cmakeFile:write('    file(GLOB_RECURSE AXIOM_PLATFORM_SOURCES\n')
+        cmakeFile:write('        "${CMAKE_SOURCE_DIR}/Axiom/Platform/Macosx/**.cpp"\n')
+        cmakeFile:write('        "${CMAKE_SOURCE_DIR}/Axiom/Platform/Macosx/**.h"\n')
+        cmakeFile:write('    )\n')
+        cmakeFile:write('elseif(WIN32)\n')
+        cmakeFile:write('    file(GLOB_RECURSE AXIOM_PLATFORM_SOURCES\n')
+        cmakeFile:write('        "${CMAKE_SOURCE_DIR}/Axiom/Platform/Windows/**.cpp"\n')
+        cmakeFile:write('        "${CMAKE_SOURCE_DIR}/Axiom/Platform/Windows/**.h"\n')
+        cmakeFile:write('    )\n')
+        cmakeFile:write('elseif(UNIX)\n')
+        cmakeFile:write('    file(GLOB_RECURSE AXIOM_PLATFORM_SOURCES\n')
+        cmakeFile:write('        "${CMAKE_SOURCE_DIR}/Axiom/Platform/Linux/**.cpp"\n')
+        cmakeFile:write('        "${CMAKE_SOURCE_DIR}/Axiom/Platform/Linux/**.h"\n')
+        cmakeFile:write('    )\n')
+        cmakeFile:write('endif()\n\n')
+
+        cmakeFile:write('add_executable(Axiom ${AXIOM_SOURCES} ${AXIOM_PLATFORM_SOURCES})\n\n')
 
         -- PCH
         cmakeFile:write('target_precompile_headers(Axiom PRIVATE "${CMAKE_SOURCE_DIR}/Axiom/src/axpch.h")\n\n')
@@ -72,7 +90,6 @@ newaction {
         cmakeFile:write('target_compile_definitions(Axiom PRIVATE\n')
         cmakeFile:write('    ASIO_STANDALONE\n')
         cmakeFile:write('    AX_COMMIT_COUNT=' .. commitCount .. '\n')
-        cmakeFile:write('    AX_BUILD_COUNT=0\n')
         cmakeFile:write(')\n\n')
 
         -- Per-config defines

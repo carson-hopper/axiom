@@ -9,6 +9,10 @@ local function split(value, separator)
     return result
 end
 
+local function firstToUpper(value)
+    return (value:gsub("^%l", string.upper))
+end
+
 local function loadPacketIds(versionName)
     local result = {}
 
@@ -196,28 +200,31 @@ project "Axiom"
     files {
         "src/**.h",
         "src/**.cpp",
+        "Platform/" .. firstToUpper(os.target()) .. "/**.cpp",
     }
 
-	vpaths 
+	vpaths
 	{
         ["Header Files/*"] = { "src/**.h",  "src/**.hpp" },
         ["Source Files/*"] = { "src/**.c", "src/**.cpp" },
+        ["Platform/*"]    = { "Platform/**.cpp" },
     }
 
     includedirs {
         "src",
+
         "vendor/asio/asio/include",
         "vendor/json/include",
         "vendor/spdlog/include",
         "vendor/tomlplusplus/include",
         "vendor/yaml-cpp/include",
-        "/opt/homebrew/opt/openssl/include",
     }
 
+    filter "action:vs*"
+        linkoptions { "/ignore:4099" } -- NOTE(Peter): Disable no PDB found warning
+        disablewarnings { "4068" }
     filter "action:xcode4"
-        xcodebuildsettings {
-            ["ALWAYS_SEARCH_USER_PATHS"] = "YES",
-        }
+        xcodebuildsettings { ["ALWAYS_SEARCH_USER_PATHS"] = "YES", }
     filter {}
 
     -- Force ANSI color output in Xcode console
@@ -225,7 +232,7 @@ project "Axiom"
         "TERM=xterm-256color",
     }
 
-    -- Inject git commit count at build time
+    -- Inject git commit count at generate time
     local commitCount = "0"
     local gitHandle = io.popen("git rev-list --count HEAD 2>/dev/null")
     if gitHandle then
@@ -236,11 +243,6 @@ project "Axiom"
     defines {
         "ASIO_STANDALONE",
         "AX_COMMIT_COUNT=" .. commitCount,
-    }
-
-    -- Prebuild: increment build counter and generate header
-    prebuildcommands {
-        'sh "%{wks.location}/scripts/increment-build.sh" "%{wks.location}" "%{prj.location}"'
     }
 
     links {
@@ -286,57 +288,38 @@ project "Axiom"
     end
 
     filter "system:macosx"
-        defines {
-            "AX_PLATFORM_MACOS",
-            "FMT_USE_CHAR8_T=0",
-        }
-        buildoptions {
-            "-std=c++23",
-            "-stdlib=libc++",
-            "-Wno-deprecated-declarations",
-            "-Wall",
-            "-Wextra",
-            "-Wpedantic",
-        }
-        linkoptions {
-            "-stdlib=libc++",
-        }
-        libdirs {
-            "/opt/homebrew/lib",
-            "/opt/homebrew/opt/openssl/lib",
-        }
-        includedirs {
-            "/opt/homebrew/opt/openssl/include",
-        }
-        links {
-            "ssl",
-            "crypto",
-            "z",
-        }
+        defines { "AX_PLATFORM_MACOS", "FMT_USE_CHAR8_T=0", }
+        buildoptions { "-std=c++23", "-stdlib=libc++", "-Wno-deprecated-declarations", "-Wall", "-Wextra", "-Wpedantic", }
+        linkoptions { "-stdlib=libc++", }
+        libdirs { "/opt/homebrew/lib", "/opt/homebrew/opt/openssl/lib", }
+        includedirs { "/opt/homebrew/opt/openssl/include", }
+        links { "ssl", "crypto", "z", }
 
     filter "system:linux"
-        defines { "AX_PLATFORM_LINUX" }
-        buildoptions {
-            "-Wall",
-            "-Wextra",
-            "-Wpedantic",
-        }
-        links {
-            "ssl",
-            "crypto",
-            "z",
-            "pthread",
-        }
+        defines { "AX_PLATFORM_LINUX", "__EMULATE_UUID" }
+        buildoptions { "-Wall", "-Wextra", "-Wpedantic", }
+        links { "ssl", "crypto", "z", "pthread", }
 
     filter "system:windows"
+        architecture "x86_64"
+        systemversion "latest"
+        defines { "AX_PLATFORM_WINDOWS", }
 
     filter "configurations:Debug*"
         defines { "AX_DEBUG", "AX_ENABLE_ASSERTS" }
         runtime "Debug"
         symbols "on"
         optimize "off"
+        prebuildcommands {
+            '"%{wks.location}/scripts/bump-build-count.sh" "%{wks.location}"',
+        }
 
     filter "configurations:Release*"
+        optimize "On"
+        symbols "Off"
+        vectorextensions "AVX2"
+        isaextensions { "BMI", "POPCNT", "LZCNT", "F16C" }
+        defines { "AX_RELEASE", "NDEBUG", }
 
     filter {}
     postbuildcommands {
