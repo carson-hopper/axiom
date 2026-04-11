@@ -64,7 +64,7 @@ namespace Axiom {
 		ChunkManager& operator=(const ChunkManager&) = delete;
 
 		void SendInitialChunks(Ref<Connection> connection, double playerX, double playerZ);
-		void OnPlayerMove(Ref<Connection> connection, double playerX, double playerZ);
+		void OnPlayerMove(const Ref<Connection> &connection, double playerX, double playerZ);
 		void RemovePlayer(ConnectionId connectionId);
 
 		/**

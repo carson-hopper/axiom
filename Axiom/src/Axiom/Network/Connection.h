@@ -4,6 +4,7 @@
 #include "Axiom/Network/Protocol.h"
 #include "Axiom/Network/NetworkBuffer.h"
 #include "Axiom/Network/Crypto/AesCipher.h"
+#include "Axiom/Network/Packet/Packet.h"
 
 #include <asio.hpp>
 
@@ -60,10 +61,29 @@ namespace Axiom {
 		void Disconnect(const std::string& reason = "");
 
 		/**
+		 * Serialises `packet` into a fresh NetworkBuffer
+		 * via its virtual `Write` and forwards the result
+		 * plus `GetPacketId()` to the raw overload.
+		 *
+		 * Thread-safe. Can be called from any thread. If the
+		 * connection is not connected, the packet is silently
+		 * dropped. Takes a non-const reference because
+		 * `IChainablePacket::Write` is non-const (it may
+		 * lazily materialise fields before writing).
+		 *
+		 * @param packet Any concrete `Packet<T, Id>` or other
+		 *               IChainablePacket subclass.
+		 */
+		void SendRawPacket(IChainablePacket& packet);
+
+		/**
 		 * Sends a raw packet to the client.
 		 *
 		 * Thread-safe. Can be called from any thread. If the connection
-		 * is not connected, the packet is silently dropped.
+		 * is not connected, the packet is silently dropped. Use this
+		 * overload when the caller has already built the payload by
+		 * hand — for example when the protocol encodes a trivial
+		 * packet and constructing a `Packet<T>` wrapper adds no value.
 		 *
 		 * @param packetId The packet ID to send.
 		 * @param payload The packet payload data.

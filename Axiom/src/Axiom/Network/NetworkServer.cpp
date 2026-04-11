@@ -195,36 +195,27 @@ namespace Axiom {
 	// ----- Broadcasting ---------------------------------------------
 
 	void NetworkServer::BroadcastPacket(IChainablePacket& packet) {
-		NetworkBuffer payload;
-		packet.Write(payload);
-
 		for (const auto& player : AllPlayers()) {
 			auto connection = player->GetConnection();
 			if (connection && connection->IsConnected()
 				&& connection->State() == ConnectionState::Play) {
-				connection->SendRawPacket(packet.GetPacketId(), payload);
+				connection->SendRawPacket(packet);
 			}
 		}
 	}
 
-	void NetworkServer::BroadcastPacketExcept(IChainablePacket& packet, ConnectionId exclude) {
-		NetworkBuffer payload;
-		packet.Write(payload);
-
+	void NetworkServer::BroadcastPacketExcept(IChainablePacket& packet, const ConnectionId exclude) {
 		for (const auto& player : AllPlayers()) {
 			auto connection = player->GetConnection();
 			if (connection && connection->IsConnected()
 				&& connection->State() == ConnectionState::Play
 				&& connection->Id() != exclude) {
-				connection->SendRawPacket(packet.GetPacketId(), payload);
+				connection->SendRawPacket(packet);
 			}
 		}
 	}
 
 	void NetworkServer::BroadcastPacketNearby(const Player& source, IChainablePacket& packet) {
-		// Fall back gracefully if PacketContext hasn't
-		// finished wiring us up. Better to over-deliver
-		// to every player than silently drop the packet.
 		if (!m_ChunkManager) {
 			AX_CORE_WARN(
 				"BroadcastPacketNearby called before SetChunkManager; "
@@ -233,11 +224,6 @@ namespace Axiom {
 			return;
 		}
 
-		// Snapshot every player's effective view distance
-		// under a single ChunkManager lock. After this
-		// point we never touch ChunkManager again, so the
-		// broadcast loop doesn't contend with chunk
-		// streaming on any other thread.
 		const auto viewDistances = m_ChunkManager->SnapshotViewDistances();
 
 		const auto sourceConnection = source.GetConnection();
@@ -247,10 +233,6 @@ namespace Axiom {
 		const ConnectionId sourceId = sourceConnection->Id();
 		const auto sourceIterator = viewDistances.find(sourceId);
 		if (sourceIterator == viewDistances.end()) {
-			// Source hasn't entered Play state (or isn't
-			// tracked by the chunk manager). Skip the
-			// broadcast — the event is being emitted by a
-			// player who can't yet see any chunks.
 			return;
 		}
 		const int sourceViewDistance = sourceIterator->second;
@@ -261,11 +243,6 @@ namespace Axiom {
 		packet.Write(payload);
 		const int32_t packetId = packet.GetPacketId();
 
-		// Walk all online players. For each candidate we
-		// compute `min(source, observer)` and do a square
-		// (Chebyshev) radius test in chunk space — this
-		// matches how Minecraft defines render distance,
-		// which is a square box, not a circle.
 		for (const auto& player : AllPlayers()) {
 			if (!player) {
 				continue;
@@ -303,11 +280,8 @@ namespace Axiom {
 	// ----- Levels ---------------------------------------------------
 
 	Ref<Level> NetworkServer::GetLevel(const std::string& name) const {
-		// Shared lock: reader. Previously unlocked, racing
-		// with AddLevel if anything ever adds levels at
-		// runtime.
 		std::shared_lock<std::shared_mutex> const lock(m_LevelMutex);
-		auto iterator = m_Levels.find(name);
+		const auto iterator = m_Levels.find(name);
 		if (iterator != m_Levels.end()) {
 			return iterator->second;
 		}
@@ -315,7 +289,6 @@ namespace Axiom {
 	}
 
 	void NetworkServer::AddLevel(const std::string& name, Ref<Level> level) {
-		// Exclusive lock: writer.
 		std::lock_guard<std::shared_mutex> const lock(m_LevelMutex);
 		m_Levels[name] = std::move(level);
 	}

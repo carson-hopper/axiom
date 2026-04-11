@@ -64,6 +64,16 @@ namespace Axiom {
 		});
 	}
 
+	void Connection::SendRawPacket(IChainablePacket& packet) {
+		if (!m_Connected.load(std::memory_order_acquire)) {
+			return;
+		}
+
+		NetworkBuffer payload;
+		packet.Write(payload);
+		SendRawPacket(packet.GetPacketId(), payload);
+	}
+
 	void Connection::SendRawPacket(const int32_t packetId, const NetworkBuffer& payload) {
 		if (!m_Connected.load(std::memory_order_acquire)) {
 			return;

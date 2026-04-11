@@ -133,7 +133,7 @@ namespace Axiom {
 		return result;
 	}
 
-	void ChunkManager::OnPlayerMove(Ref<Connection> connection, const double playerX, const double playerZ) {
+	void ChunkManager::OnPlayerMove(const Ref<Connection>& connection, const double playerX, const double playerZ) {
 		const ChunkPosition center{BlockToChunk(playerX), BlockToChunk(playerZ)};
 
 		// Collect-under-lock, dispatch-outside-lock:
