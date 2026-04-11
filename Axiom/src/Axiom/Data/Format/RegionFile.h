@@ -79,6 +79,33 @@ namespace Axiom {
 
 		void EnsureOpen();
 
+		/**
+		 * Rebuild the sector-usage bitmap from the
+		 * current contents of `m_Offsets`. Called
+		 * once after the header is read during
+		 * `EnsureOpen`. Sectors 0 and 1 (the header
+		 * itself) are always marked used.
+		 */
+		void BuildSectorMap();
+
+		/**
+		 * Find or append a contiguous run of the given
+		 * number of sectors and mark them used. Returns
+		 * the sector offset of the first sector. If no
+		 * free run fits inside the existing file, the
+		 * bitmap is extended and the new run starts at
+		 * the old file end.
+		 */
+		uint32_t AllocateSectors(uint32_t count);
+
+		/**
+		 * Mark the given run of sectors free so a
+		 * future `AllocateSectors` call can reuse
+		 * them. Safe to call with out-of-range offsets
+		 * (they are silently ignored).
+		 */
+		void FreeSectors(uint32_t offset, uint32_t count);
+
 		std::filesystem::path m_Path;
 		std::fstream m_File;
 		std::mutex m_Mutex;
@@ -86,6 +113,7 @@ namespace Axiom {
 
 		std::vector<uint32_t> m_Offsets;
 		std::vector<uint32_t> m_Timestamps;
+		std::vector<bool> m_UsedSectors;
 	};
 
 }

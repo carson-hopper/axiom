@@ -1,13 +1,16 @@
 #include "LevelStorage.h"
 
 #include "Axiom/Core/Log.h"
+#include "Axiom/Data/Nbt/NbtCompound.h"
+#include "Axiom/Data/Nbt/NbtIo.h"
+#include "Axiom/Data/Nbt/NbtListImpl.h"
+#include "Axiom/Data/Nbt/NbtString.h"
 
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
-
-#include <nlohmann/json.hpp>
+#include <iterator>
 
 namespace Axiom {
 
@@ -75,28 +78,51 @@ std::unordered_map<std::string, std::string> LevelStorage::LoadLevelData() {
 	std::unordered_map<std::string, std::string> result;
 	const std::string levelPath = m_WorldDirectory + "/level.dat";
 
-	std::ifstream file(levelPath);
-	if (!file) {
+	if (!std::filesystem::exists(levelPath)) {
 		AX_CORE_WARN("No level.dat found at {}", levelPath);
 		return result;
 	}
 
-	/**
-	 * Parse the JSON placeholder format.
-	 * Full NBT persistence will replace
-	 * this in Task 12.
-	 */
+	std::ifstream file(levelPath, std::ios::binary);
+	if (!file) {
+		AX_CORE_WARN("Failed to open level.dat at {}", levelPath);
+		return result;
+	}
+
+	// Slurp the whole file into a byte buffer so the
+	// NBT reader can pick its own decompression path
+	// (gzip) without streaming concerns. level.dat is
+	// typically a few KB, so the full-file read is not
+	// a concern here.
+	const std::vector<uint8_t> bytes(
+		(std::istreambuf_iterator<char>(file)),
+		std::istreambuf_iterator<char>());
+
 	try {
-		nlohmann::json document = nlohmann::json::parse(file);
-		for (auto& [key, value] : document.items()) {
-			if (value.is_string()) {
-				result[key] = value.get<std::string>();
+		const auto root = NbtIo::ReadGzipCompressed(bytes);
+		if (!root) {
+			AX_CORE_WARN("level.dat at {} is empty or unreadable", levelPath);
+			return result;
+		}
+
+		// Walk the top-level compound and hand every
+		// child back to the caller keyed by name. String
+		// tags pass through verbatim; everything else is
+		// rendered via its `ToString` for inspection.
+		// Callers that need typed access should migrate
+		// to the NbtCompound API directly.
+		for (const auto& [name, tag] : root->Tags()) {
+			if (!tag) {
+				continue;
+			}
+			if (tag->Type() == NbtTagType::String) {
+				result[name] = static_cast<NbtString*>(tag.Raw())->Value();
 			} else {
-				result[key] = value.dump();
+				result[name] = tag->ToString();
 			}
 		}
-		AX_CORE_INFO("Loaded level.dat from {}", levelPath);
-	} catch (const nlohmann::json::exception& exception) {
+		AX_CORE_INFO("Loaded level.dat from {} ({} tags)", levelPath, result.size());
+	} catch (const std::exception& exception) {
 		AX_CORE_ERROR("Failed to parse level.dat: {}", exception.what());
 	}
 
@@ -111,10 +137,9 @@ void LevelStorage::SaveLevelData(
 	const std::string levelPath = m_WorldDirectory + "/level.dat";
 	const std::string backupPath = m_WorldDirectory + "/level.dat_old";
 
-	/**
-	 * Back up the existing level.dat to
-	 * level.dat_old before overwriting.
-	 */
+	// Back up the existing level.dat to level.dat_old
+	// before overwriting, matching vanilla Minecraft's
+	// recovery strategy.
 	if (std::filesystem::exists(levelPath)) {
 		std::error_code errorCode;
 		std::filesystem::copy_file(
@@ -130,24 +155,33 @@ void LevelStorage::SaveLevelData(
 		}
 	}
 
-	/**
-	 * Write the key-value data as JSON.
-	 * Full NBT persistence will replace
-	 * this in Task 12.
-	 */
-	nlohmann::json document;
+	// Build a flat compound where every entry is a
+	// TAG_String. NbtIo takes care of gzip framing so
+	// the on-disk format matches vanilla's level.dat.
+	auto root = Ref<NbtCompound>::Create();
 	for (const auto& [key, value] : data) {
-		document[key] = value;
+		root->PutString(key, value);
 	}
 
-	std::ofstream file(levelPath);
+	std::vector<uint8_t> bytes;
+	try {
+		bytes = NbtIo::WriteGzipCompressed(root, "");
+	} catch (const std::exception& exception) {
+		AX_CORE_ERROR("Failed to serialize level.dat: {}", exception.what());
+		return;
+	}
+
+	std::ofstream file(levelPath, std::ios::binary | std::ios::trunc);
 	if (!file) {
 		AX_CORE_ERROR("Failed to write level.dat at {}", levelPath);
 		return;
 	}
 
-	file << document.dump(4);
-	AX_CORE_INFO("Saved level.dat to {}", levelPath);
+	file.write(
+		reinterpret_cast<const char*>(bytes.data()),
+		static_cast<std::streamsize>(bytes.size()));
+
+	AX_CORE_INFO("Saved level.dat to {} ({} bytes)", levelPath, bytes.size());
 }
 
 void LevelStorage::EnsureDirectories() {

@@ -44,7 +44,7 @@ namespace Axiom {
 		filename << "r." << regionX << "." << regionZ << ".mca";
 		auto path = m_RegionDirectory / filename.str();
 
-		auto regionFile = CreateRef<RegionFile>(path);
+		auto regionFile = Ref<RegionFile>::Create(path);
 		m_RegionFiles[key] = regionFile;
 
 		AX_CORE_TRACE("RegionFileStorage: opened region ({}, {}) — {} files cached",
