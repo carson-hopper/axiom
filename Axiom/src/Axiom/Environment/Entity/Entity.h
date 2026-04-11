@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Axiom/Core/Math.h"
+#include "Axiom/Core/Observable.h"
 #include "Axiom/Core/Tickable.h"
 #include "Axiom/Utilities/Memory/Ref.h"
 
@@ -31,20 +32,20 @@ namespace Axiom {
 
 		int32_t GetEntityId() const { return m_EntityId; }
 
-		const Vector3& GetPosition() const { return m_Position; }
+		Vector3 GetPosition() const { return m_Position.Get(); }
 		void SetPosition(const Vector3& position) { m_Position = position; }
 
-		const Vector2& GetRotation() const { return m_Rotation; }
+		Vector2 GetRotation() const { return m_Rotation.Get(); }
 		void SetRotation(const Vector2& rotation) { m_Rotation = rotation; }
 
-		const Vector3& GetVelocity() const { return m_Velocity; }
+		Vector3 GetVelocity() const { return m_Velocity.Get(); }
 		void SetVelocity(const Vector3& velocity) { m_Velocity = velocity; }
 
 		bool IsOnGround() const { return m_OnGround; }
 		void SetOnGround(const bool onGround) { m_OnGround = onGround; }
 
-		int32_t GetChunkX() const { return m_Position.ChunkX(); }
-		int32_t GetChunkZ() const { return m_Position.ChunkZ(); }
+		int32_t GetChunkX() const { return m_Position.Get().ChunkX(); }
+		int32_t GetChunkZ() const { return m_Position.Get().ChunkZ(); }
 
 		virtual void OnTick(Timestep /* timestep */) {}
 
@@ -53,9 +54,9 @@ namespace Axiom {
 
 	protected:
 		int32_t m_EntityId;
-		Vector3 m_Position;
-		Vector2 m_Rotation;   // x = yaw, y = pitch
-		Vector3 m_Velocity;
+		Observable<Vector3> m_Position;
+		Observable<Vector2> m_Rotation; // x = yaw, y = pitch
+		Observable<Vector3> m_Velocity;
 		bool m_OnGround = false;
 		bool m_Removed = false;
 

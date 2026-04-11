@@ -66,7 +66,7 @@ public:
 			63));
 
 		// 2. Player info (skin textures) — all online players
-		auto infoPacket = Ref<Play::Clientbound::PlayerInfoUpdatePacket>::Create();
+		const auto infoPacket = Ref<Play::Clientbound::PlayerInfoUpdatePacket>::Create();
 		infoPacket->AddPlayer(player);
 		for (const auto& other : context.Server().AllPlayers()) {
 			if (other->GetConnection()->Id() != connection->Id())
@@ -89,8 +89,11 @@ public:
 		chain.push_back(Ref<Play::Clientbound::CommandsPacket>::Create(
 			context.Commands().GetRootNodes(), player));
 
-		// 4. Spawn position — from player position
-		auto& spawnPos = player->GetPosition();
+		// 4. Spawn position — from player position. `GetPosition`
+		//    snapshots the `Observable<Vector3>` into a prvalue so
+		//    bind to a const reference (or drop the reference) to
+		//    extend the temporary's lifetime.
+		const auto spawnPos = player->GetPosition();
 		chain.push_back(Ref<Play::Clientbound::SetDefaultSpawnPositionPacket>::Create(
 			"minecraft:overworld",
 			static_cast<int32_t>(spawnPos.x),
@@ -113,7 +116,7 @@ public:
 			context, player->GetPosition()));
 
 		// Broadcast new player to existing players
-		auto broadcastPacket = Ref<Play::Clientbound::PlayerInfoUpdatePacket>::Create();
+		const auto broadcastPacket = Ref<Play::Clientbound::PlayerInfoUpdatePacket>::Create();
 		broadcastPacket->AddPlayer(player);
 		NetworkBuffer broadcastPayload;
 		broadcastPacket->Write(broadcastPayload);
