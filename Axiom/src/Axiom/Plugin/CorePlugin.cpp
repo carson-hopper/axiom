@@ -14,24 +14,24 @@ namespace Axiom {
 
 	void CorePlugin::OnEnable(PluginContext& context) {
 		// Register built-in commands using their own classes
-        context.Commands().Register(CreateRef<StopCommand>());
-        context.Commands().Register(CreateRef<OpCommand>());
-        context.Commands().Register(CreateRef<DeopCommand>());
+        context.Commands().Register(Ref<StopCommand>::Create());
+        context.Commands().Register(Ref<OpCommand>::Create());
+        context.Commands().Register(Ref<DeopCommand>::Create());
 
 #if AX_DEBUG
-        context.Commands().Register(CreateRef<RestartCommand>());
+        context.Commands().Register(Ref<RestartCommand>::Create());
 #endif
 
-        context.Commands().Register(CreateRef<GamemodeCommand>());
-		context.Commands().Register(CreateRef<DifficultyCommand>());
-		context.Commands().Register(CreateRef<TimeCommand>());
-		context.Commands().Register(CreateRef<WeatherCommand>());
-		context.Commands().Register(CreateRef<TeleportCommand>());
-		context.Commands().Register(CreateRef<SetWorldSpawnCommand>());
-		context.Commands().Register(CreateRef<GameruleCommand>());
-		context.Commands().Register(CreateRef<ListCommand>());
+        context.Commands().Register(Ref<GamemodeCommand>::Create());
+		context.Commands().Register(Ref<DifficultyCommand>::Create());
+		context.Commands().Register(Ref<TimeCommand>::Create());
+		context.Commands().Register(Ref<WeatherCommand>::Create());
+		context.Commands().Register(Ref<TeleportCommand>::Create());
+		context.Commands().Register(Ref<SetWorldSpawnCommand>::Create());
+		context.Commands().Register(Ref<GameruleCommand>::Create());
+		context.Commands().Register(Ref<ListCommand>::Create());
 
-        context.Commands().Register(CreateRef<HelpCommand>(context.Commands()));
+        context.Commands().Register(Ref<HelpCommand>::Create(context.Commands()));
 	}
 
 	void CorePlugin::OnDisable() {

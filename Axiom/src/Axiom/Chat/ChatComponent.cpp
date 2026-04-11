@@ -107,7 +107,7 @@ namespace Axiom {
 	}
 
 	ChatComponent::Builder& ChatComponent::Builder::HoverText(const std::string& text) {
-		auto textComponent = CreateRef<ChatComponent>();
+		const auto textComponent = Ref<ChatComponent>::Create();
 		textComponent->Text = text;
 		m_Current->HoverEvent = Axiom::ChatHoverEvent(HoverAction::ShowText, textComponent);
 		return *this;
@@ -119,14 +119,14 @@ namespace Axiom {
 	}
 
 	ChatComponent::Builder& ChatComponent::Builder::Append(const std::string& text) {
-		auto component = CreateRef<ChatComponent>();
+		const auto component = Ref<ChatComponent>::Create();
 		component->Text = text;
 		m_Component->Extra.push_back(component);
 		return *this;
 	}
 
 	ChatComponent::Builder& ChatComponent::Builder::Append(const std::string& text, ChatColor color) {
-		auto component = CreateRef<ChatComponent>();
+		const auto component = Ref<ChatComponent>::Create();
 		component->Text = text;
 		component->Color = color;
 		m_Component->Extra.push_back(component);
@@ -204,7 +204,7 @@ namespace Axiom {
 	}
 
 	Ref<NbtCompound> ChatComponent::ToNbt() const {
-		auto compound = CreateRef<NbtCompound>();
+		auto compound = Ref<NbtCompound>::Create();
 
 		compound->PutString("text", Text);
 
@@ -232,14 +232,14 @@ namespace Axiom {
 		}
 
 		if (ClickEvent.has_value()) {
-			auto clickCompound = CreateRef<NbtCompound>();
+			auto clickCompound = Ref<NbtCompound>::Create();
 			clickCompound->PutString("action", ClickActionToString(ClickEvent->Action));
 			clickCompound->PutString("value", ClickEvent->Value);
 			compound->PutCompound("clickEvent", clickCompound);
 		}
 
 		if (HoverEvent.has_value()) {
-			auto hoverCompound = CreateRef<NbtCompound>();
+			auto hoverCompound = Ref<NbtCompound>::Create();
 			hoverCompound->PutString("action", HoverActionToString(HoverEvent->Action));
 			if (HoverEvent->Value) {
 				hoverCompound->PutCompound("contents", HoverEvent->Value->ToNbt());
@@ -248,7 +248,7 @@ namespace Axiom {
 		}
 
 		if (!Extra.empty()) {
-			auto extraList = CreateRef<NbtList>(NbtTagType::Compound);
+			auto extraList = Ref<NbtList>::Create(NbtTagType::Compound);
 			for (const auto& extra : Extra) {
 				extraList->Add(extra->ToNbt());
 			}

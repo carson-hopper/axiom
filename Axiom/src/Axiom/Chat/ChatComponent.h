@@ -157,7 +157,7 @@ namespace Axiom {
 		Ref<ChatComponent> Build();
 
 		private:
-			Ref<ChatComponent> m_Component = CreateRef<ChatComponent>();
+			Ref<ChatComponent> m_Component = Ref<ChatComponent>::Create();
 			Ref<ChatComponent> m_Current = m_Component;
 		};
 

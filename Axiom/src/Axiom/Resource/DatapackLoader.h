@@ -21,10 +21,10 @@ namespace Axiom {
 	};
 
 	/**
-	 * Discovers and manages datapacks under
-	 * the server's datapacks/ directory.
-	 * Handles both folder-based and zip
-	 * datapacks.
+	 * Discovers and manages folder-based
+	 * datapacks under the server's datapacks/
+	 * directory. Zip datapacks are not yet
+	 * supported.
 	 */
 	class DatapackLoader {
 	public:

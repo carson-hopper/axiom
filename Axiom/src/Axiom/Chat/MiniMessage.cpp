@@ -8,7 +8,7 @@ namespace Axiom {
 	Ref<ChatComponent> MiniMessage::Parse(const std::string& message) {
 		ParseState state;
 		state.Input = message;
-		state.Root = CreateRef<ChatComponent>();
+		state.Root = Ref<ChatComponent>::Create();
 		state.Root->Text = "";
 		state.ComponentStack.push(state.Root);
 
@@ -45,7 +45,7 @@ namespace Axiom {
 			return Parse(message);
 		} catch (...) {
 			// Return plain text on error
-			auto component = CreateRef<ChatComponent>();
+			auto component = Ref<ChatComponent>::Create();
 			component->Text = message;
 			return component;
 		}
@@ -149,7 +149,7 @@ namespace Axiom {
 		}
 
 		// Create new component based on tag
-		auto newComponent = CreateRef<ChatComponent>();
+		auto newComponent = Ref<ChatComponent>::Create();
 
 		// Color tags
 		auto color = ParseColor(lowerName);
@@ -197,7 +197,7 @@ namespace Axiom {
 		else if (lowerName == "hover" && !tag.Arguments.empty()) {
 			auto action = ParseHoverAction(tag.Arguments[0]);
 			if (action.has_value() && tag.Arguments.size() >= 2) {
-				auto hoverText = CreateRef<ChatComponent>();
+				auto hoverText = Ref<ChatComponent>::Create();
 				hoverText->Text = tag.Arguments[1];
 				newComponent->HoverEvent = ChatHoverEvent(action.value(), hoverText);
 			}
@@ -226,7 +226,7 @@ namespace Axiom {
 				current->Text += text;
 			} else {
 				// Add as extra component
-				auto textComponent = CreateRef<ChatComponent>();
+				auto textComponent = Ref<ChatComponent>::Create();
 				textComponent->Text = text;
 				current->Extra.push_back(textComponent);
 			}
