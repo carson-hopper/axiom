@@ -16,8 +16,8 @@ public:
     SetDefaultSpawnPositionPacket() = default;
 
     SetDefaultSpawnPositionPacket(const std::string& dimensionName,
-                                 int32_t blockX, int32_t blockY, int32_t blockZ,
-                                 float yaw, float pitch) {
+                                 const int32_t blockX, const int32_t blockY, const int32_t blockZ,
+                                 const float yaw, const float pitch) {
         m_DimensionName = dimensionName;
         m_BlockX = blockX;
         m_BlockY = blockY;

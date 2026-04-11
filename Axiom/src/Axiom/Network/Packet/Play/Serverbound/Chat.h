@@ -14,7 +14,7 @@ public:
 	std::optional<std::vector<Ref<IChainablePacket>>>
 	Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer& buffer) {
 		// Signature is variable-length and conditional — read manually after auto-parsed fields
-		int32_t signatureLength = buffer.ReadVarInt();
+		const int32_t signatureLength = buffer.ReadVarInt();
 		if (signatureLength > 0) {
 			m_Signature.Value = buffer.ReadBytes(signatureLength);
 		}
@@ -24,11 +24,11 @@ public:
 		buffer.ReadFixedBitSet(20);
 		buffer.ReadByte();
         
-		Ref<Player> sender = context.Server().GetPlayer(connection);
+		const Ref<Player> sender = context.Server().GetPlayer(connection);
 		std::string senderName = sender ? sender->Name() : "unknown";
 
 		// Build and broadcast the chat message to all players
-		auto chatMessage = ChatComponent::Create()
+		const auto chatMessage = ChatComponent::Create()
 			.Text("<" + senderName + "> " + m_Message.Value)
 			.Build();
         
