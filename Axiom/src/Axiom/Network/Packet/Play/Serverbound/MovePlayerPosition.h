@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Axiom/Core/Log.h"
 #include "Axiom/Network/Connection.h"
 #include "Axiom/Network/Packet/Packet.h"
 #include "Axiom/Network/Packet/PacketContext.h"
@@ -11,7 +12,28 @@ class MovePlayerPositionPacket : public Packet<MovePlayerPositionPacket,
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
     Handle(const Ref<Connection> &connection, PacketContext& context, NetworkBuffer&) {
-        context.ChunkManagement().OnPlayerMove(connection, m_Position.Value.x, m_Position.Value.z);
+        const Ref<Player> player = context.Server().GetPlayer(connection);
+        if (player == nullptr) {
+            return std::nullopt;
+        }
+
+        if (player->IsAwaitingTeleportAck()) {
+            return std::nullopt;
+        }
+
+        const Vector3 newPosition = m_Position.Value;
+        if (!player->IsValidMoveTarget(newPosition)) {
+            AX_CORE_WARN(
+                "Rejecting move from {}: position ({:.2f}, {:.2f}, {:.2f}) "
+                "failed validation; snapping back",
+                player->Name(), newPosition.x, newPosition.y, newPosition.z);
+            player->Teleport(player->GetPosition());
+            return std::nullopt;
+        }
+
+        player->SetPosition(newPosition);
+        player->SetOnGround(m_OnGround.Value);
+        context.ChunkManagement().OnPlayerMove(connection, newPosition.x, newPosition.z);
 
         return std::nullopt;
     }

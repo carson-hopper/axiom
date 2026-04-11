@@ -68,7 +68,7 @@ namespace Axiom {
                 return 0;
             }
 
-            player->SetPosition(Vector3{x, y, z});
+            player->Teleport(Vector3{x, y, z});
             source.SendMessage(ChatComponent::Create()
                 .Text("Teleported to "
                     + xIterator->second + " "

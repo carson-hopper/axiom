@@ -10,7 +10,13 @@ class MovePlayerRotationPacket : public Packet<MovePlayerRotationPacket,
     PID_PLAY_SB_MOVEPLAYERROTATION> {
 public:
     std::optional<std::vector<Ref<IChainablePacket>>>
-    Handle(const Ref<Connection>& /*connection*/, PacketContext& /*context*/, NetworkBuffer&) {
+    Handle(const Ref<Connection>& connection, PacketContext& context, NetworkBuffer&) {
+    	const Ref<Player> player = context.Server().GetPlayer(connection);
+    	if (player != nullptr) {
+    		player->SetRotation(m_Rotation.Value);
+    		player->SetOnGround(m_OnGround.Value);
+    	}
+
         return std::nullopt;
     }
 

@@ -9,9 +9,9 @@ class PlayerPositionPacket : public Packet<PlayerPositionPacket,
 public:
 	PlayerPositionPacket() = default;
 
-	PlayerPositionPacket(int32_t teleportId,
-		Vector3 position, Vector3 velocity,
-		Vector2 rotation, int32_t flags) {
+	PlayerPositionPacket(const int32_t teleportId,
+		const Vector3 &position, const Vector3 &velocity,
+		const Vector2 rotation, const int32_t flags) {
 		m_TeleportId.Value = teleportId;
 		m_Position.Value = position;
 		m_Velocity.Value = velocity;

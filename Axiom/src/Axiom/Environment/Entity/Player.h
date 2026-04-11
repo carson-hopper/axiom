@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -112,6 +113,107 @@ namespace Axiom {
 		void SendMessage(const ChatText& message) override;
 		void Kick(const ChatText& reason = {}) const;
 
+		/**
+		 * Server-authoritative teleport. Updates the
+		 * player's position (firing the normal
+		 * `PlayerPositionChangedEvent`) AND sends a
+		 * `Clientbound::PlayerPositionPacket` to the
+		 * owning client so it snaps to the new position.
+		 *
+		 * Use this for `/tp`, respawn, portal
+		 * transitions, and plugin-driven moves — any
+		 * case where the server needs the client to
+		 * accept a new position regardless of what
+		 * inputs the player is currently feeding it.
+		 *
+		 * Do NOT call from the client-move packet
+		 * handlers or from physics — those should use
+		 * the plain `SetPosition` setter inherited from
+		 * `Entity`, which fires the event without echoing
+		 * a sync packet back to the owning client.
+		 * Echoing every client-origin move would create
+		 * a 20 tps round-trip loop for every player.
+		 */
+		void Teleport(const Vector3& position);
+
+		/**
+		 * Acknowledge the client's `AcceptTeleportation`
+		 * echo for a pending server-issued teleport.
+		 *
+		 * On match: clears the pending slot and commits
+		 * the current authoritative position as the new
+		 * "last known good" snapshot — the server now
+		 * trusts that the client has caught up.
+		 *
+		 * On mismatch: rolls the authoritative position
+		 * back to `m_LastGoodPosition` via a plain
+		 * `SetPosition` (no new sync packet, so no
+		 * packet-loop risk if the client keeps mis-
+		 * acking). The client will self-correct on its
+		 * next move packet when the move validator's
+		 * delta cap snaps it back.
+		 */
+		void ConfirmTeleport(int32_t teleportId);
+
+		/**
+		 * Current outstanding teleport id that the
+		 * server has sent but the client has not yet
+		 * echoed back. Returns 0 when no teleport is
+		 * pending.
+		 */
+		int32_t PendingTeleportId() const {
+			return m_PendingTeleportId.load(std::memory_order_acquire);
+		}
+
+		/**
+		 * True while the server is waiting for the
+		 * client to echo `AcceptTeleportation` for the
+		 * most recent forced teleport. Move-packet
+		 * handlers check this and drop the packet
+		 * silently, because any position the client
+		 * reports before it has applied the teleport
+		 * is by definition stale.
+		 */
+		bool IsAwaitingTeleportAck() const {
+			return PendingTeleportId() != 0;
+		}
+
+		/**
+		 * Stateless positional sanity check. Returns
+		 * `true` when `position` is finite, inside the
+		 * ±30 million world border on X/Z, and inside
+		 * the [-512, 1024] Y envelope.
+		 *
+		 * Shared between `IsValidMoveTarget` (which adds
+		 * the per-tick delta cap on top) and `Teleport`
+		 * (which does NOT cap delta — teleports are
+		 * supposed to jump). Anything that mutates the
+		 * authoritative player position MUST route
+		 * through one of those two gates.
+		 */
+		static bool IsValidPosition(const Vector3& position);
+
+		/**
+		 * Server-side validation of a client-reported
+		 * position. Returns `false` when the target
+		 * must be rejected and the client snapped back
+		 * via `Teleport(GetPosition())`.
+		 *
+		 * Checks in order:
+		 *  - Everything `IsValidPosition` checks
+		 *  - The squared single-tick delta from the
+		 *    current authoritative position is at most
+		 *    100² blocks (matches vanilla's "moved too
+		 *    quickly" threshold, which covers walk,
+		 *    sprint, creative fly, elytra, and riptide)
+		 *
+		 * Future work: make the delta cap gamemode- and
+		 * vehicle- and effect-aware, and fold in a
+		 * multi-tick accumulated-speed check for smoother
+		 * anti-cheat on fly / speed hacks.
+		 */
+		bool IsValidMoveTarget(const Vector3& position) const;
+
 		bool IsPlayer() const override { return true; }
 
 		// ----- Permissions ----------------------------------------------
@@ -175,6 +277,42 @@ namespace Axiom {
 		Observable<int> m_ExperienceLevel{0};
 		float m_ExperienceProgress = 0.0f;
 		int m_TotalExperience = 0;
+
+		/**
+		 * Monotonic per-player teleport id used when
+		 * the server issues `Clientbound::PlayerPosition`
+		 * to force a client-side sync (e.g. from /tp or
+		 * respawn). Vanilla clients echo the id back in
+		 * `ServerboundAcceptTeleportation` so the server
+		 * can ignore stale client moves sent before the
+		 * teleport landed. Starts at 1 so 0 stays
+		 * reserved for "no teleport pending".
+		 */
+		std::atomic<int32_t> m_NextTeleportId{1};
+
+		/**
+		 * The id of the most recent teleport the server
+		 * has sent but the client has not yet echoed
+		 * back via `AcceptTeleportation`. 0 means no
+		 * teleport is pending. `Teleport()` overwrites
+		 * this with the new id on every dispatch, and
+		 * `ConfirmTeleport()` clears it to 0 when the
+		 * client echoes a matching id.
+		 */
+		std::atomic<int32_t> m_PendingTeleportId{0};
+
+		/**
+		 * Last authoritative position the client has
+		 * been confirmed to agree with. Captured at the
+		 * start of the first `Teleport` in a pending
+		 * chain (when `m_PendingTeleportId == 0`), so
+		 * subsequent teleports within the same chain do
+		 * not clobber the rollback target. Committed as
+		 * the current position on a successful
+		 * `ConfirmTeleport`. Used as the revert target
+		 * on a mismatched ack.
+		 */
+		Vector3 m_LastGoodPosition;
 	};
 
 }
