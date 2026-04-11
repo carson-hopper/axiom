@@ -7,6 +7,7 @@
 #include "Axiom/Event/LevelEvents.h"
 #include "Axiom/Network/NetworkServer.h"
 
+#include <algorithm>
 #include <chrono>
 
 namespace Axiom {
@@ -34,9 +35,13 @@ namespace Axiom {
 	}
 
 	void LevelTime::SetTimeOfDay(int64_t time) {
-		const int64_t previous = m_TimeOfDay.exchange(time % TicksPerDay);
-		if (previous != time) {
-			LevelTimeChangedEvent event(previous, time);
+		// Clamp into the valid [0, TicksPerDay) window before
+		// touching the atomic so out-of-range inputs cannot
+		// poison the stored value or leak past the event.
+		const int64_t clamped = std::clamp<int64_t>(time, 0, TicksPerDay - 1);
+		const int64_t previous = m_TimeOfDay.exchange(clamped);
+		if (previous != clamped) {
+			LevelTimeChangedEvent event(previous, clamped);
 			Application::Instance().Events().Publish(event);
 		}
 	}
@@ -46,10 +51,30 @@ namespace Axiom {
 		auto nextTick = Clock::now();
 		constexpr auto tickDuration = std::chrono::milliseconds(50); // 20 TPS
 
+		/**
+		 * Hard cap on catch-up ticks after a long stall.
+		 * If the loop ever falls this many ticks behind
+		 * (~1 second of wall-clock drift), we reset the
+		 * schedule to "now + one tick" instead of firing
+		 * every missed tick in a tight burst. Without
+		 * this, a 5-second pause (GC, debugger break,
+		 * kernel scheduler hiccup) would cause 100 ticks
+		 * to fire back-to-back and drown every other
+		 * consumer of the event bus.
+		 */
+		constexpr int MaxCatchupTicks = 20;
+
 		while (m_Running) {
 			nextTick += tickDuration;
 
-			m_WorldAge++;
+			// Relaxed is fine here: m_WorldAge is a
+			// monotonic counter with no happens-before
+			// dependencies. Readers either see the new
+			// value or the old one, which is all any
+			// consumer needs. seq-cst was overkill and
+			// added needless cross-core synchronisation
+			// on every tick.
+			m_WorldAge.fetch_add(1, std::memory_order_relaxed);
 
 			if (!m_TimeFrozen) {
 				m_TimeOfDay = (m_TimeOfDay + 1) % TicksPerDay;
@@ -63,7 +88,22 @@ namespace Axiom {
 				BroadcastTime();
 			}
 
+			// Drift correction: if nextTick has fallen
+			// more than MaxCatchupTicks behind wall-clock,
+			// snap forward instead of firing the backlog
+			// in a burst. This keeps tick rate steady
+			// after a long stall and prevents a "tick
+			// storm" from overwhelming the event bus.
 			auto now = Clock::now();
+			const auto behind = now - nextTick;
+			if (behind > MaxCatchupTicks * tickDuration) {
+				const auto missed = behind / tickDuration;
+				AX_CORE_WARN("LevelTime fell {} ticks behind; resetting schedule",
+					static_cast<int64_t>(missed));
+				nextTick = now + tickDuration;
+				continue;
+			}
+
 			if (nextTick > now) {
 				std::this_thread::sleep_until(nextTick);
 			}

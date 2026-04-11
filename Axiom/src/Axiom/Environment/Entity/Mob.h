@@ -12,7 +12,7 @@ namespace Axiom {
 	 */
 	class Mob : public LivingEntity {
 	public:
-		explicit Mob(int32_t entityId);
+		Mob() = default;
 
 		/** Goal selector stub -- will be filled in Task 25. */
 		// GoalSelector& Goals() { return m_GoalSelector; }
@@ -22,19 +22,19 @@ namespace Axiom {
 
 		/** Whether this mob is persistent (won't despawn). */
 		bool IsPersistent() const { return m_Persistent; }
-		void SetPersistent(bool persistent) { m_Persistent = persistent; }
+		void SetPersistent(const bool persistent) { m_Persistent = persistent; }
 
 		/** Whether this mob can pick up items. */
 		bool CanPickUpLoot() const { return m_CanPickUpLoot; }
-		void SetCanPickUpLoot(bool canPickUp) { m_CanPickUpLoot = canPickUp; }
+		void SetCanPickUpLoot(const bool canPickUp) { m_CanPickUpLoot = canPickUp; }
 
 		/** No-persistence distance check for despawning. */
 		float DespawnDistance() const { return m_DespawnDistance; }
-		void SetDespawnDistance(float distance) { m_DespawnDistance = distance; }
+		void SetDespawnDistance(const float distance) { m_DespawnDistance = distance; }
 
 		/** Whether this mob is aggressive. */
 		bool IsAggressive() const { return m_Aggressive; }
-		void SetAggressive(bool aggressive) { m_Aggressive = aggressive; }
+		void SetAggressive(const bool aggressive) { m_Aggressive = aggressive; }
 
 	private:
 		bool m_Persistent = false;

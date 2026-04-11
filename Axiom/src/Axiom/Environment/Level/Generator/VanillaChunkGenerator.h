@@ -54,11 +54,11 @@ namespace Axiom {
 		 * the new NbtCompound / NbtList API.
 		 */
 		void SaveChunk(int32_t chunkX, int32_t chunkZ, const class WorldTicker& ticker) const {
-			auto root = CreateRef<NbtCompound>();
+			auto root = Ref<NbtCompound>::Create();
 			root->PutInt("DataVersion", 4325);
 			root->PutString("Status", "minecraft:full");
 
-			auto sections = CreateRef<NbtList>(NbtTagType::Compound);
+			auto sections = Ref<NbtList>::Create(NbtTagType::Compound);
 			for (int sectionY = -4; sectionY < 20; sectionY++) {
 				auto section = BuildSectionNbt(chunkX, chunkZ, sectionY, ticker);
 				sections->Add(section);
@@ -154,15 +154,15 @@ namespace Axiom {
 				}
 			}
 
-			auto section = CreateRef<NbtCompound>();
+			auto section = Ref<NbtCompound>::Create();
 			section->PutByte("Y", static_cast<int8_t>(sectionY));
 
 			// block_states
-			auto blockStates = CreateRef<NbtCompound>();
+			auto blockStates = Ref<NbtCompound>::Create();
 
-			auto palette = CreateRef<NbtList>(NbtTagType::Compound);
+			auto palette = Ref<NbtList>::Create(NbtTagType::Compound);
 			for (const auto& name : paletteNames) {
-				auto entry = CreateRef<NbtCompound>();
+				auto entry = Ref<NbtCompound>::Create();
 				entry->PutString("Name", name);
 				palette->Add(entry);
 			}
@@ -189,9 +189,9 @@ namespace Axiom {
 			section->PutCompound("block_states", blockStates);
 
 			// biomes — single plains for now
-			auto biomes = CreateRef<NbtCompound>();
-			auto biomePalette = CreateRef<NbtList>(NbtTagType::String);
-			biomePalette->Add(CreateRef<NbtString>("minecraft:plains"));
+			auto biomes = Ref<NbtCompound>::Create();
+			auto biomePalette = Ref<NbtList>::Create(NbtTagType::String);
+			biomePalette->Add(Ref<NbtString>::Create("minecraft:plains"));
 			biomes->PutList("palette", biomePalette);
 			section->PutCompound("biomes", biomes);
 

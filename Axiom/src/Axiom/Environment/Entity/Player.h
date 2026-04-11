@@ -7,7 +7,6 @@
 #include "Axiom/Environment/Entity/LivingEntity.h"
 #include "Axiom/Environment/Level/Level.h"
 #include "Axiom/Network/Connection.h"
-#include "Axiom/Utilities/Memory/WeakRef.h"
 
 #include <algorithm>
 #include <array>
@@ -63,8 +62,8 @@ namespace Axiom {
 		GameMode GetGameMode() const { return m_GameMode.Get(); }
 		void SetGameMode(const GameMode mode) { m_GameMode.Set(mode); }
 
-		Ref<Level> GetLevel() { return m_Level.IsValid() ? Ref<Level>(&(*m_Level)) : nullptr; }
-		void SetLevel(const Ref<Level>& level) { m_Level = WeakRef<Level>(level); }
+		Ref<Level> GetLevel() { return m_Level; }
+		void SetLevel(const Ref<Level>& level) { m_Level = level; }
 
 		int GetFoodLevel() const { return m_FoodLevel.Get(); }
 		void SetFoodLevel(const int level) { m_FoodLevel.Set(level); }
@@ -76,7 +75,7 @@ namespace Axiom {
 		void SetExperienceLevel(const int level) { m_ExperienceLevel.Set(level); }
 
 		float GetExperienceProgress() const { return m_ExperienceProgress; }
-		void SetExperienceProgress(float progress) { m_ExperienceProgress = progress; }
+		void SetExperienceProgress(const float progress) { m_ExperienceProgress = progress; }
 
 		int GetTotalExperience() const { return m_TotalExperience; }
 		void SetTotalExperience(const int total) { m_TotalExperience = total; }
@@ -162,12 +161,12 @@ namespace Axiom {
 
 	private:
 		Ref<Connection> m_Connection;
-		WeakRef<Level> m_Level;
+		Ref<Level> m_Level;
 		std::string m_Name;
 		UUID m_Uuid;
 		std::vector<PlayerProperty> m_Properties;
 		std::unordered_set<std::string> m_GrantedPermissions;
-		OpLevel m_OpLevel = OpLevel::None;
+		Observable<OpLevel> m_OpLevel{OpLevel::None};
 		Observable<GameMode> m_GameMode{GameMode::Creative};
 		Observable<int> m_SelectedSlot{0};
 		std::array<HotbarSlot, 9> m_HotbarItems{};

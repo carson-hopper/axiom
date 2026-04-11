@@ -2,6 +2,8 @@
 
 #include "Axiom/Environment/Entity/Entity.h"
 
+#include <algorithm>
+
 namespace Axiom {
 
 	/**
@@ -10,8 +12,7 @@ namespace Axiom {
 	 */
 	class LivingEntity : public Entity {
 	public:
-		explicit LivingEntity(const int32_t entityId)
-			: Entity(entityId) {}
+		LivingEntity() = default;
 
 		float GetHealth() const { return m_Health; }
 		float GetMaxHealth() const { return m_MaxHealth; }

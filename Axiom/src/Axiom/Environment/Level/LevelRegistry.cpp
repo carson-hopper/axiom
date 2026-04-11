@@ -12,34 +12,31 @@ LevelRegistry::LevelRegistry()
 
 void LevelRegistry::InitializeVanillaDimensions() {
 	// Create Overworld (placeholder until ClassicLevelSource is wired)
-	auto overworldGenerator = CreateRef<FlatChunkGenerator>();
 	RegisterDimension(
 		DimensionType::Overworld,
 		DimensionType::GetOverworld(),
-		overworldGenerator
+		CreateScope<FlatChunkGenerator>()
 	);
 
 	// Create Nether with flat generator (placeholder for now)
-	auto netherGenerator = CreateRef<FlatChunkGenerator>();
 	RegisterDimension(
 		DimensionType::Nether,
 		DimensionType::GetNether(),
-		netherGenerator
+		CreateScope<FlatChunkGenerator>()
 	);
 
 	// Create End with flat generator (placeholder for now)
-	auto endGenerator = CreateRef<FlatChunkGenerator>();
 	RegisterDimension(
 		DimensionType::End,
 		DimensionType::GetEnd(),
-		endGenerator
+		CreateScope<FlatChunkGenerator>()
 	);
 }
 
 Ref<Dimension> LevelRegistry::RegisterDimension(
 	const std::string& name,
 	const DimensionType& type,
-	Ref<ChunkGenerator> generator
+	Scope<ChunkGenerator> generator
 ) {
 	std::lock_guard<std::mutex> lock(m_Mutex);
 
@@ -48,8 +45,8 @@ Ref<Dimension> LevelRegistry::RegisterDimension(
 		return nullptr;
 	}
 
-	auto level = CreateRef<Level>(name, generator);
-	auto dimension = CreateRef<Dimension>(name, type, level);
+	auto level = Ref<Level>::Create(name, std::move(generator));
+	auto dimension = Ref<Dimension>::Create(name, type, level);
 	m_Dimensions[name] = dimension;
 
 	// Cache vanilla dimensions for quick access

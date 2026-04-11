@@ -53,7 +53,7 @@ namespace Axiom {
 		Ref<Dimension> RegisterDimension(
 			const std::string& name,
 			const DimensionType& type,
-			Ref<ChunkGenerator> generator
+			Scope<ChunkGenerator> generator
 		);
 
 		/**

@@ -13,8 +13,7 @@
 namespace Axiom {
 
 	Player::Player(Ref<Connection> connection, std::string name, const UUID& uuid)
-		: LivingEntity(0)
-		, m_Connection(std::move(connection))
+		: m_Connection(std::move(connection))
 		, m_Name(std::move(name))
 		, m_Uuid(uuid) {
 
@@ -36,6 +35,10 @@ namespace Axiom {
 		});
 		m_SelectedSlot.Subscribe([this](const int oldSlot, const int newSlot) {
 			PlayerHotbarChangedEvent event(this, oldSlot, newSlot);
+			Application::Instance().Events().Publish(event);
+		});
+		m_OpLevel.Subscribe([this](const OpLevel oldLevel, const OpLevel newLevel) {
+			PlayerOperatorLevelChangeEvent event(this, oldLevel, newLevel);
 			Application::Instance().Events().Publish(event);
 		});
 	}

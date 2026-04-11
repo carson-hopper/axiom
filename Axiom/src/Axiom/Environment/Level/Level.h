@@ -7,7 +7,6 @@
 #include "Generator/ChunkGenerator.h"
 #include "Axiom/Environment/Entity/Entity.h"
 
-#include <cstdint>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -18,9 +17,9 @@ namespace Axiom {
 	 * Represents a dimension/world containing chunks and entities.
 	 * Ticks all loaded chunks and entities each game tick.
 	 */
-	class Level : public Tickable {
+	class Level : public Tickable, public virtual RefCounted {
 	public:
-		Level(std::string name, Ref<ChunkGenerator> generator)
+		Level(std::string name, Scope<ChunkGenerator> generator)
 			: m_Name(std::move(name))
 			, m_Generator(std::move(generator)) {}
 
@@ -72,7 +71,15 @@ namespace Axiom {
 		}
 
 		std::string m_Name;
-		Ref<ChunkGenerator> m_Generator;
+		/**
+		 * Sole owner of this level's generator. Per
+		 * STYLE.md §4.3, Scope<T> is the default for
+		 * owning pointers — Ref<T> would imply shared
+		 * ownership, which no other subsystem takes
+		 * here. Observers go through Generator() which
+		 * returns a plain reference.
+		 */
+		Scope<ChunkGenerator> m_Generator;
 
 		std::mutex m_ChunkMutex;
 		std::unordered_map<int64_t, Ref<Chunk>> m_Chunks;

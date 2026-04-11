@@ -83,9 +83,22 @@ namespace Axiom {
 			return;
 		}
 
-		// Linear or Hashmap: find or add palette entry
+		// Linear or Hashmap: find or add palette entry.
+		// FindOrAddPaletteEntry may promote us to Global
+		// mid-call (Hashmap overflow). In that case the
+		// value we're setting was NOT added to any palette
+		// and the return value is a -1 sentinel — we must
+		// write `value` as a raw block state ID instead of
+		// the sentinel, or the caller's block is silently
+		// corrupted to the 15-bit truncation of -1 (32767).
 		const int paletteIndex = FindOrAddPaletteEntry(value);
 		const int entryIndex = IndexFor(x, y, z);
+
+		if (m_Mode == PaletteMode::Global) {
+			PackEntry(entryIndex, static_cast<uint64_t>(value));
+			return;
+		}
+
 		PackEntry(entryIndex, static_cast<uint64_t>(paletteIndex));
 	}
 

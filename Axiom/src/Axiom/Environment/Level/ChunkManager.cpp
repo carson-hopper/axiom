@@ -8,7 +8,7 @@
 
 namespace Axiom {
 
-	ChunkManager::ChunkManager(Ref<ChunkGenerator> generator, const int viewDistance)
+	ChunkManager::ChunkManager(Scope<ChunkGenerator> generator, const int viewDistance)
 		: m_Generator(std::move(generator))
 		, m_ViewDistance(viewDistance) {
 
@@ -43,6 +43,18 @@ namespace Axiom {
 			auto& state = m_PlayerStates[connection->Id()];
 			state.lastChunkX = center.x;
 			state.lastChunkZ = center.z;
+			// Seed the effective view distance from the
+			// client's ClientInformation request (clamped
+			// to the server maximum). A client that never
+			// sent ClientInformation defaults to the full
+			// server-wide radius.
+			const int8_t requested = connection->RequestedViewDistance();
+			if (requested > 0) {
+				state.effectiveViewDistance = std::clamp(
+					static_cast<int>(requested), 2, m_ViewDistance);
+			} else {
+				state.effectiveViewDistance = m_ViewDistance;
+			}
 		}
 
 		{
@@ -53,27 +65,106 @@ namespace Axiom {
 		QueueChunksInRadius(connection, center);
 	}
 
+	void ChunkManager::SetPlayerViewDistance(Ref<Connection> connection, int requestedDistance) {
+		if (!connection) {
+			return;
+		}
+
+		const int clamped = std::clamp(requestedDistance, 2, m_ViewDistance);
+
+		ChunkPosition center{0, 0};
+		bool shrinking = false;
+		std::vector<ChunkPosition> distantChunks;
+
+		{
+			std::lock_guard<std::mutex> const lock(m_StateMutex);
+			const auto iterator = m_PlayerStates.find(connection->Id());
+			if (iterator == m_PlayerStates.end()) {
+				// Player hasn't entered Play state yet. The
+				// connection-level RequestedViewDistance will
+				// be picked up by SendInitialChunks when the
+				// player finishes the configuration handshake.
+				return;
+			}
+
+			auto& state = iterator->second;
+			if (state.effectiveViewDistance == clamped) {
+				return;
+			}
+
+			shrinking = clamped < state.effectiveViewDistance;
+			state.effectiveViewDistance = clamped;
+			center = {state.lastChunkX, state.lastChunkZ};
+
+			if (shrinking) {
+				distantChunks = CollectDistantChunks(center, state);
+			}
+		}
+
+		// Network I/O happens AFTER releasing the state
+		// mutex — a slow client must never stall the chunk
+		// state updates of other players. `UnloadChunk` and
+		// `QueueChunksInRadius` each perform their own
+		// per-chunk lookups and dispatches.
+		for (const auto& position : distantChunks) {
+			UnloadChunk(connection, position);
+		}
+
+		if (!shrinking) {
+			// Expanding — queue the new outer rings. Chunks
+			// that were already loaded are filtered out by
+			// the `state.loadedChunks.contains(position)`
+			// check inside QueueChunksInRadius.
+			QueueChunksInRadius(connection, center);
+		}
+
+		AX_CORE_TRACE(
+			"Per-player view distance updated: player={} distance={} (clamped from request {})",
+			connection->Id().Value(), clamped, requestedDistance);
+	}
+
+	std::unordered_map<ConnectionId, int> ChunkManager::SnapshotViewDistances() const {
+		std::unordered_map<ConnectionId, int> result;
+		std::lock_guard<std::mutex> const lock(m_StateMutex);
+		result.reserve(m_PlayerStates.size());
+		for (const auto& [id, state] : m_PlayerStates) {
+			result.emplace(id, state.effectiveViewDistance);
+		}
+		return result;
+	}
+
 	void ChunkManager::OnPlayerMove(Ref<Connection> connection, const double playerX, const double playerZ) {
 		const ChunkPosition center{BlockToChunk(playerX), BlockToChunk(playerZ)};
 
-		bool needsUpdate = false;
+		// Collect-under-lock, dispatch-outside-lock:
+		// network I/O must never happen while
+		// m_StateMutex is held, or a slow client
+		// can stall every other thread touching
+		// chunk state.
+		std::vector<ChunkPosition> distantChunks;
 
 		{
-			std::lock_guard<std::mutex> lock(m_StateMutex);
+			std::lock_guard<std::mutex> const lock(m_StateMutex);
 			const auto iterator = m_PlayerStates.find(connection->Id());
-			if (iterator == m_PlayerStates.end()) return;
+			if (iterator == m_PlayerStates.end()) {
+				return;
+			}
 
 			auto& state = iterator->second;
-			if (center.x == state.lastChunkX && center.z == state.lastChunkZ) return;
+			if (center.x == state.lastChunkX && center.z == state.lastChunkZ) {
+				return;
+			}
 
 			state.lastChunkX = center.x;
 			state.lastChunkZ = center.z;
-			needsUpdate = true;
 
-			UnloadDistantChunks(connection, center, state);
+			distantChunks = CollectDistantChunks(center, state);
 		}
 
-		if (!needsUpdate) return;
+		// Lock is released. Safe to send packets now.
+		for (const auto& position : distantChunks) {
+			UnloadChunk(connection, position);
+		}
 
 		{
 			NetworkBuffer payload;
@@ -122,7 +213,15 @@ namespace Axiom {
 			if (stateIterator == m_PlayerStates.end()) return;
 			auto& state = stateIterator->second;
 
-			for (int radius = 0; radius <= m_ViewDistance; radius++) {
+			// Per-player effective radius — seeded from the
+			// client's ClientInformation request at join and
+			// updated by SetPlayerViewDistance for mid-game
+			// changes. Always `<= m_ViewDistance` so this
+			// never generates more chunks than the server
+			// maximum regardless of what the client asks for.
+			const int playerDistance = state.effectiveViewDistance;
+
+			for (int radius = 0; radius <= playerDistance; radius++) {
 				for (int offsetX = -radius; offsetX <= radius; offsetX++) {
 					for (int offsetZ = -radius; offsetZ <= radius; offsetZ++) {
 						if (std::abs(offsetX) != radius && std::abs(offsetZ) != radius) continue;
@@ -174,22 +273,37 @@ namespace Axiom {
 		}
 	}
 
-	void ChunkManager::UnloadDistantChunks(Ref<Connection> connection, const ChunkPosition centerPosition,
-		PlayerChunkState& state) {
+	std::vector<ChunkPosition> ChunkManager::CollectDistantChunks(
+		const ChunkPosition& centerPosition, PlayerChunkState& state) {
 
+		// Caller must be holding m_StateMutex. This
+		// function is pure bookkeeping — it mutates
+		// state.loadedChunks and returns the list of
+		// positions the caller should unload over the
+		// network *after* releasing the lock.
+		//
+		// The unload radius is the PLAYER's effective
+		// view distance, not the server-wide maximum,
+		// so a player who shrinks their render distance
+		// via ClientInformation immediately has the
+		// now-out-of-range chunks dropped on their next
+		// movement tick (or inside `SetPlayerViewDistance`
+		// when shrinking).
+		const int playerDistance = state.effectiveViewDistance;
 		std::vector<ChunkPosition> toUnload;
 
 		for (const auto& position : state.loadedChunks) {
-			if (std::abs(position.x - centerPosition.x) > m_ViewDistance + 1 ||
-				std::abs(position.z - centerPosition.z) > m_ViewDistance + 1) {
+			if (std::abs(position.x - centerPosition.x) > playerDistance + 1 ||
+				std::abs(position.z - centerPosition.z) > playerDistance + 1) {
 				toUnload.push_back(position);
 			}
 		}
 
 		for (const auto& position : toUnload) {
-			UnloadChunk(connection, position);
 			state.loadedChunks.erase(position);
 		}
+
+		return toUnload;
 	}
 
 	int32_t ChunkManager::GetBlockAt(const int32_t worldX, const int32_t worldY, const int32_t worldZ) const {
@@ -212,7 +326,7 @@ namespace Axiom {
 			if (m_ChunkCache.contains(key)) return;
 		}
 
-		auto chunk = CreateRef<Chunk>(chunkX, chunkZ);
+		auto chunk = Ref<Chunk>::Create(chunkX, chunkZ);
 		const int baseX = chunkX * 16;
 		const int baseZ = chunkZ * 16;
 
@@ -282,16 +396,34 @@ namespace Axiom {
 	}
 
 	void ChunkManager::SaveAllDirtyChunks() {
-		std::lock_guard<std::mutex> lock(m_DirtyMutex);
-		for (int64_t key : m_DirtyChunks) {
-			int32_t chunkX = static_cast<int32_t>(key >> 32);
-			int32_t chunkZ = static_cast<int32_t>(key & 0xFFFFFFFF);
-			if (m_ChunkUnloadCallback) {
-				m_ChunkUnloadCallback({chunkX, chunkZ});
+		// Snapshot the dirty-chunk keys under the lock
+		// and clear the set, then release the lock before
+		// invoking the unload callback. The callback
+		// writes to the region file (potentially slow disk
+		// I/O) and may itself call back into ChunkManager
+		// — holding m_DirtyMutex across either would
+		// serialise every other dirty-marking operation
+		// behind shutdown saves and risk re-entrant
+		// deadlock.
+		std::vector<ChunkPosition> positions;
+		{
+			std::lock_guard<std::mutex> const lock(m_DirtyMutex);
+			positions.reserve(m_DirtyChunks.size());
+			for (const int64_t key : m_DirtyChunks) {
+				const auto chunkX = static_cast<int32_t>(key >> 32);
+				const auto chunkZ = static_cast<int32_t>(key & 0xFFFFFFFF);
+				positions.push_back({chunkX, chunkZ});
+			}
+			m_DirtyChunks.clear();
+		}
+
+		if (m_ChunkUnloadCallback) {
+			for (const auto& position : positions) {
+				m_ChunkUnloadCallback(position);
 			}
 		}
-		m_DirtyChunks.clear();
-		AX_CORE_INFO("Saved all dirty chunks");
+
+		AX_CORE_INFO("Saved {} dirty chunks", positions.size());
 	}
 
 	void ChunkManager::WorkerLoop() {

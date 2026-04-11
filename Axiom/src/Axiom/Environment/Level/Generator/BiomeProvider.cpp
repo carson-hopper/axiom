@@ -9,24 +9,24 @@ namespace Axiom {
 		 * IslandLayer -> zooms and island additions -> biome assignment
 		 * -> more zooms -> shore detection -> final smooth pass.
 		 */
-		auto island = CreateRef<IslandLayer>(1);
+		auto island = Ref<IslandLayer>::Create(1);
 
-		auto zoom1 = CreateRef<ZoomLayer>(2000, island);
-		auto addIsland1 = CreateRef<AddIslandLayer>(1, zoom1);
-		auto zoom2 = CreateRef<ZoomLayer>(2001, addIsland1);
-		auto addIsland2 = CreateRef<AddIslandLayer>(2, zoom2);
+		auto zoom1 = Ref<ZoomLayer>::Create(2000, island);
+		auto addIsland1 = Ref<AddIslandLayer>::Create(1, zoom1);
+		auto zoom2 = Ref<ZoomLayer>::Create(2001, addIsland1);
+		auto addIsland2 = Ref<AddIslandLayer>::Create(2, zoom2);
 
-		auto biome = CreateRef<BiomeLayer>(200, addIsland2);
+		auto biome = Ref<BiomeLayer>::Create(200, addIsland2);
 
-		auto zoom3 = CreateRef<ZoomLayer>(1000, biome);
-		auto zoom4 = CreateRef<ZoomLayer>(1001, zoom3);
+		auto zoom3 = Ref<ZoomLayer>::Create(1000, biome);
+		auto zoom4 = Ref<ZoomLayer>::Create(1001, zoom3);
 
-		auto shore = CreateRef<ShoreLayer>(100, zoom4);
+		auto shore = Ref<ShoreLayer>::Create(100, zoom4);
 
-		auto zoom5 = CreateRef<ZoomLayer>(1002, shore);
-		auto zoom6 = CreateRef<ZoomLayer>(1003, zoom5);
+		auto zoom5 = Ref<ZoomLayer>::Create(1002, shore);
+		auto zoom6 = Ref<ZoomLayer>::Create(1003, zoom5);
 
-		auto smooth = CreateRef<SmoothLayer>(10, zoom6);
+		auto smooth = Ref<SmoothLayer>::Create(10, zoom6);
 
 		smooth->InitWorldSeed(worldSeed);
 		m_BiomeLayer = smooth;
