@@ -4,7 +4,6 @@
 #include "Axiom/Core/Time.h"
 
 #include <algorithm>
-#include <filesystem>
 #include <fstream>
 
 namespace Axiom {
@@ -33,25 +32,6 @@ void AdminFileStore::SaveAll() {
 
 void AdminFileStore::LoadOps() {
 	m_Ops.clear();
-
-	// One-shot migration from legacy ops.json.
-	const auto tomlPath = FilePath("ops.toml");
-	const auto jsonPath = FilePath("ops.json");
-	if (!std::filesystem::exists(tomlPath) && std::filesystem::exists(jsonPath)) {
-		AX_CORE_INFO("Migrating ops.json to ops.toml");
-		auto legacy = LoadJsonFile("ops.json");
-		for (auto& entry : legacy) {
-			OpEntry operation;
-			operation.Uuid = entry.value("uuid", "");
-			operation.Level = entry.value("level", 4);
-			operation.BypassesPlayerLimit = entry.value("bypassesPlayerLimit", false);
-			m_Ops.push_back(std::move(operation));
-		}
-		SaveOps();
-		std::error_code removeError;
-		std::filesystem::remove(jsonPath, removeError);
-		return;
-	}
 
 	auto data = LoadTomlFile("ops.toml");
 	for (const auto& [key, value] : data) {
@@ -108,24 +88,6 @@ void AdminFileStore::RemoveOp(const std::string& uuid) {
 void AdminFileStore::LoadWhitelist() {
 	m_Whitelist.clear();
 
-	// One-shot migration from legacy whitelist.json.
-	const auto tomlPath = FilePath("whitelist.toml");
-	const auto jsonPath = FilePath("whitelist.json");
-	if (!std::filesystem::exists(tomlPath) && std::filesystem::exists(jsonPath)) {
-		AX_CORE_INFO("Migrating whitelist.json to whitelist.toml");
-		auto legacy = LoadJsonFile("whitelist.json");
-		for (auto& entry : legacy) {
-			WhitelistEntry whitelistEntry;
-			whitelistEntry.Uuid = entry.value("uuid", "");
-			whitelistEntry.Name = entry.value("name", "");
-			m_Whitelist.push_back(std::move(whitelistEntry));
-		}
-		SaveWhitelist();
-		std::error_code removeError;
-		std::filesystem::remove(jsonPath, removeError);
-		return;
-	}
-
 	auto data = LoadTomlFile("whitelist.toml");
 	for (const auto& [key, value] : data) {
 		const auto* entryTable = value.as_table();
@@ -170,28 +132,6 @@ void AdminFileStore::RemoveWhitelistEntry(const std::string& uuid) {
 
 void AdminFileStore::LoadBannedPlayers() {
 	m_BannedPlayers.clear();
-
-	// One-shot migration from legacy banned-players.json.
-	const auto tomlPath = FilePath("banned-players.toml");
-	const auto jsonPath = FilePath("banned-players.json");
-	if (!std::filesystem::exists(tomlPath) && std::filesystem::exists(jsonPath)) {
-		AX_CORE_INFO("Migrating banned-players.json to banned-players.toml");
-		auto legacy = LoadJsonFile("banned-players.json");
-		for (auto& entry : legacy) {
-			BannedPlayerEntry bannedEntry;
-			bannedEntry.Uuid = entry.value("uuid", "");
-			bannedEntry.Name = entry.value("name", "");
-			bannedEntry.Created = entry.value("created", "");
-			bannedEntry.Source = entry.value("source", "");
-			bannedEntry.Expires = entry.value("expires", "forever");
-			bannedEntry.Reason = entry.value("reason", "Banned by an operator");
-			m_BannedPlayers.push_back(std::move(bannedEntry));
-		}
-		SaveBannedPlayers();
-		std::error_code removeError;
-		std::filesystem::remove(jsonPath, removeError);
-		return;
-	}
 
 	auto data = LoadTomlFile("banned-players.toml");
 	for (const auto& [key, value] : data) {
@@ -245,27 +185,6 @@ void AdminFileStore::UnbanPlayer(const std::string& uuid) {
 
 void AdminFileStore::LoadBannedIps() {
 	m_BannedIps.clear();
-
-	// One-shot migration from legacy banned-ips.json.
-	const auto tomlPath = FilePath("banned-ips.toml");
-	const auto jsonPath = FilePath("banned-ips.json");
-	if (!std::filesystem::exists(tomlPath) && std::filesystem::exists(jsonPath)) {
-		AX_CORE_INFO("Migrating banned-ips.json to banned-ips.toml");
-		auto legacy = LoadJsonFile("banned-ips.json");
-		for (auto& entry : legacy) {
-			BannedIpEntry bannedEntry;
-			bannedEntry.Ip = entry.value("ip", "");
-			bannedEntry.Created = entry.value("created", "");
-			bannedEntry.Source = entry.value("source", "");
-			bannedEntry.Expires = entry.value("expires", "forever");
-			bannedEntry.Reason = entry.value("reason", "Banned by an operator");
-			m_BannedIps.push_back(std::move(bannedEntry));
-		}
-		SaveBannedIps();
-		std::error_code removeError;
-		std::filesystem::remove(jsonPath, removeError);
-		return;
-	}
 
 	auto data = LoadTomlFile("banned-ips.toml");
 	for (const auto& [key, value] : data) {
@@ -326,28 +245,6 @@ namespace {
 
 void AdminFileStore::LoadUserCache() {
 	m_UserCache.clear();
-
-	// One-shot migration from legacy usercache.json.
-	const auto tomlPath = FilePath("usercache.toml");
-	const auto jsonPath = FilePath("usercache.json");
-	if (!std::filesystem::exists(tomlPath) && std::filesystem::exists(jsonPath)) {
-		AX_CORE_INFO("Migrating usercache.json to usercache.toml");
-		auto legacy = LoadJsonFile("usercache.json");
-		for (auto& entry : legacy) {
-			UserCacheEntry cacheEntry;
-			cacheEntry.Uuid = entry.value("uuid", "");
-			cacheEntry.Name = entry.value("name", "");
-			cacheEntry.ExpiresOn = Time(entry.value<int64_t>("expires-on", 0));
-			if (!IsCacheEntryValid(cacheEntry)) {
-				continue;
-			}
-			m_UserCache.push_back(std::move(cacheEntry));
-		}
-		SaveUserCache();
-		std::error_code removeError;
-		std::filesystem::remove(jsonPath, removeError);
-		return;
-	}
 
 	auto data = LoadTomlFile("usercache.toml");
 
@@ -415,38 +312,6 @@ void AdminFileStore::UpdateCache(const UserCacheEntry& entry) {
 
 std::string AdminFileStore::FilePath(const std::string& filename) const {
 	return m_Directory + "/" + filename;
-}
-
-nlohmann::json AdminFileStore::LoadJsonFile(const std::string& filename) {
-	auto path = FilePath(filename);
-	try {
-		std::ifstream file(path);
-		if (!file.good()) {
-			AX_CORE_INFO("Creating empty {}", filename);
-			SaveJsonFile(filename, nlohmann::json::array());
-			return nlohmann::json::array();
-		}
-		auto data = nlohmann::json::parse(file, nullptr, false);
-		if (data.is_discarded() || !data.is_array()) {
-			AX_CORE_WARN("Invalid JSON in {}, resetting to empty", filename);
-			return nlohmann::json::array();
-		}
-		AX_CORE_INFO("Loaded {} entries from {}", data.size(), filename);
-		return data;
-	} catch (const std::exception& exception) {
-		AX_CORE_ERROR("Failed to load {}: {}", filename, exception.what());
-		return nlohmann::json::array();
-	}
-}
-
-void AdminFileStore::SaveJsonFile(const std::string& filename, const nlohmann::json& data) {
-	auto path = FilePath(filename);
-	try {
-		std::ofstream file(path);
-		file << data.dump(2) << std::endl;
-	} catch (const std::exception& exception) {
-		AX_CORE_ERROR("Failed to save {}: {}", filename, exception.what());
-	}
 }
 
 toml::table AdminFileStore::LoadTomlFile(const std::string& filename) {

@@ -50,16 +50,12 @@ void DedicatedProperties::Save(const std::string& path) const {
 }
 
 void DedicatedProperties::ImportInto(ServerConfig& /*config*/) const {
-	// DedicatedProperties import is a no-op when TOML is
-	// the canonical source. This method exists so that
-	// users migrating from vanilla can drop in their
-	// server.properties and have the values picked up
-	// on first boot before server.toml is written.
-	//
-	// Since ServerConfig reads TOML, the import would need
-	// to modify the TOML table directly -- which requires
-	// the table to be mutable. For now, log a notice.
-	AX_CORE_INFO("server.properties import is a future migration feature");
+	// No-op: server.toml is the canonical source of
+	// configuration. server.properties is only read
+	// for display / vanilla-compat, never written
+	// back into ServerConfig. If a user wants values
+	// from their legacy server.properties, they must
+	// translate them into server.toml by hand.
 }
 
 void DedicatedProperties::ExportFrom(const ServerConfig& config) {

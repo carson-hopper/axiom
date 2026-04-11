@@ -45,8 +45,8 @@ std::string ServerConfig::BindAddress() const {
 	return m_Root["network"]["bind-address"].value_or<std::string>("0.0.0.0");
 }
 
-uint16_t ServerConfig::Port() const {
-	return static_cast<uint16_t>(m_Root["network"]["port"].value_or(25565));
+int32_t ServerConfig::Port() const {
+	return static_cast<int32_t>(m_Root["network"]["port"].value_or(25565));
 }
 
 std::string ServerConfig::ServerName() const {

@@ -3,7 +3,6 @@
 #include "Axiom/Core/Base.h"
 #include "Axiom/Core/Time.h"
 
-#include <nlohmann/json.hpp>
 #include <toml++/toml.hpp>
 
 #include <cstdint>
@@ -16,7 +15,7 @@ namespace Axiom {
 /**
  * Entry in the operators list (ops.toml).
  * The UUID is the stable identifier; player
- * names live in usercache.json.
+ * names live in usercache.toml.
  */
 struct OpEntry {
 	std::string Uuid;
@@ -25,7 +24,7 @@ struct OpEntry {
 };
 
 /**
- * Entry in the whitelist (whitelist.json).
+ * Entry in the whitelist (whitelist.toml).
  */
 struct WhitelistEntry {
 	std::string Uuid;
@@ -33,7 +32,7 @@ struct WhitelistEntry {
 };
 
 /**
- * Entry in banned-players.json.
+ * Entry in banned-players.toml.
  */
 struct BannedPlayerEntry {
 	std::string Uuid;
@@ -45,7 +44,7 @@ struct BannedPlayerEntry {
 };
 
 /**
- * Entry in banned-ips.json.
+ * Entry in banned-ips.toml.
  */
 struct BannedIpEntry {
 	std::string Ip;
@@ -69,10 +68,10 @@ struct UserCacheEntry {
 };
 
 /**
- * Manages the JSON-backed admin and security files
- * required by the Minecraft server spec: ops.json,
- * whitelist.json, banned-players.json, banned-ips.json,
- * and usercache.json.
+ * Manages the TOML-backed admin and security files
+ * required by the Minecraft server spec: ops.toml,
+ * whitelist.toml, banned-players.toml, banned-ips.toml,
+ * and usercache.toml.
  */
 class AdminFileStore {
 public:
@@ -131,8 +130,6 @@ public:
 
 private:
 	std::string FilePath(const std::string& filename) const;
-	nlohmann::json LoadJsonFile(const std::string& filename);
-	void SaveJsonFile(const std::string& filename, const nlohmann::json& data);
 	toml::table LoadTomlFile(const std::string& filename);
 	void SaveTomlFile(const std::string& filename, const toml::table& data);
 

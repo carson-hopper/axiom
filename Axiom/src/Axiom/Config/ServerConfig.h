@@ -26,7 +26,7 @@ public:
 	std::string BindAddress() const;
 
 	/** TCP port. */
-	uint16_t Port() const;
+	int32_t Port() const;
 
 	/** Display name shown in the server list. */
 	std::string ServerName() const;
