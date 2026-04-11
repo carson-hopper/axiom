@@ -1,15 +1,30 @@
 #include "axpch.h"
 #include "Axiom/Core/ConsoleInput.h"
 
+#include "Axiom/Command/CommandRegistry.h"
+#include "Axiom/Command/CommandSourceStack.h"
+#include "Axiom/Core/Base.h"
 #include "Axiom/Core/Log.h"
 
+#include <cstdio>
 #include <iostream>
+#include <thread>
 
 #if defined(AX_PLATFORM_MACOS) || defined(AX_PLATFORM_LINUX)
 #include <csignal>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
+#endif
+
+#if defined(AX_PLATFORM_MACOS)
+#include <mach/mach.h>
+#elif defined(AX_PLATFORM_LINUX)
+#include <fstream>
+#endif
+
+#ifdef AX_DEBUG
+#include "Axiom/Core/BuildCount.generated.h"
 #endif
 
 namespace Axiom {
@@ -23,6 +38,124 @@ namespace Axiom {
 		}
 #endif
 		return width;
+	}
+
+	/** Resident memory in bytes for the current process. */
+	static size_t GetResidentMemoryBytes() {
+		size_t memoryBytes = 0;
+#if defined(AX_PLATFORM_MACOS)
+		struct mach_task_basic_info info{};
+		mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+		if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+			reinterpret_cast<task_info_t>(&info), &count) == KERN_SUCCESS) {
+			memoryBytes = info.resident_size;
+		}
+#elif defined(AX_PLATFORM_LINUX)
+		std::ifstream statusFile("/proc/self/status");
+		std::string line;
+		while (std::getline(statusFile, line)) {
+			if (line.starts_with("VmRSS:")) {
+				memoryBytes = std::stoull(line.substr(6)) * 1024;
+				break;
+			}
+		}
+#endif
+		return memoryBytes;
+	}
+
+	/** Process CPU usage as a percent of one core-equivalent. */
+	static double GetProcessCpuPercent() {
+		double cpuPercent = 0.0;
+#if defined(AX_PLATFORM_MACOS)
+		thread_array_t threadList;
+		mach_msg_type_number_t threadCount;
+		if (task_threads(mach_task_self(), &threadList, &threadCount) == KERN_SUCCESS) {
+			for (mach_msg_type_number_t i = 0; i < threadCount; i++) {
+				thread_basic_info_data_t threadInfo;
+				mach_msg_type_number_t infoCount = THREAD_BASIC_INFO_COUNT;
+				if (thread_info(threadList[i], THREAD_BASIC_INFO,
+					reinterpret_cast<thread_info_t>(&threadInfo), &infoCount) == KERN_SUCCESS) {
+					if (!(threadInfo.flags & TH_FLAGS_IDLE)) {
+						cpuPercent += static_cast<double>(threadInfo.cpu_usage) / TH_USAGE_SCALE * 100.0;
+					}
+				}
+				mach_port_deallocate(mach_task_self(), threadList[i]);
+			}
+			vm_deallocate(mach_task_self(),
+				reinterpret_cast<vm_address_t>(threadList),
+				threadCount * sizeof(thread_t));
+		}
+#endif
+		const unsigned int coreCount = std::thread::hardware_concurrency();
+		if (coreCount > 0) {
+			cpuPercent /= coreCount;
+		}
+		return cpuPercent;
+	}
+
+	void ConsoleInput::ConfigureDefaultPrompt(PromptMetrics metrics) {
+		m_Prompt.AddLeft([]() -> ConsolePrompt::Segment {
+			return {"", "axiom", 15, 62};
+		});
+		m_Prompt.AddLeft([]() -> ConsolePrompt::Segment {
+#ifdef AX_DEBUG
+			return {"", "v" AX_MINECRAFT_VERSION "-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT) "+b" AX_STRINGIFY_MACRO(AX_BUILD_COUNT), 15, 33};
+#else
+			return {"", "v" AX_MINECRAFT_VERSION "-" AX_STRINGIFY_MACRO(AX_COMMIT_COUNT), 15, 33};
+#endif
+		});
+
+		m_Prompt.AddRight([playerCountProvider = std::move(metrics.PlayerCount)]() -> ConsolePrompt::Segment {
+			const int count = playerCountProvider ? playerCountProvider() : 0;
+			const std::string text = std::to_string(count) + (count == 1 ? " player" : " players");
+			return {"", text, 15, count > 0 ? 62 : 240};
+		});
+		m_Prompt.AddRight([tpsProvider = std::move(metrics.Tps)]() -> ConsolePrompt::Segment {
+			const float tps = tpsProvider ? tpsProvider() : 0.0F;
+			char tpsText[16];
+			std::snprintf(tpsText, sizeof(tpsText), "%.1f TPS", tps);
+			const int background = tps >= 19.0F ? 28 : (tps >= 15.0F ? 136 : 124);
+			return {"", tpsText, 15, background};
+		});
+		m_Prompt.AddRight([]() -> ConsolePrompt::Segment {
+			const size_t memoryBytes = GetResidentMemoryBytes();
+			char memText[32];
+			if (memoryBytes >= 1024ULL * 1024 * 1024) {
+				std::snprintf(memText, sizeof(memText), "%.1f GB",
+					static_cast<double>(memoryBytes) / (1024.0 * 1024.0 * 1024.0));
+			} else {
+				std::snprintf(memText, sizeof(memText), "%.0f MB",
+					static_cast<double>(memoryBytes) / (1024.0 * 1024.0));
+			}
+			return {"", memText, 15, 97};
+		});
+		m_Prompt.AddRight([]() -> ConsolePrompt::Segment {
+			const double cpuPercent = GetProcessCpuPercent();
+			char cpuText[16];
+			std::snprintf(cpuText, sizeof(cpuText), "%.0f%%", cpuPercent);
+			const int background = cpuPercent < 50.0 ? 24 : (cpuPercent < 80.0 ? 136 : 124);
+			return {"", cpuText, 15, background};
+		});
+
+		m_Prompt.SetPromptChar("\xe2\x9d\xaf"); // ❯
+		m_Prompt.SetPromptColor(76); // green
+	}
+
+	void ConsoleInput::StartDispatchingCommands(CommandRegistry& commands) {
+		SetCompletionProvider([&commands](const std::string& partial) -> std::vector<std::string> {
+			std::vector<std::string> results;
+			for (const auto& name : commands.GetCommandNames()) {
+				if (name.starts_with(partial)) {
+					results.push_back(name);
+				}
+			}
+			return results;
+		});
+
+		Start([&commands](const std::string& input) {
+			auto source = CommandSourceStack::Console();
+			commands.Dispatch(source, input);
+		});
 	}
 
 	ConsoleInput::ConsoleInput(TaskQueue& taskQueue)
