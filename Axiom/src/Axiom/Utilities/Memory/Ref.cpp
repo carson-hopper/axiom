@@ -21,8 +21,8 @@ namespace Axiom {
 			s_LiveReferences.erase(instance);
 		}
 
-		bool IsLive(void* instance) {
-			return s_LiveReferences.find(instance) != s_LiveReferences.end();
+		bool IsLive(void* const instance) {
+			return s_LiveReferences.contains(instance);
 		}
 	}
 

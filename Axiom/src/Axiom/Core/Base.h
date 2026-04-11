@@ -37,14 +37,17 @@ namespace Axiom {
 	using Scope = std::unique_ptr<T>;
 
 	template<typename T, typename... Args>
-	constexpr Scope<T> CreateScope(Args&&... arguments) {
+	[[nodiscard]] constexpr Scope<T> CreateScope(Args&&... arguments) {
 		return std::make_unique<T>(std::forward<Args>(arguments)...);
 	}
 
-	template<typename T, typename... Args>
-	constexpr Ref<T> CreateRef(Args&&... arguments) {
-		return Ref<T>::Create(std::forward<Args>(arguments)...);
-	}
+	/**
+	 * Note: intentionally no CreateRef helper. Per
+	 * STYLE.md §4.2, construct Ref<T> instances via
+	 * Ref<T>::Create(args...) directly so the allocation
+	 * and the refcount increment happen in one place
+	 * visible at the call site.
+	 */
 
 	/**
 	 * Monotonic identifier for objects that should not
@@ -54,7 +57,7 @@ namespace Axiom {
 	class TypedId {
 	public:
 		TypedId() : m_Value(s_Next++) {}
-		explicit TypedId(uint64_t value) : m_Value(value) {}
+		explicit TypedId(const uint64_t value) : m_Value(value) {}
 
 		uint64_t Value() const { return m_Value; }
 
