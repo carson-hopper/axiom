@@ -183,9 +183,11 @@ Treat acronyms as single words in PascalCase: `HttpClient`, not `HTTPClient`. `N
 
 ## 4. Smart Pointers & Ownership
 
-### 4.1 Type Aliases
+Axiom uses two project-wide smart-pointer types: `Scope<T>` for sole ownership and `Ref<T>` for shared ownership. `Scope<T>` is a thin alias over `std::unique_ptr<T>`. `Ref<T>` is a **custom intrusive** smart pointer, not `std::shared_ptr`, and the distinction matters — see 4.2.
 
-Define project-wide aliases for smart pointers to clarify ownership semantics:
+### 4.1 `Scope<T>`
+
+`Scope<T>` is `std::unique_ptr<T>`. Use it for sole ownership — this is the default for every owning pointer unless you have a specific reason to reach for `Ref<T>`.
 
 ```cpp
 template<typename T>
@@ -195,23 +197,66 @@ template<typename T, typename... Args>
 constexpr Scope<T> CreateScope(Args&&... args) {
 	return std::make_unique<T>(std::forward<Args>(args)...);
 }
+```
 
-template<typename T>
-using Ref = std::shared_ptr<T>;
+### 4.2 `Ref<T>` — intrusive, not `std::shared_ptr`
 
-template<typename T, typename... Args>
-constexpr Ref<T> CreateRef(Args&&... args) {
-	return std::make_shared<T>(std::forward<Args>(args)...);
+`Ref<T>` is a custom intrusive reference-counted smart pointer defined in `Axiom/Utilities/Memory/Ref.h`. It is **not** `std::shared_ptr`, and is not interchangeable with it.
+
+The reference count lives on the object itself via the `RefCounted` base class:
+
+```cpp
+class RefCounted {
+public:
+	virtual ~RefCounted() = default;
+	void IncRefCount() const;
+	void DecRefCount() const;
+	uint32_t GetRefCount() const;
+
+private:
+	mutable std::atomic<uint32_t> m_RefCount = 0;
+};
+```
+
+Any class that wants to be held by `Ref<T>` must publicly inherit from `RefCounted`. The templated constructor enforces this at compile time:
+
+```cpp
+static_assert(std::is_base_of_v<RefCounted, T>, "Class is not RefCounted!");
+```
+
+**Why intrusive?** So that `Ref<T>(this)` works correctly from any method of a `RefCounted`-derived class. This is a common pattern across the network and async layers:
+
+```cpp
+void Connection::ReadFrameLength() {
+	auto self = Ref<Connection>(this);
+	m_Socket.async_read(..., [self](const asio::error_code& errorCode, std::size_t bytesRead) {
+		// `self` keeps the Connection alive for the duration of the async operation
+	});
 }
 ```
 
-### 4.2 Usage Rules
+With `std::shared_ptr`, wrapping `this` would create a second, independent control block and lead to a double delete. The workaround — `enable_shared_from_this<T>` + `shared_from_this()` — only works if the object is already owned by a `shared_ptr` and throws `bad_weak_ptr` in a constructor or after the last owner drops. The intrusive design avoids this entirely: the count is on the object, so any `RefCounted*` can be wrapped in a fresh `Ref<T>` at any point in its lifetime.
 
-- Use `Scope<T>` for sole ownership. This is the default.
-- Use `Ref<T>` only when shared ownership is genuinely needed.
+**Construction:**
+
+```cpp
+template<typename T, typename... Args>
+Ref<T> CreateRef(Args&&... args) {
+	return Ref<T>::Create(std::forward<Args>(args)...);
+}
+```
+
+Factory methods return `Scope<T>` or `Ref<T>`. Never `new` raw.
+
+### 4.3 Usage Rules
+
+- Use `Scope<T>` for sole ownership. **This is the default.**
+- Use `Ref<T>` when shared ownership is genuinely needed — typically for objects whose lifetime spans async callbacks, for objects referenced from multiple subsystems, or for any class that needs to wrap `this` in a smart pointer.
+- Any class held by `Ref<T>` must publicly inherit from `RefCounted`.
 - Use raw pointers (`T*`) only for non-owning observation. Never `delete` a raw pointer.
 - Prefer passing by `const&` or `std::string_view` over pointer parameters.
 - Factory methods return `Scope<T>` or `Ref<T>`, never raw `new`.
+- `Ref<T>(this)` is the idiomatic way to extend lifetime inside a `RefCounted`-derived method.
 
 ---
 
