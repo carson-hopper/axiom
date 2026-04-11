@@ -3,7 +3,6 @@
 
 #include <spdlog/sinks/basic_file_sink.h>
 
-#include <cstdlib>
 #include <mutex>
 
 namespace Axiom {

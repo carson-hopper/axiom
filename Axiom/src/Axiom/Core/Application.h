@@ -10,6 +10,8 @@
 
 #include "Axiom/Event/EventBus.h"
 
+#include <atomic>
+
 #include "Axiom/Command/CommandRegistry.h"
 
 #include "Axiom/Config/ServerConfig.h"
@@ -18,7 +20,6 @@
 
 #include "Axiom/Network/NetworkServer.h"
 #include "Axiom/Network/Packet/PacketContext.h"
-#include "Axiom/Network/Packet/PacketFactory.h"
 
 #include "Axiom/Plugin/PluginManager.h"
 #include "Axiom/Plugin/PluginContext.h"
@@ -66,12 +67,18 @@ namespace Axiom {
 		CommandRegistry& Commands() const { return *m_CommandRegistry; }
 		ServerConfig& Config() const { return *m_Config; }
 		GameRules& Rules() { return m_GameRules; }
-        AdminFileStore& AdminFiles() { return m_AdminFiles; }
-        PacketContext& PacketCtx() const { return *m_PacketContext; }
-        
-        Ref<NetworkServer> Server() const { return m_NetworkServer; }
+		AdminFileStore& AdminFiles() { return m_AdminFiles; }
+		PacketContext& PacketCtx() const { return *m_PacketContext; }
 
-		static Application& Instance() { return *s_Instance; }
+		Ref<NetworkServer> Server() const { return m_NetworkServer; }
+
+		/**
+		 * Returns the global Application instance. If no
+		 * Application has been constructed (or it has already
+		 * been torn down), logs a fatal error and exits the
+		 * process rather than returning a dangling reference.
+		 */
+		static Application& Instance();
 
 	private:
 		ApplicationSpecification m_Specification;
@@ -93,7 +100,7 @@ namespace Axiom {
 		GameRules m_GameRules;
 		AdminFileStore m_AdminFiles;
 
-		bool m_Running = false;
+		std::atomic<bool> m_Running{false};
 	private:
 		static Application* s_Instance;
 	};

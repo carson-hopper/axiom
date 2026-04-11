@@ -66,7 +66,7 @@ namespace Axiom {
 			firstPrompt = false;
 
 			// Build starship-style prompt
-			int termWidth = GetTerminalWidth();
+			const int termWidth = GetTerminalWidth();
 			auto built = m_Prompt.Build(termWidth);
 
 			std::string line = ReadLine(built.Styled, built.InputLineVisibleLength);

@@ -1,13 +1,10 @@
 #pragma once
 
-#include "Axiom/Core/Base.h"
-
 #if defined(_MSC_VER)
 	#pragma warning(push, 0)
 #endif
 
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/ostr.h>
 
 #if defined(_MSC_VER)
 	#pragma warning(pop)

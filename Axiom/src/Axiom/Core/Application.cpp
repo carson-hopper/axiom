@@ -1,7 +1,6 @@
 #include "axpch.h"
 #include "Axiom/Core/Application.h"
 
-#include "Axiom/Core/Time.h"
 #include "Axiom/Core/PathUtil.h"
 #include "Axiom/Core/BuildCount.generated.h"
 #include "Axiom/Core/Assert.h"
@@ -11,9 +10,9 @@
 
 #include "Axiom/Network/Packet/PacketFactory.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <string>
 
 
@@ -24,6 +23,14 @@
 namespace Axiom {
 
 	Application* Application::s_Instance = nullptr;
+
+	Application& Application::Instance() {
+		if (s_Instance == nullptr) {
+			AX_CORE_ERROR("Application::Instance() called with no active instance; aborting");
+			std::exit(EXIT_FAILURE);
+		}
+		return *s_Instance;
+	}
 
 	Application::Application(ApplicationSpecification& specification)
 		: m_Specification(std::move(specification)) {
@@ -65,7 +72,7 @@ namespace Axiom {
 	}
 
 	static bool CheckEula() {
-		const std::string eulaPath = "eula.txt";
+		constexpr std::string eulaPath = "eula.txt";
 		std::ifstream file(eulaPath);
 		if (!file.good()) {
 			std::ofstream create(eulaPath);
@@ -81,10 +88,10 @@ namespace Axiom {
 		while (std::getline(file, line)) {
 			if (line.empty() || line[0] == '#')
 				continue;
-            if (line.find("eula=true") != std::string::npos)
-                return true;
-            if (line.find("eula=yes") != std::string::npos)
-                return true;
+			if (line.find("eula=true") != std::string::npos)
+				return true;
+			if (line.find("eula=yes") != std::string::npos)
+				return true;
 		}
 
 		AX_CORE_ERROR("You must agree to the EULA to run the server.");
@@ -113,16 +120,14 @@ namespace Axiom {
 		m_PluginManager->RegisterPlugin(CreateScope<CorePlugin>());
 		m_PluginManager->EnableAll(*m_PluginContext);
 
-		m_NetworkServer = CreateRef<NetworkServer>();
-		m_PacketContext = CreateScope<PacketContext>(*m_Config, *m_EventBus,
-			*m_CommandRegistry, *m_NetworkServer, m_AdminFiles);
+		m_NetworkServer = Ref<NetworkServer>::Create();
+		m_PacketContext = CreateScope<PacketContext>(*m_Config, *m_EventBus, *m_CommandRegistry, *m_NetworkServer, m_AdminFiles);
 		PacketFactory::RegisterAll();
 
-		m_NetworkServer->SetPacketHandler(
-			[this](Ref<Connection> connection, const int32_t packetId, NetworkBuffer& buffer) {
-				auto state = static_cast<PacketState>(connection->State());
-				PacketFactory::DispatchPacket(state, packetId, connection, *m_PacketContext, buffer);
-			});
+		m_NetworkServer->SetPacketHandler([this](const Ref<Connection>& connection, const int32_t packetId, NetworkBuffer& buffer) {
+			const auto state = static_cast<PacketState>(connection->State());
+			PacketFactory::DispatchPacket(state, packetId, connection, *m_PacketContext, buffer);
+		});
 		m_NetworkServer->Start(m_Config->Port());
 
 		AX_CORE_INFO("Server initialized on port {}", m_Config->Port());
@@ -138,7 +143,6 @@ namespace Axiom {
 
 		m_Watchdog.Start();
 
-		// Starship-style prompt segments
 		m_ConsoleInput.Prompt().AddLeft([]() -> ConsolePrompt::Segment {
 			return {"", "axiom", 15, 62};
 		});
@@ -150,19 +154,18 @@ namespace Axiom {
 #endif
 		});
 		m_ConsoleInput.Prompt().AddRight([this]() -> ConsolePrompt::Segment {
-			int count = static_cast<int>(m_PacketContext->Server().PlayerCount());
-			std::string text = std::to_string(count) + (count == 1 ? " player" : " players");
+			const int count = static_cast<int>(m_PacketContext->Server().PlayerCount());
+			const std::string text = std::to_string(count) + (count == 1 ? " player" : " players");
 			return {"", text, 15, count > 0 ? 62 : 240};
 		});
 		m_ConsoleInput.Prompt().AddRight([this]() -> ConsolePrompt::Segment {
-			float tps = m_TickScheduler.ActualTPS();
+			const float tps = m_TickScheduler.ActualTPS();
 			char tpsText[16];
 			std::snprintf(tpsText, sizeof(tpsText), "%.1f TPS", tps);
-			int background = tps >= 19.0f ? 28 : (tps >= 15.0f ? 136 : 124);
+			const int background = tps >= 19.0f ? 28 : (tps >= 15.0f ? 136 : 124);
 			return {"", tpsText, 15, background};
 		});
 		m_ConsoleInput.Prompt().AddRight([]() -> ConsolePrompt::Segment {
-			// Memory usage (RSS)
 			size_t memoryBytes = 0;
 #if defined(AX_PLATFORM_MACOS)
 			struct mach_task_basic_info info{};
@@ -192,7 +195,6 @@ namespace Axiom {
 			return {"", memText, 15, 97};
 		});
 		m_ConsoleInput.Prompt().AddRight([]() -> ConsolePrompt::Segment {
-			// CPU usage (process)
 			double cpuPercent = 0.0;
 #if defined(AX_PLATFORM_MACOS)
 			thread_array_t threadList;
@@ -214,13 +216,12 @@ namespace Axiom {
 					threadCount * sizeof(thread_t));
 			}
 #endif
-			// Normalize to 0-100% across all cores
-			unsigned int coreCount = std::thread::hardware_concurrency();
+			const unsigned int coreCount = std::thread::hardware_concurrency();
 			if (coreCount > 0) cpuPercent /= coreCount;
 
 			char cpuText[16];
 			std::snprintf(cpuText, sizeof(cpuText), "%.0f%%", cpuPercent);
-			int background = cpuPercent < 50.0 ? 24 : (cpuPercent < 80.0 ? 136 : 124);
+			const int background = cpuPercent < 50.0 ? 24 : (cpuPercent < 80.0 ? 136 : 124);
 			return {"", cpuText, 15, background};
 		});
 		m_ConsoleInput.Prompt().SetPromptChar("\xe2\x9d\xaf"); // ❯
@@ -233,17 +234,9 @@ namespace Axiom {
 					results.push_back(name);
 				}
 			}
-			if (results.empty()) {
-				results.push_back("stop");
-			}
 			return results;
 		});
 		m_ConsoleInput.Start([this](const std::string& input) {
-			if (input == "stop") {
-				m_Running = false;
-				m_TickScheduler.Stop();
-				return;
-			}
 			auto source = CommandSourceStack::Console();
 			m_CommandRegistry->Dispatch(source, input);
 		});
@@ -251,8 +244,7 @@ namespace Axiom {
 		m_TickScheduler.RunSyncLoop([this]() -> bool {
 			m_Watchdog.TickStarted();
 
-			// Return value controls the loop
-			bool shouldContinue = m_Running;
+			const bool shouldContinue = m_Running;
 
 			m_Watchdog.TickFinished();
 			return shouldContinue;

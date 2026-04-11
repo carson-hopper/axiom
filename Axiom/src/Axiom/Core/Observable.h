@@ -5,8 +5,10 @@
 #include <concepts>
 #include <cstdint>
 #include <functional>
+#include <mutex>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace Axiom {
 
@@ -46,7 +48,7 @@ namespace Axiom {
 		using Listener = std::function<void(const T& oldValue, const T& newValue)>;
 		using ListenerId = uint32_t;
 
-		Observable() = default;
+		Observable() requires std::default_initializable<T> = default;
 		explicit Observable(T initial) : m_Value(std::move(initial)) {}
 
 		Observable(const Observable&) = delete;
@@ -54,29 +56,49 @@ namespace Axiom {
 		Observable(Observable&&) = delete;
 		Observable& operator=(Observable&&) = delete;
 
-		~Observable() {
-			for (const auto& [id, listener] : m_Listeners) {
-				Unsubscribe(id);
-			}
+		/**
+		 * Read the current value. Returns a copy — reading a
+		 * reference would be racy against a concurrent Set.
+		 */
+		T Get() const {
+			std::lock_guard<std::mutex> const lock(m_Mutex);
+			return m_Value;
 		}
-
-		/** Read the current value. */
-		const T& Get() const { return m_Value; }
 
 		/**
 		 * Assign a new value. If the value compares equal to the
 		 * current one (where applicable), no listeners are invoked.
 		 * Otherwise, every registered listener is called with the
 		 * old and new values.
+		 *
+		 * Listeners are invoked *without* the internal mutex held,
+		 * so a listener may safely call Subscribe / Unsubscribe /
+		 * Set on the same Observable without deadlocking. A listener
+		 * added or removed during dispatch takes effect on the
+		 * next Set, not the current one.
 		 */
 		void Set(T value) {
-			if constexpr (std::equality_comparable<T>) {
-				if (m_Value == value) return;
+			T oldValue;
+			T newValue;
+			std::vector<Listener> snapshot;
+			{
+				std::lock_guard<std::mutex> const lock(m_Mutex);
+				if constexpr (std::equality_comparable<T>) {
+					if (m_Value == value) {
+						return;
+					}
+				}
+				oldValue = std::move(m_Value);
+				m_Value = std::move(value);
+				newValue = m_Value;
+				snapshot.reserve(m_Listeners.size());
+				for (const auto& [listenerId, listener] : m_Listeners) {
+					snapshot.push_back(listener);
+				}
 			}
-			T oldValue = std::move(m_Value);
-			m_Value = std::move(value);
-			for (auto& [id, listener] : m_Listeners) {
-				listener(oldValue, m_Value);
+
+			for (const auto& listener : snapshot) {
+				listener(oldValue, newValue);
 			}
 		}
 
@@ -85,6 +107,7 @@ namespace Axiom {
 		 * passed to Unsubscribe to remove the listener later.
 		 */
 		ListenerId Subscribe(Listener listener) {
+			std::lock_guard<std::mutex> const lock(m_Mutex);
 			const ListenerId id = m_NextId++;
 			m_Listeners[id] = std::move(listener);
 			return id;
@@ -92,16 +115,22 @@ namespace Axiom {
 
 		/** Remove a previously registered listener. */
 		void Unsubscribe(const ListenerId id) {
+			std::lock_guard<std::mutex> const lock(m_Mutex);
 			m_Listeners.erase(id);
 		}
 
 		/** Number of registered listeners. */
-		size_t ListenerCount() const { return m_Listeners.size(); }
+		size_t ListenerCount() const {
+			std::lock_guard<std::mutex> const lock(m_Mutex);
+			return m_Listeners.size();
+		}
 
-		// Convenience operators so existing code can still read the
-		// observable the same way it reads a plain member variable.
-		operator const T&() const { return m_Value; }
-		const T* operator->() const { return &m_Value; }
+		/**
+		 * Implicit conversion to T. Returns by value so the read
+		 * is race-free against a concurrent Set — any caller
+		 * expecting a stable T&amp; must keep their own copy.
+		 */
+		operator T() const { return Get(); }
 
 		Observable& operator=(T value) {
 			Set(std::move(value));
@@ -112,6 +141,7 @@ namespace Axiom {
 		T m_Value{};
 		ListenerId m_NextId = 1;
 		std::unordered_map<ListenerId, Listener> m_Listeners;
+		mutable std::mutex m_Mutex;
 	};
 
 }
